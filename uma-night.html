@@ -1383,10 +1383,11 @@ function renderJump(){var rc=S.recycle;
  cx.fillStyle='#000';cx.fillRect(0,0,384,216);
  if(!rc){drawNoise(.2);return}
  if(rc.t<.5){                                       /* 段1：剪影扑近 */
-  if(rc.wb||rc.tp==='shadow'){
-   R(cx,120,28,156,164,'#140406');
-   for(var i=0;i<3;i++)for(var k=0;k<3;k++)R(cx,126+k*46,40+i*46,42,42,'#8a1818');
-  }else drawFaceS(cx,rc.tp,192+(Math.random()*18-9),110+(Math.random()*16-8),7.4+rc.t*3);
+   if(rc.wb||rc.tp==='shadow'){
+    R(cx,120,28,156,164,'#140406');
+    for(var i=0;i<3;i++)for(var k=0;k<3;k++)R(cx,126+k*46,40+i*46,42,42,'#8a1818');
+    drawFaceS(cx,'shadow',192+(Math.random()*12-6),110+(Math.random()*10-5),4.8+rc.t*2);
+   }else drawFaceS(cx,rc.tp,192+(Math.random()*18-9),110+(Math.random()*16-8),7.4+rc.t*3);
   drawNoise(.22);return}
  if(rc.t<2.6){                                      /* 段2：soft=信号噪点静默；系统夜=接管删除条 */
   if(softFail()){
