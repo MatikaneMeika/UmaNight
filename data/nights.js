@@ -20,7 +20,7 @@ window.NIGHTS = [
   id: 1,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:.5 } },
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 3, at: 60, path: ['hall','corrB','doorR'], sprintOnJukeDead: true }
   },
@@ -33,7 +33,7 @@ window.NIGHTS = [
   diary: { id: '#001', autoplayAt: '00:00', duration: 55,
            text: '嗒——训练日记，第一天。\n' +
                  '拿到担当了。她抱着一个人偶，站在训练场门口，声音很轻。\n' +
-                 '管理员教了夜班操作。看监控、守门、点歌机响了按一下。电力别用完。\n' +
+                 '管理员教了夜班操作。看监控、守门、点歌机响了按一下，电别用完。我背了两遍——不难，难的是每一夜都守得一样好。\n' +
                  '我说以后穿玩偶服帮她发传单。她笑了。\n' +
                  '玩偶服应该很热吧。' },
   syslog: [ { at: '00:20', sys: '[记录] 《夜班操作手册》 状态：已读（最后阅读：3 年前 4/1）',
@@ -53,7 +53,7 @@ window.NIGHTS = [
   id: 2,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:.5 } },
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 4, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 3, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -70,11 +70,11 @@ window.NIGHTS = [
            text: '嗒——日记，第十七天。\n' +
                  '传单发了两小时，三斤汗。她递水过来，没说话。\n' +
                  '今天跑了倒数第二。到终点又多跑一圈，说还能跑。\n' +
-                 '监控盯久了耐力会掉。不看的时候能回。得省着用。\n' +
-                 '不能一直盯。得学会什么时候看，什么时候不看。' },
+                 '盯监控久了耐力掉得快，移开就能慢慢回。我给自己排了班——什么时候看，什么时候不看。' },
+                 // B-34：原两句清单式机制说明合并为一句（口径=每夜至多一句机制句，挂在「他为她在做某事」上；基准句=#078）
   syslog: [ { at: '03:30', sys: '[接入] 外部用户 ASTON_MACHAN · 03:30 接入 · 时长 4 分 12 秒',
-              note: '白板上……多了一行不是你写的字。', caption: false },
-              // B-24①：原 hints.open 叙事钩子改挂事件实际发生时（03:30 板上浮现「你是谁」的同分钟）
+              note: '白板上……多了一行不是你写的字。', beat: '不是你写的字', caption: false },
+              // B-33 叙事节拍（↔A-76）：beat ≤8 字、每夜≤1、只取 note 语域（他的当场声音，中屏一闪即逝，不进可回看的冷档案）
             { at: '03:35', sys: '[自检] 检测到未授权数据波动 · 来源：本进程',
               note: null, caption: false } ],
   cam9:  [ { at: '03:30', type: 'freeze', dur: 3 } ],
@@ -93,7 +93,7 @@ window.NIGHTS = [
   id: 3,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:.5 } },
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 6, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 4, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -113,13 +113,16 @@ window.NIGHTS = [
   diary: { id: '#049', autoplayAt: '00:00', duration: 55,
            text: '嗒——日记，第四十九天。\n' +
                  '正式签约。她递来一张传单，背面画了井字棋。\n' +
+                 '签完字出来，她眯着眼看了看训练场的灯，问怎么开得这么亮。我说怕选手看不清终点。她说，这样很好。\n' +
                  '白板上下了一盘。我在角落写了几个字。她也写了，折好放进包里。我问写了什么，她说秘密。\n' +
-                 '点歌机红点闪的时候要按一下。不按会出事。监控切换要电，关掉不要。\n' +
+                 '点歌机红点闪的时候要按一下，不按会出事。这种事，我替她记着就行。\n' +
                  '差不多就这些。' },
+                 // B-38 唱游线前声（≤2 行·禁直白点题）：「灯要最亮的」起点——她第一次注意到灯；#078 世界级 / 结局三处引用的声源
+                 // B-34：删「监控切换要电」清单项（操作说明页已覆盖），保留点歌机句并挂「我替她记着」口径
   syslog: [ { at: '03:00', sys: '[白板] 对局请求 · 先手已落定',
               note: '白板亮起，棋盘格和第一枚先手已经在了。', caption: false },
               // B-24①：原 hints.open 叙事钩子改挂事件实际发生时
-            { at: 'post+8',  sys: '[比对] 白板留言笔迹 ↔ 附件#049 一致性 98%', note: null, caption: false },
+            { at: 'post+8',  sys: '[比对] 白板留言笔迹 ↔ 附件#049 一致性 98%', note: null, beat: '98%', caption: false },
             { at: 'post+25', sys: '[检索] 档案A 照片损坏（无底片）', note: null, caption: false } ],
   cam9:  [ { at: 'post+60', type: 'silhouette', dur: 2.5 } ],
            // v1.7 §5：对局结束起 60 秒内查看 CAM9 可见 2-3 秒侧影（奖励看监控的玩家）
@@ -137,7 +140,7 @@ window.NIGHTS = [
   id: 4,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:.5 } },
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 6, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 4, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -166,7 +169,7 @@ window.NIGHTS = [
               note: '白板亮了。她的先手落在角落——像被人教过那样。', caption: false },
               // B-24①：原 hints.open 叙事钩子改挂事件实际发生时
             { at: 'post+8',  sys: '[参数] 左手延迟 −0.03s · 来源：用户习惯数据 · 用户：不存在',
-              note: '……左手？我没有左手。', caption: false },
+              note: '……左手？我没有左手。', beat: '我没有左手', caption: false },
               // TRAINER-00 首条手写备注（v1.7 §6.4 原文）
             { at: 'post+30', sys: '[日志] 4/21 值班记录→已损坏', note: null, caption: false } ],
   cam9:  [ { at: 'post+60', type: 'silhouette', dur: 2.5 } ],
@@ -182,7 +185,7 @@ window.NIGHTS = [
   id: 5,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:.5 } },
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 7, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 5, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -207,14 +210,21 @@ window.NIGHTS = [
                  '我说好。我陪你去。\n' +
                  '她走后我把传单翻了一遍。每张背面都有字。最后一张写着：我的梦想是自己的了，所以你也要有自己的。\n' +
                  '……我是不是写太多了。\n' +
-                 '切出去的话电会一直掉。断电了也别慌，撑一会儿就行。' },
+                 '点歌机的续点我数熟了，三十秒一下，一下都不能少。断电了也别慌，撑一会儿就行。' },
+                 // B-30：原首句教「页面切走扣电」（失焦挂起已废，A-63/B-29），改教当夜真实机制=30s 续点节奏；
+                 // 后半句「断电仁慈阀」口径有效，保留。机制变更→文案全域反查（B-30②）已过，唯一命中即此句。
   syslog: [ { at: '03:00', sys: '[白板] 对局请求 · 先手：随机落定', note: null, caption: false },
               // B-24①：原 hints.open 为纯过程描述无叙事钩子，仅留系统登记
-            { at: 'post+8',  sys: '[权限] 账号「夜班训练员」：无此账号', note: null, caption: false },
+            { at: 'post+8',  sys: '[权限] 账号「夜班训练员」：无此账号', note: null, beat: '无此账号', caption: false },
             { at: 'post+16', sys: '[进程] 本进程 = TRAINER-00 · 残留数据',
               note: 'TRAINER-00……我？', caption: false },
-            { at: 'post+30', sys: '[评估] 自主活动频率超基线 → 威胁等级↑', note: null, caption: false } ],
+            { at: 'post+30', sys: '[评估] 自主活动频率超基线 → 威胁等级↑', note: null, caption: false },
+              // B-39 叙事落点：[擦除] 归档条目与 visits 同时刻落记录页（局内零文字=用户裁决，事后可读）。
+              // 系统侧视角：目标=TRAINER-00（本夜 post 揭示的残留进程）——D 的迫近在冷档案里早已写明在找谁。禁词过：无事故词、D 不称「她」。
+            { at: '02:20', sys: '[擦除] 单元 D · 例行巡检 · 目标：TRAINER-00', note: '刚才左门灯自己亮了。影子没有呼吸。', caption: false },
+            { at: '04:40', sys: '[擦除] 单元 D · 例行巡检 · 目标仍驻留', note: null, caption: false } ],
   cam9:  [ { at: 'post+60', type: 'silhouette', dur: 2.5 } ],
+  visits: { count: 2, at: ['02:20', '04:40'], react: 2.5 },   // B-39/A-81：D 擦除单元门口迫近（第四威胁通道·非致死）；固定左门由引擎按 corrA→doorL 推得，门侧不进数据；跳脸扣一半耐力+5 电（引擎结算）
   camStatic: [ 'plaza' ],   // S1：CAM7 常驻花屏（v1.9 仲裁定稿字段）
   hints: { open: '' }       // v2.0 批次5 B-24①：开局横幅通道停显（与 A-65 同轮）；原句纯过程描述，不迁；board 提示删（B-24③）
 },
@@ -227,7 +237,7 @@ window.NIGHTS = [
   id: 6,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:.5 } },
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 6, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 4, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -256,11 +266,15 @@ window.NIGHTS = [
               note: '白板又亮了——这次的格子像是用手指一笔一笔画出来的。', caption: false },
               // B-24①：原 hints.open 叙事钩子改挂事件实际发生时
             { at: 'post+8',  sys: '[比对] 附件#092 时间线 ↔ 本进程操作日志 重合率 100%',
-              note: '全部……对上了。', caption: false },
+              note: '全部……对上了。', beat: '全部对上了', caption: false },
             { at: 'post+25', sys: '[归档] 例行归档窗口：开启',
               note: '#092 之后就停了。然后是——', caption: false },
-            { at: '05:00', sys: '[例行] 归档窗口巡检：正常', note: null, caption: false } ],
+            { at: '05:00', sys: '[例行] 归档窗口巡检：正常', note: null, caption: false },
+              // B-39 叙事落点：排程与夜5 全同=例行巡检（重复本身就是系统档案的寒意）；锁门应对只落 note（记录页口径），局内仍零文字。
+            { at: '02:20', sys: '[擦除] 单元 D · 例行巡检 · 目标：TRAINER-00', note: null, caption: false },
+            { at: '04:40', sys: '[擦除] 单元 D · 例行巡检 · 目标仍驻留', note: '它到点就来。锁上门，等它走完流程——这也是值班的一部分了。', caption: false } ],
   cam9:  [ { at: 'post+60', type: 'silhouette', dur: 4.5 } ],   // 残影停留更久（v1.7 §10 夜6）
+  visits: { count: 2, at: ['02:20', '04:40'], react: 2.5 },   // B-39：与夜5 同时刻=例行巡检固定排程（系统程序的机械感，玩家可在夜5 学会后夜6 验证）；其余口径同夜5
   camStatic: [ 'plaza' ],   // S1：CAM7 常驻花屏（v1.9 仲裁定稿字段）
   hints: { open: '' }       // v2.0 批次5 B-24①：开局横幅通道停显（与 A-65 同轮），原句已迁 03:00 syslog；board 提示删（B-24③）
 },
@@ -272,12 +286,13 @@ window.NIGHTS = [
    v1.7 §4 续播时序（02:43/03:30/…）随发条模型作废：改为电量续点每 30s 一次（420s 夜≈14 次），曲单计时依旧、穷尽循环回第一首。
    板前淡字「跟平时一样，就好」=board.message（§3.5 埋点4 演出序列：笑脸→格子→中央首子→淡字）；
    夜7 无 autoReply——平局后进入真结局/标准结局流程（§8）。
-   diary：乱码三行（1095 为唯一不被噪声吞没的数字）→ #001 播至「……声音很轻。」自停（§6.1）。 */
+   diary：乱码三行（1095 为唯一不被噪声吞没的数字）→ #001 播至「……声音很轻。」自停（§6.1）——
+   批次5 B-26：整段迁至局后留言窗起播（corruptAt 'post+0'），autoplayAt 合一为 'post+8'（D22 默认，见 B-进度）。 */
 {
   id: 7,
   hourLen: 70,
   power: { start: 80, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:.5 } },
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 18, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 16, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -300,7 +315,10 @@ window.NIGHTS = [
                     { name:'云上圆舞曲', len:55 },
                     { name:'长长的安可', len:999, finale: true } ] },
                     // 谢幕曲 05:51 起播，无归零点——持续播入终局演出与制作名单（v1.7 §6）
-  diary: { id: '#001', autoplayAt: '00:00', duration: 45,
+  diary: { id: '#001', autoplayAt: 'post+8', corruptAt: 'post+0', duration: 45,
+           // B-26/D22：乱码序列整体迁局后留言窗（A-64 同轮）——00:00 答录机不再播，唯一演出=corrupt 三行→#001 截断重播；
+           // autoplayAt 'post+8'=兜底去重锚（corrupt 补放先行置位即跳过）。⚠️ 引擎 autoplay 检查需支持 post 时基或
+           // corruptAt 在场时跳过 00:00——parseClock('post+8') 现退化为 0，A 侧不处理会双播（详见 B-进度便条）。
            text: '嗒——训练日记，第一天。\n' +
                  '拿到担当了。她抱着一个人偶，站在训练场门口，声音很轻。\n' +
                  '管理员教了夜班操作。看监控、守门、点歌机响了按一下。电力别用完。\n' +
@@ -310,15 +328,21 @@ window.NIGHTS = [
                       '噪#@＾＊1095＊＆j重#置...../▓▓▓',
                       '[████] ██ 中断 ██ 挂起 ██' ],
            stopAt: '她抱着一个人偶，站在训练场门口，声音很轻。' },
-           // 归档条目名见 META.corruptDiaryTitle《[损坏] ▓▓1095▓▓》（v1.7 §6.2）
+           // 归档条目名见 META.wbTrashName《[损坏] ▓▓1095▓▓》（v1.7 §6.2；B-27② 由 corruptDiaryTitle 改名）
   syslog: [ { at: '03:00', sys: '[白板] 检测到未授权笔迹 · 持续写入中',
               note: '白板上，有什么正在自己画完。', caption: false },
               // B-24①：原 hints.open 叙事钩子改挂事件实际发生时（「雪花里的 CAM7 暗了」一半由 META.camStaticHint.n7 承载）
             { at: '02:40', sys: '[白板] 累计对局 1095 · 平局 1095 · 胜 0 · 负 0', note: null, caption: true },
             { at: '02:46', sys: '[历史] 模拟对手 · 1088 夜前 · 基准：已故训练员战术数据', note: null, caption: false },
             { at: '02:52', sys: '[接入方] 现实侧连续接入 1095 夜 · 训练负荷异常', note: null, caption: false },
-            { at: '03:20', sys: '[留言] 第 1095 天。麻酱今天也来了。', note: '该下班了。', caption: true } ],
+            { at: '03:20', sys: '[留言] 第 1095 天。麻酱今天也来了。', note: '该下班了。', beat: '该下班了。', caption: true },
+              // B-39 叙事落点：终评前清场——次数与时刻随 visits 收紧；不占 beat（夜7 beat 已归 03:20），最近一条 03:40 在 beat 后 20s。
+            { at: '01:50', sys: '[擦除] 单元 D · 例行巡检 · 目标：TRAINER-00', note: null, caption: false },
+            { at: '03:40', sys: '[擦除] 单元 D · 例行巡检 · 目标仍驻留', note: null, caption: false },
+            { at: '05:10', sys: '[擦除] 单元 D · 评估前清场 · 目标：TRAINER-00', note: null, caption: false } ],
+              // 夜7 beat 在 03:20 固定时点，与 corruptAt 'post+0' 窗（局后 30s 内，≈03:00-03:04）实际不相交；A-76 仍按 corrupt 优先兜底
   cam9:  [ { at: '04:00', type: 'frontal', dur: 4 } ],
+  visits: { count: 3, at: ['01:50', '03:40', '05:10'], react: 2.5 },   // B-39：终评清场升级取上限 3 次；时刻错开 02:40-03:20 syslog 群与 cam9 04:00，末次 05:10 在谢幕曲（05:51）前
   camStatic: [ 'plaza' ],   // S1 常驻花屏；夜7 加剧由 A-28 引擎逐夜强度常量（原 camFx 按 v1.9 仲裁并入 camStatic，避免重复计）
   hints: { open: '' }       // v2.0 批次5 B-24①：开局横幅通道停显（与 A-65 同轮），原句已迁 03:00 syslog；board 提示删（B-24③）
 }

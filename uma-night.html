@@ -18,9 +18,15 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
 .pe{pointer-events:auto}
 #tTime{position:absolute;top:calc(var(--u)*3);right:calc(var(--u)*3.4);font-size:calc(var(--u)*3.6)}
 #tNight{position:absolute;top:calc(var(--u)*8);right:calc(var(--u)*3.4);font-size:calc(var(--u)*1.9);color:#93939d;font-family:var(--fh)}
-#alertDot{position:absolute;top:calc(var(--u)*3);left:50%;transform:translateX(-50%);font-family:var(--fh);font-size:calc(var(--u)*2);color:#e04848;opacity:0;letter-spacing:2px}
+#alertDot{position:absolute;top:calc(var(--u)*3);left:50%;transform:translateX(-50%);width:calc(var(--u)*1.8);height:calc(var(--u)*1.8);background:#e04848;border-radius:50%;box-shadow:0 0 calc(var(--u)*1) #ff3030;opacity:0}
 #alertDot.on{opacity:1;animation:bl 1s steps(2) infinite}
 #alertDot.fast{opacity:1;animation:bl .3s steps(2) infinite}
+#jukeWrap{position:absolute;top:calc(var(--u)*2.2);right:calc(var(--u)*16);display:none;align-items:center;gap:calc(var(--u)*1.5);z-index:4}
+#jukeSec{font-family:var(--fh);font-size:calc(var(--u)*2.8);color:#ffd24a;min-width:calc(var(--u)*4);text-align:right}
+#jukeBtn{width:calc(var(--u)*8);height:calc(var(--u)*8);background:#2c2c34;border:1px solid #3a3a48;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;box-sizing:border-box}
+#jukeBtn:hover{background:#363640;border-color:#505060}
+#jukeBtn:active{background:#222228;border-color:#ffd24a;transform:translateY(1px)}
+@media (pointer:coarse){#jukeBtn{width:calc(var(--u)*10);height:calc(var(--u)*10)}}
 @keyframes bl{50%{opacity:.15}}
 #powBox{position:absolute;left:calc(var(--u)*3);bottom:calc(var(--u)*3);font-size:calc(var(--u)*1.9);line-height:1.9}
 #powBox b{color:#fff}
@@ -124,7 +130,7 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
   <div id="alertDot"></div>
   <div id="staBox">耐力 <b id="staPct">100%</b></div>
   <div id="powBox">电力 <b id="powPct">100%</b><br>用量 <span id="usage"><i></i><i></i><i></i><i></i></span></div>
-  <div id="camHud"><div id="camTitle">CAM1 · 大厅</div><div id="camSub"></div><div id="rec"><i></i>REC</div><div id="map"></div></div>
+  <div id="camHud"><div id="camTitle">CAM1 · 大厅</div><div id="camSub"></div><div id="jukeWrap" class="pe"><span id="jukeSec"></span><button id="jukeBtn" title="续发条" aria-label="续发条"><svg viewBox="0 0 10 10" width="16" height="16" style="image-rendering:pixelated"><path d="M5 1L2 6h3l-1 3 4-5H5l1-3z" fill="#ffd24a"/></svg></button></div><div id="rec"><i></i>REC</div><div id="map"></div></div>
   <div id="blackHud">10</div>
   <div id="dbg"></div>
   <div id="camStrip" class="pe">▲ 打开监控</div>
@@ -135,15 +141,15 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
   <div id="eggFx"></div>
 </div>
 <div class="ovl on" id="ovMenu">
-  <div id="mTitle">UMA-NIGHT<span>七 夜 · 完 整 版</span></div>
+  <div id="mTitle">UMA-NIGHT<span id="mSubtitle">七 夜 · 值 班 记 录</span></div>
   <div id="mNights"></div>
   <div id="mSub">
     <button class="mbtn" id="mLog">记录</button>
     <button class="mbtn" id="mArch">档案</button>
     <button class="mbtn" id="mHow">操作说明</button>
-    <button class="mbtn mini" id="mUnlock" title="测试用：解锁全部七夜；Shift+点击=重置进度">解锁全部</button>
+    <button class="mbtn mini" id="mUnlock" style="display:none" title="测试用：解锁全部七夜；Shift+点击=重置进度">解锁全部</button>
   </div>
-  <div id="mFoot">单夜 6-7 分钟 · F1-F8 调试键 · 进度自动保存</div>
+  <div id="mFoot">值班记录实时保存 · 灯请保持常亮</div>
 </div>
 <div class="ovl" id="ovHow"><div class="box">
   <h3>操作说明</h3>
@@ -152,10 +158,9 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
   <em>SYS LOG</em>：系统日志在事件发生时以提示音提示，全部条目自动归档到 主菜单·记录 页阅读；<em>答录机</em>：00:00 自动留言（左上角字幕式，一次 1-2 行），仅 R 键中断（点击不跳过）；<em>白板近看</em>：点击办公室白板本体放大／F 键近看。<br>
   <em>门控（双钮）</em>：门边两个按钮——<em>锁钮</em>点击切换门锁（锁定期间 0.5%/s，再点解锁）；<em>灯钮</em>点击亮 1 秒（只显示剪影，不暂停任何东西）。键盘 Q/E 切换左右门锁、Z/X 点亮左右灯。门边是监控死角，危险抵门后必须立即锁门。<br>
   <em>进程稳定度</em>（HUD 标签为「耐力」）：<span id="howSta">监控对准所在房间约 1 秒可冻结它（盯视 −2%/s）；开监控 +1%/s、收监控 +2%/s、切台 −0.5%。<br>&lt;20% 盯视失效且切台冷却翻倍，&lt;10% 开不了监控；归零僵直 5 秒后回到 30%（锁门期间门锁维持）。</span><br>
-  <em>点歌机</em>：00:00 自动开播；打开监控查看大厅（CAM1），点击画面中的点唱机即可续电（耗电）。电量不足 5 秒时镜头泛红并开始倒计时，停机将触发冲刺袭击，当晚无法再恢复。<br>
-  <em>白板</em>：深夜会亮起，与接入方对弈——点击办公室白板本体放大／F 键近看；落子需收起监控，对局期间全场移动变慢。对局结果各有其意义。<br>
-  <em>电力</em>：待机、监控、门锁、灯光、切换都耗电，用量格实时显示；归零进入黑暗倒计时，撑到 06:00 仍算幸存。<br>
-  <em>调试</em>：F1/F2 电力∓10 · F3 稳定度回满 · F4 点歌机逼近归零 · F5 强制白板 · F6 强制C到左门 · F7 快进30秒 · F8 上帝视角
+  <em>点歌机</em>：00:00 自动开播；打开监控查看大厅（CAM1），点击右上角闪电按钮或画面中的点唱机即可续电（耗电）。电量不足 5 秒时镜头切片花屏告警，停机将触发冲刺袭击，当晚无法再恢复。<br>
+  <em>白板</em>：深夜会亮起，与接入方对弈——点击办公室白板本体放大／F 键近看；落子需收起监控，开监控或近看白板时倒计时流速减半（仁慈阀）。对局结果各有其意义。<br>
+  <em>电力</em>：待机、监控、门锁、灯光、切换都耗电，用量格实时显示；归零进入黑暗倒计时，撑到 06:00 仍算幸存。
   <div class="btnrow" style="margin-top:12px"><button class="mbtn" id="howBack">返回</button></div>
 </div></div>
 <div class="ovl" id="ovLog"><div class="box">
@@ -244,12 +249,13 @@ function buildRT(){var p=N.power||{},b=N.board||{},j=N.juke||{};
    edge:Object.assign({t:3,knock:1,backCd:10,giveUp:3,retreatCd:25},N.edge||{}),
    juke:{start:parseClock(j.start,N.hourLen),warn:j.warn!=null?j.warn:(CUR===7?3:5),tracks:j.tracks||[],finale:!!j.finale,
          battery:j.battery||{cap:30,renew:30}},   /* A-39/A-47 发条单轨化，缺省提供兜底 */
-   board:{mode:b.mode||'game',at:parseClock(b.at,N.hourLen),limit:b.playerTimer||8,opp:oppX,
+   board:Object.assign({},b,{mode:b.mode||'game',at:parseClock(b.at,N.hourLen),limit:b.playerTimer||8,opp:oppX,
           grace:b.grace!=null?b.grace:1.5,firstStone:b.firstStone||'random',
           block:b.blockChance!=null?b.blockChance:.5,       /* blockChance：抢占玩家即胜点的概率（A7 陪练 AI） */
           policy:b.winPolicy||'reeval',                     /* reeval（夜3-6 紧急评估）| instant（夜7 即刻回收） */
           message:b.message||null,autoReply:b.autoReply||null,
-          cornerBias:!!b.cornerBias},                       /* 夜4/5 首个自由落子偏置角落（v1.7 §3.1，B 已双写数据） */
+          cornerBias:!!b.cornerBias,
+          smiley:!!b.smiley,noiseFx:!!b.noiseFx,preFaint:b.preFaint||null}),                       /* A-73 补齐 smiley/noiseFx/preFaint 透传 */
    evalDelta:2,                                             /* 紧急评估幅度 +2（v1.7 §13.8 倾向，P4 可调） */
    evalText:(META&&META.evalText)||'[评估] 反应模式超出基线',
    stopAt:(N.diary&&N.diary.stopAt)||(META&&META.diaryStopAt)||'站在训练场门口，声音很轻。',
@@ -257,6 +263,7 @@ function buildRT(){var p=N.power||{},b=N.board||{},j=N.juke||{};
    diary:N.diary||null,
    blackT:10,camCd:1,slowX:2,               /* 白板对局期间全场移动 ×2 慢（引擎常量） */
    hints:N.hints||{}}}
+function jukeWarn(){var w=CFG&&CFG.juke&&CFG.juke.warn;return w!=null?w:(CUR===7?3:5)}
 /* ============ 存档（契约 §3.4） ============ */
 const SAVE_KEY='umanight_save_v1';
 function defSave(){return{unlockedNight:1,diaryHeard:[],archFlags:{A:0,B:0,C:0,D:0,final:0},winCount:0,everWon:false,clearedTrue:false,
@@ -270,7 +277,7 @@ function loadSave(){try{var raw=localStorage.getItem(SAVE_KEY);if(!raw)return de
    if(d.sysArch&&typeof d.sysArch==='object')for(var nk in d.sysArch)if(Array.isArray(d.sysArch[nk]))
     s.sysArch[nk]=d.sysArch[nk].filter(function(e){return e&&typeof e.sys==='string'}).map(function(e){return{t:String(e.t||''),sys:e.sys,note:typeof e.note==='string'?e.note:null}});
    s.winCount=d.winCount|0;s.everWon=!!d.everWon;s.clearedTrue=!!d.clearedTrue;
-   if(Array.isArray(d.ghosts))s.ghosts=d.ghosts.filter(function(g){return g&&typeof g.t==='string'}).slice(-10);
+   if(Array.isArray(d.ghosts))s.ghosts=d.ghosts.filter(function(g){return g&&(typeof g.msg==='string'||typeof g.t==='string')}).map(function(g){return{n:g.n||0,msg:g.msg||g.t||'',t:g.t||g.msg||'',reply:g.reply||null,o:g.o!=null?g.o:.06}}).slice(-14);
    s.eggAt=d.eggAt|0;s.deaths=d.deaths|0}
   return s}catch(e){return defSave()}}
 function writeSave(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE))}catch(e){}}
@@ -282,20 +289,20 @@ const JOFF={slot_A:0,slot_B:0,slot_C:0,slot_D:0,shadow:0};
 const RN={hall:'大厅',gym:'健身房',shop:'商店',lib:'图书馆',pool:'游泳馆',gymn:'室内体育馆',plaza:'三女神广场',corrA:'左走廊',corrB:'右走廊'};
 const CAMORDER=['hall','gym','shop','lib','pool','gymn','plaza','corrA','corrB'];
 const CAMNO={hall:'CAM1',gym:'CAM2',shop:'CAM3',lib:'CAM4',pool:'CAM5',gymn:'CAM6',plaza:'CAM7',corrA:'CAM8',corrB:'CAM9'};
-const MAPLAY=[['gym',2,4,26,13],['hall',30,2,40,17],['lib',72,4,26,13],
- ['shop',2,20,26,15],['pool',72,20,26,15],
+const MAPLAY=[['lib',2,4,26,13],['hall',32,2,38,17],['gym',72,4,26,13],
+ ['pool',2,20,26,15],['shop',72,20,26,15],
  ['corrA',30,42,9,18],['corrB',61,42,9,18],
- ['gymn',4,60,26,20],['plaza',34,58,32,24]];   /* 用户指令：地图快捷切换样式恢复旧拟真布局 */
+ ['plaza',2,58,26,20],['gymn',34,62,26,20]];   /* A-79：左右同侧地图布局（左门通lib/pool/plaza，右门通gym/shop/hall） */
 const SLOTPOS={
- hall:[[232,124,1.5],[150,200,2.9]],
- gym:[[62,126,1.4],[150,200,2.9]],
- shop:[[118,136,1.4],[205,200,2.8]],
- lib:[[235,128,1.5],[150,200,2.9]],
- pool:[[290,116,1.5],[150,200,2.9]],
- gymn:[[205,124,1.5],[150,200,3.0]],
- plaza:[[128,150,2.1],[248,150,2.1]],
- corrA:[[168,126,1.4],[134,196,2.9]],
- corrB:[[215,126,1.4],[250,196,2.9]]
+ hall:[[232,124,1.4],[280,126,1.4],[130,200,2.9],[240,200,2.9]],
+ gym:[[62,126,1.4],[110,126,1.4],[140,200,2.9],[240,200,2.9]],
+ shop:[[118,136,1.4],[170,136,1.4],[140,200,2.8],[240,200,2.8]],
+ lib:[[235,128,1.4],[280,128,1.4],[130,200,2.9],[230,200,2.9]],
+ pool:[[290,116,1.4],[330,120,1.4],[130,200,2.9],[230,200,2.9]],
+ gymn:[[205,124,1.4],[260,124,1.4],[130,200,2.9],[240,200,2.9]],
+ plaza:[[128,140,1.8],[248,140,1.8],[120,190,2.6],[250,190,2.6]],
+ corrA:[[168,126,1.4],[210,126,1.4],[110,196,2.9],[205,196,2.9]],
+ corrB:[[175,126,1.4],[215,126,1.4],[180,196,2.9],[275,196,2.9]]
 };
 const FOOT={slot_A:24,slot_B:21,slot_C:6,slot_D:28};
 /* A-31/A-57 去 FNAF 化映射：slot→贴图映射常量。
@@ -304,8 +311,10 @@ const SLOTDEF={A:{img:'slot_A',d:'slot_A',t0:6},B:{img:'slot_B',d:'slot_B',t0:7}
                C:{img:'slot_C',d:'slot_C',t0:7},D:{img:'slot_D',d:'slot_D',t0:7}};
 /* ============ 资源复用：加载 media/ 提取贴图 ============ */
 const IMG={};
+function officeImg(){return (CUR>=1&&CUR<=7&&IMG['office'+CUR])||IMG.office}
 function loadAssets(done){
  const files={office:'media/scenes/office.png'};
+ for(let n=1;n<=7;n++)files['office'+n]='media/scenes/office/'+n+'.png';
  CAMORDER.forEach((id,i)=>files[id]='media/scenes/cam'+(i+1)+'_'+id+'.png');
  files['hall_on']='media/scenes/cam1_hall_on.png';   /* v1.9b：点歌机亮灯态 */
  ['slot_A','slot_B','slot_C','slot_D','shadow'].forEach(tp=>{  /* A-57：脸部与影子特写 */
@@ -378,6 +387,7 @@ AU.tape=()=>{if(!AU.ctx)return;tone(320,250,.07,'square',.10);nz(.04,1400,.05,'h
 AU.beep2=()=>{if(!AU.ctx)return;var C=AU.ctx;   /* 「嘟嘟」：录音机走带开始/结束（暖方波双响） */
  [0,.17].forEach(function(d){tone(560,560,.07,'square',.10,null,C.currentTime+d)})};
 AU.glitchCut=()=>{if(!AU.ctx)return;nz(.35,900,.30,'bandpass',3);tone(1600,120,.18,'square',.12)};   /* A-64：戛然而止错乱音效 */
+AU.visitSound=()=>{if(!AU.ctx)return;nz(.2,600,.22,'bandpass',2);tone(300,180,.28,'sawtooth',.10)};   /* A-81：「她来了」逼近音效 */
 function setStatic(on){if(AU.sg)AU.sg.gain.linearRampToValueAtTime(on?.045:0,AU.ctx.currentTime+.06)}
 addEventListener('pointerdown',()=>{aInit();if(AU.ctx.state==='suspended')AU.ctx.resume()},{capture:true});
 /* ============ 噪声/扫描线（复用） ============ */
@@ -399,7 +409,32 @@ function drawChar(g,tp,X,Y,s){const im=IMG['slot_'+tp]||IMG['face_'+tp];if(!im)r
 function drawFaceS(g,tp,X,Y,s){const im=IMG['face_'+tp];if(!im)return;
  g.drawImage(im,X-120*s/6,Y-205*s/6,im.width*s/6,im.height*s/6)}
 /* ============ v1.9 槽位立绘（A-28/A-30）============ */
-function glitchLv(){return CUR>=5?2:1}                 /* A-28 逐夜花屏强度：1-4 夜常规，5-7 夜加强 */
+function glitchLv(o){if(o!=null)return o;return CUR>=5?2:1}                 /* A-28 逐夜花屏强度：1-4 夜常规，5-7 夜加强 */
+let scratchCv=null,scratchG=null;
+function sliceGlitch(g,src,x,y,w,h,lv,bandsCount){
+ if(!src)return;
+ lv=lv||glitchLv();
+ var isSelf=(src===cv||(g&&src===g.canvas));
+ var sImg=src;
+ if(isSelf){
+  if(!scratchCv){scratchCv=mk(384,216);scratchG=scratchCv.getContext('2d')}
+  scratchG.clearRect(0,0,384,216);
+  scratchG.drawImage(src,0,0,384,216);
+  sImg=scratchCv;
+ }
+ var sw=sImg.width||w, sh=sImg.height||h;
+ var bands=bandsCount||(1+rnd(lv===2?3:2));
+ for(var bi=0;bi<bands;bi++){
+  var by2=y+rnd(Math.max(1,h|0)), bh2=2+rnd(Math.max(2,Math.min(8,h/4)|0));
+  var off=(rnd(2*lv+2)-lv-1)*(1+.4*lv);
+  var syr=(by2-y)/h*sh, shr=bh2/h*sh;
+  g.drawImage(sImg,0,clamp(syr,0,sh-1),sw,clamp(shr,1,sh-syr),x+off,by2,w,bh2);
+  g.fillStyle='rgba(255,64,64,'+(.14+.06*lv)+')';
+  g.fillRect(x+off+1.5,by2,w,bh2);
+  g.fillStyle='rgba(64,224,255,'+(.12+.05*lv)+')';
+  g.fillRect(x-off-1.5,by2,w,bh2);
+ }
+}
 function slotImg(k){var def=SLOTDEF[k];return def?IMG[def.img]||null:null}
  function drawSlot(g,k,X,Y,s){                          /* 槽位立绘：原色图 + 渲染时抖动/闪动/平滑撕裂（非烘焙非马赛克） */
   var im=slotImg(k);
@@ -422,18 +457,11 @@ function slotImg(k){var def=SLOTDEF[k];return def?IMG[def.img]||null:null}
   g.drawImage(im,0,syy,im.width,shh,dx+off,ty,ww,th2)}
  if(Math.random()<.07*lv){g.fillStyle='rgba(205,222,250,.07)';
   g.fillRect(dx,dy,ww,hh)}                            /* 冷色闪罩 */
- /* A-32：头部区域彩色故障（眼/嘴高度带）——低概率横切条带+错位+红/青色散 */
+ /* A-32/A-74：头部区域彩色故障（眼/嘴高度带）——调用参数化 sliceGlitch */
  if(Math.random()<.11*lv){
-  var bands=1+rnd(lv===2?3:2),hf=hh/3;
-  for(var bi=0;bi<bands;bi++){
-   var by2=dy+rnd(Math.max(1,hf|0)),bh2=2+rnd(4);
-   var off=(rnd(2*lv+2)-lv-1)*(1+.4*lv);              /* ±1..4px 错位 */
-   var syr=(by2-dy)/hh*im.height,shr=bh2/hh*im.height;
-   g.drawImage(im,0,syr,im.width,shr,dx+off,by2,ww,bh2);      /* 条带重绘错位 */
-   g.fillStyle='rgba(255,64,64,'+(.14+.06*lv)+')';            /* 红/青单边色散 */
-   g.fillRect(dx+off+1.5,by2,ww,bh2);
-   g.fillStyle='rgba(64,224,255,'+(.12+.05*lv)+')';
-   g.fillRect(dx-off-1.5,by2,ww,bh2)}}}
+  var hf=hh/3;
+  sliceGlitch(g,im,dx,dy,ww,hf,lv);
+ }}
 /* ============ A-27 CAM7 常驻纯雪花通道（v1.9 S1）============
    camStatic 房间：整屏纯雪花、抑制场景本体与槽位贴图；三女神轮廓依稀可辨。
    数据缺省时引擎按 S1 设定兜底 plaza 常驻（B-19 数据到位后覆盖）。
@@ -474,7 +502,21 @@ function buildEvents(){S.events=[];
  (N.dream||[]).forEach(function(e){add(e.at,function(){S.dreamEv={dur:e.dur||2,t:0};
   if(e.stamina)applyStamina({delta:e.stamina,reason:null})})});
  (N.scriptedStamina||[]).forEach(function(e){add(e.at,function(){applyStamina(e)})});
- (N.camFx||[]).forEach(function(r){S.camFxRooms[r]=1})}     /* 全夜相机特效（夜7 CAM7 雪花），非时刻事件 */
+  (N.camFx||[]).forEach(function(r){S.camFxRooms[r]=1});
+  /* A-81：「她来了」D 单元迫近事件时间表（夜5、6、7） */
+  var vTimes={5:['03:15'],6:['02:40','04:20'],7:['01:50','03:40','04:50']};
+  (vTimes[CUR]||[]).forEach(function(atStr){
+   var evObj={at:{abs:parseClock(atStr,N.hourLen)},fired:0};
+   evObj.fn=function(){
+    var dSlot=S.slots&&S.slots.D;
+    var dLoc=dSlot&&dSlot.path[dSlot.idx];
+    if(dSlot&&dSlot.active&&!dSlot.retreating&&(dLoc==='corrA'||dLoc==='doorL')){
+     evObj.at.abs=S.time+6;evObj.fired=0;return;
+    }
+    triggerVisit();
+   };
+   S.events.push(evObj);
+  })}
 function tickEvents(){
  for(var i=0;i<S.events.length;i++){var e=S.events[i];
   if(e.fired)continue;
@@ -486,8 +528,14 @@ function applyStamina(e){S.sta=clamp(S.sta+e.delta,0,100);
  if(e.delta<0&&AU.ctx)AU.warn()}
 /* ============ SYS LOG（A10 改版）：推送音 + 故障字幕 + 归档进主菜单记录页（游戏内面板已移除） ============ */
 function pushSyslog(item){
- var e={sys:item.sys||'',note:item.note||null,at:fmtClock(S.time),caption:!!item.caption};
+ var e={sys:item.sys||'',note:item.note||null,at:fmtClock(S.time),caption:!!item.caption,beat:item.beat||null};
  if(AU.ctx)AU.pushSoft();
+ /* A-76：叙事节拍 beat 字幕通道（夜7 corrupt 播放中不打断） */
+ if(e.beat){
+  if(!(S.answ&&S.answ.phase==='corrupt')){
+   S.capText=e.beat;S.capT=2.5;
+  }
+ }
  /* A-41：caption 数据字段保留；局内中屏字幕停显，全文只进记录页 */
  /* 落盘归档：按夜 id 存入 SAVE.sysArch，记录页可读 */
  if(!SAVE.sysArch[CUR])SAVE.sysArch[CUR]=[];
@@ -581,7 +629,7 @@ function mkSlots(){var out={};
   out[k]=o}
  return out}
 function startNight(n,fromDeath){
- CUR=n||CUR||3;
+ CUR=n||CUR||3;pBake=null;panoCv=null;
  N=resolveNight(CUR);META=getMeta();CFG=buildRT();
  /* 重试包裹（A13）：死亡后重开显示轮换文案（META.retry.copy）；
     夜1-5 走 copySoft 中性文案（不出戏：不出现「聚合/残留数据」等系统词） */
@@ -606,6 +654,7 @@ function startNight(n,fromDeath){
   events:[],postAt:null,reeval:0,
   answ:{on:0,t:0,phase:'',id:null,lines:null,li:-1,perLine:0,corrupt:null},
   cam9Ev:null,dreamEv:null,capText:null,capT:0,close:0,camFxRooms:{},
+  visit:null,visitLitL:0,visitScare:0,
   finaleMel:0};
  buildEvents();
  $('inNight').textContent='第 '+CUR+' 夜';
@@ -632,6 +681,24 @@ function checkEgg(){if(!SAVE.winCount||SAVE.winCount<=SAVE.eggAt)return;
   setTimeout(function(){el.classList.remove('on')},6200)}
  SAVE.eggAt=SAVE.winCount;writeSave()}
 /* ============ 机制 ============ */
+/* A-81：「她来了」D 单元迫近事件（左门灯亮起+剪影，2.5s反应窗口；锁门化解，超时跳脸不致死） */
+function triggerVisit(){
+ if(!S||scene!=='game'||S.visit||S.black)return;
+ S.visit={t:2.5,maxT:2.5,side:'L'};
+ S.visitLitL=1.2;
+ if(AU.visitSound)AU.visitSound();
+}
+function visitScare(){
+ S.visit=null;
+ S.visitLitL=0;
+ S.visitScare=0.8;
+ S.shake=0.5;
+ if(S.cams)setCams(false);
+ if(AU.ctx)AU.scream();
+ S.sta=Math.max(20,S.sta*0.5);
+ S.power=Math.max(0,S.power-5);
+ if(S.power<=0&&!S.black)triggerBlackout();
+}
 /* 回收演出统一口径（A13，v1.7 §7）：剪影扑近 0.5s → 系统接管「异常进程定位 TRAINER-00 · 开始回收」
    + 删除进度条约 2s → 黑屏 →「本夜评估未通过」。wb=true 为白板通道执行删除（夜7 胜/超时）。 */
 function jump(tp,msg,tag,wb){S.recycle={t:0,gearT:0,tp:tp,msg:msg,tag:tag||'?',wb:!!wb};
@@ -642,10 +709,10 @@ function jump(tp,msg,tag,wb){S.recycle={t:0,gearT:0,tp:tp,msg:msg,tag:tag||'?',w
 function win(){scene='done';hud.classList.remove('on');setStatic(false);
  SAVE.everWon=true;
  if(CUR<7)SAVE.unlockedNight=Math.max(SAVE.unlockedNight,CUR+1);
- /* 残影层（A14）：当夜留言按 ghostOpacity 归档，跨夜叠加 */
+ /* 残影层（A14）与白板留言归档（A-77）：当夜留言按 ghostOpacity 归档，跨夜叠加 */
  if(CFG.board.message&&CFG.board.mode!=='none'){
-  SAVE.ghosts.push({n:CUR,t:String(CFG.board.message),o:CFG.board.ghostOpacity!=null?CFG.board.ghostOpacity:.06});
-  if(SAVE.ghosts.length>10)SAVE.ghosts=SAVE.ghosts.slice(-10)}
+  SAVE.ghosts.push({n:CUR,msg:String(CFG.board.message),t:String(CFG.board.message),reply:CFG.board.autoReply?String(CFG.board.autoReply):null,o:CFG.board.ghostOpacity!=null?CFG.board.ghostOpacity:.06});
+  if(SAVE.ghosts.length>14)SAVE.ghosts=SAVE.ghosts.slice(-14)}
  /* A-66 档案归档接线：通关根据 trigger 判定点亮 A-D 旗标 */
  var archUnlocked=false;
  var archMeta=(META&&META.archives)||{};
@@ -766,9 +833,9 @@ function endTrue(){SAVE.clearedTrue=true;SAVE.archFlags.final=1;writeSave();
 function renderTrueEnd(){var te=S.te;
  cx.fillStyle='#000';cx.fillRect(0,0,384,216);
  if(!te){drawNoise(.05);return}
- if(te.phase==='comm'||te.phase==='line'||te.phase==='run'){
-  if(IMG.office)cx.drawImage(IMG.office,-Math.round(S.pan),0);   /* 待机镜头 */
-  cx.fillStyle='rgba(110,135,170,.15)';cx.fillRect(0,0,384,216);  /* 灯光转待机色 */
+  if(te.phase==='comm'||te.phase==='line'||te.phase==='run'){
+   var oim=officeImg();if(oim)cx.drawImage(oim,0,0,oim.width,oim.height,-Math.round(S.pan),0,640,216);   /* 待机镜头（显式 640x216） */
+   cx.fillStyle='rgba(110,135,170,.15)';cx.fillRect(0,0,384,216);  /* 灯光转待机色 */
   drawNoise(.04);return}
  if(te.phase==='shut'){                             /* HUD 元件依次熄灭：监控→门锁→红点→白板 */
   var names=['监控','门锁','红点','白板'];
@@ -819,50 +886,50 @@ function stareEffective(s){return watched(s)&&s.stareT>=CFG.stareRamp}
 function tickSlot(s,dt){
  if(watched(s)){s.stareT=Math.min(2,s.stareT+dt)}
  else s.stareT=0;
- if(!s.moved){
-  if(S.time>=s.moveAt){s.moved=1;s.retreating=0;s.stayT=0;s.tier=0;if(s.sprintOn)AU.gear();else AU.thump(.12)}
-  else return}
- /* 变调铃：响铃=2 秒后掷骰 */
- if(s.bell){
-  if(s.rollT>0){if(!stareEffective(s)){s.rollT-=dt;
-   if(s.rollT<=0){if(rnd(20)<s.ai)tryMove(s)}}}
-  else{s.bell-=dt;if(s.bell<=0){s.bell=(s.bellEvery||20)+rnd(12);s.rollT=s.roll||2;AU.ringB()}}}
- var loc=s.path[s.idx];
- if(stareEffective(s))return;
- if(loc==='doorL'||loc==='doorR'){
-  if(lockedFor(s)){s.knock+=dt;
-   if(s.knock>=CFG.edge.knock){
-    var side=doorSide(s);
-    AU.knock(side);S.shake=.25;s.knock=0;
-    s.fails=(s.fails||0)+1;
-    if(s.fails<CFG.edge.giveUp){
-     s.idx=Math.max(0,s.idx-(s.sprint?2:1));
-     s.t=CFG.edge.backCd+rnd(6);S.stats.blocks++;
-    }else{
-     s.fails=0;s.idx=0;s.moved=0;s.retreating=1;
-     s.moveAt=S.time+CFG.edge.retreatCd;
-     s.sprint=0;s.t=moveInterval(s);S.stats.blocks++;
-     AU.thump(.1);
-    }
-    if(navigator.vibrate)navigator.vibrate(40)}}
-  else{s.doorT-=dt;
-   if(s.doorT<=0){var side=doorSide(s);
-    var tag=side==='R'?'R-DOOR':(side==='L'?'L-DOOR':'DOOR');
-    if(s.sprintOn&&S.juke.dead)tag='JUKE→'+s.nm;
-    var sideTxt=side==='L'?'门那边的东西，从左边进来了。':(side==='R'?'门那边的东西，从右边进来了。':'门那边的东西进来了。');
-    jump(s.d,sideTxt,tag)}}
-  return}
- s.stayT=(s.stayT||0)+dt;
- if(s.stayT>=moveInterval(s)*0.5)s.tier=1;else s.tier=0;
- if(s.sprintOn&&!s.sprint)return;                   /* 绑定点歌机的槽：播着完全不动 */
- s.t-=dt;if(s.t>0)return;
- s.t=moveInterval(s);
- if(!s.sprint&&rnd(20)>=s.ai)return;
- tryMove(s)}
+  if(!s.moved){
+   if(S.time>=s.moveAt){s.moved=1;s.retreating=0;s.stayT=0;s.tier=0;s.slotIdx=null;if(s.sprintOn)AU.gear();else AU.thump(.12)}
+   else return}
+  /* 变调铃：响铃=2 秒后掷骰 */
+  if(s.bell){
+   if(s.rollT>0){if(!stareEffective(s)){s.rollT-=dt;
+    if(s.rollT<=0){if(rnd(20)<s.ai)tryMove(s)}}}
+   else{s.bell-=dt;if(s.bell<=0){s.bell=(s.bellEvery||20)+rnd(12);s.rollT=s.roll||2;AU.ringB()}}}
+  var loc=s.path[s.idx];
+  if(stareEffective(s))return;
+  if(loc==='doorL'||loc==='doorR'){
+   if(lockedFor(s)){s.knock+=dt;
+    if(s.knock>=CFG.edge.knock){
+     var side=doorSide(s);
+     AU.knock(side);S.shake=.25;s.knock=0;
+     s.fails=(s.fails||0)+1;
+     if(s.fails<CFG.edge.giveUp){
+      s.idx=Math.max(0,s.idx-(s.sprint?2:1));
+      s.t=CFG.edge.backCd+rnd(6);s.slotIdx=null;S.stats.blocks++;
+     }else{
+      s.fails=0;s.idx=0;s.moved=0;s.retreating=1;
+      s.moveAt=S.time+CFG.edge.retreatCd;
+      s.sprint=0;s.t=moveInterval(s);s.slotIdx=null;S.stats.blocks++;
+      AU.thump(.1);
+     }
+     if(navigator.vibrate)navigator.vibrate(40)}}
+   else{s.doorT-=dt;
+    if(s.doorT<=0){var side=doorSide(s);
+     var tag=side==='R'?'R-DOOR':(side==='L'?'L-DOOR':'DOOR');
+     if(s.sprintOn&&S.juke.dead)tag='JUKE→'+s.nm;
+     var sideTxt=side==='L'?'门那边的东西，从左边进来了。':(side==='R'?'门那边的东西，从右边进来了。':'门那边的东西进来了。');
+     jump(s.d,sideTxt,tag)}}
+   return}
+  s.stayT=(s.stayT||0)+dt;
+  if(s.stayT>=moveInterval(s)*0.5)s.tier=1;else s.tier=0;
+  if(s.sprintOn&&!s.sprint)return;                   /* 绑定点歌机的槽：播着完全不动 */
+  s.t-=dt;if(s.t>0)return;
+  s.t=moveInterval(s);
+  if(!s.sprint&&rnd(20)>=s.ai)return;
+  tryMove(s)}
 function tryMove(s){
  var loc=s.path[s.idx];
  if(loc==='doorL'||loc==='doorR')return;
- s.stayT=0;s.tier=0;
+ s.stayT=0;s.tier=0;s.slotIdx=null;
  if(s.idx===s.path.length-2){
   s.idx++;s.doorT=s.edgeKill||CFG.edge.t;s.knock=0;AU.moan(doorSide(s))}
  else{var step=1;
@@ -879,7 +946,7 @@ function jukeSprintChain(){                          /* A-39：余量窗耗尽�
  S.stats.miss++;
  var spr=false;
  for(var ka in S.slots){var a=S.slots[ka];
-  if(a.sprintOn){a.sprint=1;a.idx=Math.min(1,a.path.length-2);a.t=moveInterval(a);a.doorT=0;a.knock=0;a.stareT=0;a.stayT=0;a.tier=1;spr=true}}
+  if(a.sprintOn){a.sprint=1;a.idx=Math.min(1,a.path.length-2);a.t=moveInterval(a);a.doorT=0;a.knock=0;a.stareT=0;a.stayT=0;a.tier=1;a.slotIdx=null;spr=true}}
  if(spr)AU.run()}                                    /* A-41：冲刺提醒=奔跑音+alertDot 快闪+edgeFx 门缘红 */
 function tickJuke(dt){var j=S.juke;
  if(!j.started){if(S.time>=CFG.juke.start){j.started=1;AU.gear();
@@ -997,7 +1064,8 @@ function tickBoard(dt){var b=S.board;
  if(b.state!==1)return;
  if(S.black)return;                                 /* 断电：白板倒计时冻结 */
  if(b.turn==='you'){
-  var before=Math.ceil(b.moveT);b.moveT-=dt;var now=Math.ceil(b.moveT);
+  var sp=(S.cams||S.close)?0.5:1.0;                  /* A-80：开监控或近看白板时倒计时流速减半（仁慈阀） */
+  var before=Math.ceil(b.moveT);b.moveT-=dt*sp;var now=Math.ceil(b.moveT);
   if(now!==before&&now<=3&&now>0)AU.tick();
   if(b.moveT<=0){b.result='timeout';b.state=2;jump('shadow','白板倒计时归零。','WB-TIME',true)}
  }else{b.oppT-=dt;
@@ -1010,16 +1078,21 @@ function updateGame(dt){S.time+=dt;
  var h=Math.floor(S.time/N.hourLen);
  if(h!==S.hour)S.hour=h;
  if(S.hour>=6){win();return}                        /* 06:00 整点结算优先（含续播窗口边缘豁免） */
-  /* 答录机（A9）：autoplayAt 到点真铃自动播放 */
-  if(CFG.diary&&!S.answPlayed&&S.time>=parseClock(CFG.diary.autoplayAt||'00:00',N.hourLen)){
-   S.answPlayed=1;startDiary()}
-  /* A-64：夜7 乱码时序迁至白板局后留言窗口 */
-  var corAt=(CFG.diary&&CFG.diary.corruptAt)||(CUR===7?'post+0':'00:00');
-  if(corAt.indexOf('post')===0&&S.postAt!=null&&!S.corruptTriggered&&CFG.diary&&CFG.diary.corrupt&&CFG.diary.corrupt.length){
-   var off=parseFloat(corAt.slice(4))||0;
-   if(S.time>=S.postAt+off){
-    S.corruptTriggered=1;
-    startCorruptPlayback()}}
+   /* 答录机（A9）：autoplayAt 到点真铃自动播放（支持 HH:MM 与 post+N 时基） */
+   var apAt=CFG.diary&&CFG.diary.autoplayAt;
+   var apReady=false;
+   if(apAt){
+    if(apAt.indexOf('post')===0&&S.postAt!=null){var apoff=parseFloat(apAt.slice(4))||0;if(S.time>=S.postAt+apoff)apReady=true}
+    else if(apAt.indexOf('post')<0&&S.time>=parseClock(apAt,N.hourLen)){apReady=true}}
+   if(CFG.diary&&!S.answPlayed&&apReady){
+    S.answPlayed=1;startDiary()}
+   /* A-64：夜7 乱码时序迁至白板局后留言窗口 */
+   var corAt=(CFG.diary&&CFG.diary.corruptAt)||(CUR===7?'post+0':'00:00');
+   if(corAt.indexOf('post')===0&&S.postAt!=null&&!S.corruptTriggered&&CFG.diary&&CFG.diary.corrupt&&CFG.diary.corrupt.length){
+    var off=parseFloat(corAt.slice(4))||0;
+    if(S.time>=S.postAt+off){
+     S.corruptTriggered=1;S.answPlayed=1;
+     startCorruptPlayback()}}
   tickAnsw(dt);
   tickEvents();                                      /* 脚本事件引擎（A11）：syslog/cam9/dream/stamina */
   if(S.cam9Ev){S.cam9Ev.t+=dt;if(S.cam9Ev.t>=S.cam9Ev.dur)S.cam9Ev=null}
@@ -1029,6 +1102,18 @@ function updateGame(dt){S.time+=dt;
    else if(cp.left<=0)S.cam9Pending=null}
   if(S.dreamEv){S.dreamEv.t+=dt;if(S.dreamEv.t>=S.dreamEv.dur)S.dreamEv=null}
   if(S.capT>0){S.capT-=dt;if(S.capT<=0)S.capText=null}
+  /* A-81：「她来了」迫近状态更新与判定 */
+  if(S.visitLitL>0)S.visitLitL=Math.max(0,S.visitLitL-dt);
+  if(S.visitScare>0)S.visitScare=Math.max(0,S.visitScare-dt);
+  if(S.visit){
+   if(S.lockL===1){
+    if(AU.ctx)AU.pushSoft();
+    S.visit=null;
+   }else{
+    S.visit.t-=dt;
+    if(S.visit.t<=0)visitScare();
+   }
+  }
   /* A-69 耐力<20% 且正在监控马娘房间时：灰角 + 低鸣节流 */
   if(S.cams&&S.sta<CFG.sta.low){
    var looking=false;
@@ -1093,7 +1178,7 @@ function updateGame(dt){S.time+=dt;
  S.vert+=(S.vertT-S.vert)*Math.min(1,dt*10.8);
  S.camPulse=Math.max(0,S.camPulse-dt*3);
  if(S.shake>0)S.shake-=dt;
- if(panoCv&&(S.lockL!==pBake.l||S.lightL!==pBake.ll||S.lockR!==pBake.r||S.lightR!==pBake.rl))bakeOfficePano()}
+ if(panoCv&&(!pBake||S.lockL!==pBake.l||S.lightL!==pBake.ll||S.lockR!==pBake.r||S.lightR!==pBake.rl))bakeOfficePano()}
 /* ============ 监控 ============ */
 function setCams(v,silent){if(!S||S.black)return;if(S.cams===v)return;
  if(S.staLock>0){AU.blip();return}
@@ -1177,10 +1262,12 @@ function flatToDev(fx,fy){
 function closeGrid(){
  var c=OFFICE.close;
  var bw=c.w-8, bh=c.h-8, cs=34;
+ var im=officeImg();
+ var k=(im&&im.width)?im.width/OW:1, ky=(im&&im.height)?im.height/216:1;
  return {
   c:c, bx:c.x+4, by:c.y+4, bw:bw, bh:bh, cs:cs,
   ox:(c.x+4)+(bw-3*cs)/2, oy:(c.y+4)+(bh-3*cs)/2,
-  src:{x:OFFICE.board.x/SX,y:OFFICE.board.y/SY,w:OFFICE.board.w/SX,h:OFFICE.board.h/SY}}}
+  src:{x:(OFFICE.board.x/SX)*k,y:(OFFICE.board.y/SY)*ky,w:(OFFICE.board.w/SX)*k,h:(OFFICE.board.h/SY)*ky}}}
 function drawBtnFace(g,x,y,w,h,kind,active){          /* 按钮面（全景分辨率 ×2.67） */
  g.fillStyle='#141821';g.fillRect(x-2,y-2,w+4,h+4);
  g.fillStyle=kind==='lock'?(active?'#8a2626':'#262a36'):(active?'#c8b878':'#262a36');
@@ -1214,11 +1301,12 @@ function drawBtnFace(g,x,y,w,h,kind,active){          /* 按钮面（全景分�
    g.fillStyle='#565a52';g.fillRect(x+w*.34,y+h*.6,w*.32,h*.16);
    g.fillStyle='#15151d';g.fillRect(x+w*.4,y+h*.76,w*.2,h*.1)}}}
 function bakeOfficePano(){                            /* 全景=office.png 拉伸+门旁双钮烘焙（OFFICE 定死坐标） */
- var st={l:(S&&S.lockL)||0,ll:(S&&S.lightL)||0,r:(S&&S.lockR)||0,rl:(S&&S.lightR)||0};
- if(panoCv&&st.l===pBake.l&&st.ll===pBake.ll&&st.r===pBake.r&&st.rl===pBake.rl)return;
+ var st={l:(S&&S.lockL)||0,ll:(S&&S.lightL)||0,r:(S&&S.lockR)||0,rl:(S&&S.lightR)||0,n:CUR};
+ if(panoCv&&pBake&&st.l===pBake.l&&st.ll===pBake.ll&&st.r===pBake.r&&st.rl===pBake.rl&&st.n===pBake.n)return;
  pBake=st;
  panoCv=mk(PW,PH);const g=panoCv.getContext('2d');
- if(IMG.office)g.drawImage(IMG.office,0,0,PW,PH);
+ var oim=officeImg();
+ if(oim)g.drawImage(oim,0,0,PW,PH);
  else{g.fillStyle='#101018';g.fillRect(0,0,PW,PH)}
  drawBtnFace(g,OFFICE.doorL.lock.x,OFFICE.doorL.lock.y,OFFICE.doorL.lock.w,OFFICE.doorL.lock.h,'lock',st.l);
  drawBtnFace(g,OFFICE.doorL.light.x,OFFICE.doorL.light.y,OFFICE.doorL.light.w,OFFICE.doorL.light.h,'light',st.ll);
@@ -1250,20 +1338,20 @@ function composeFlat(){
  flatG.clearRect(0,0,PW,PH);
  if(panoCv)flatG.drawImage(panoCv,0,0);
  else{flatG.fillStyle='#101018';flatG.fillRect(0,0,PW,PH)}
- [['doorL',OFFICE.doorL,'L',S.doorAL,S.lightL],['doorR',OFFICE.doorR,'R',S.doorAR,S.lightR]].forEach(function(D){
-  var DR=D[1],da=D[3],lit=D[4];
-  if(da>0){                                          /* 门板关闭动画（全景坐标） */
-   var dh=Math.round((DR.yBot-DR.yTop)*da);
-   R(flatG,DR.doorX,DR.yTop,DR.doorW,dh,'#23232e');
-   for(var yy=DR.yTop;yy<DR.yTop+dh;yy+=8*FY)R(flatG,DR.doorX,yy,DR.doorW,1,'#191922')}
-  if(lit){
-   var f=Math.random()<.12?.4:1;
-   flatG.fillStyle='rgba(214,206,178,'+(.11*f)+')';
-   flatG.fillRect(DR.doorX,DR.yTop,DR.doorW,DR.yBot-DR.yTop);
-   flatG.fillStyle='rgba(214,206,178,'+(.07*f)+')';
-   flatG.fillRect(DR.doorX+DR.wash.dx,DR.yBot+DR.wash.dy,DR.doorW+DR.wash.dw,DR.wash.dh)}});
- if(S.board.state)drawBoard(flatG);
-}
+  [['doorL',OFFICE.doorL,'L',S.doorAL,S.lightL||(S.visitLitL>0)],['doorR',OFFICE.doorR,'R',S.doorAR,S.lightR]].forEach(function(D){
+   var DR=D[1],da=D[3],lit=D[4];
+   if(da>0){                                          /* 门板关闭动画（全景坐标） */
+    var dh=Math.round((DR.yBot-DR.yTop)*da);
+    R(flatG,DR.doorX,DR.yTop,DR.doorW,dh,'#23232e');
+    for(var yy=DR.yTop;yy<DR.yTop+dh;yy+=8*FY)R(flatG,DR.doorX,yy,DR.doorW,1,'#191922')}
+   if(lit){
+    var f=Math.random()<.12?.4:1;
+    flatG.fillStyle='rgba(214,206,178,'+(.11*f)+')';
+    flatG.fillRect(DR.doorX,DR.yTop,DR.doorW,DR.yBot-DR.yTop);
+    flatG.fillStyle='rgba(214,206,178,'+(.07*f)+')';
+    flatG.fillRect(DR.doorX+DR.wash.dx,DR.yBot+DR.wash.dy,DR.doorW+DR.wash.dw,DR.wash.dh)}});
+  if(S.board.state)drawBoard(flatG);
+ }
 /* ============ 渲染（逻辑坐标 384x216，画布 ×5/6） ============ */
 function renderOffice(){
  var shX=0,shY=0;
@@ -1285,16 +1373,35 @@ function renderOffice(){
   var pos=flatToDev(DR.doorX+DR.doorW/2,DR.silY);
   if(pos!=null){
    var lx=pos.x/SQ, ly=pos.y/SQ;
-   if(lit){
-    var sl=edgeSlot('door'+side);
-    if(sl)drawSlot(cx,sl.nm,lx,ly,2.6);
+   var isLit=lit||(side==='L'&&S.visitLitL>0);
+   if(isLit){
+    var sls=edgeSlots('door'+side);
+    if(side==='L'&&S.visit)drawSlot(cx,'D',lx,ly,2.6);
+    sls.forEach(function(sl,i){
+     var off=(i-(sls.length-1)/2)*28;
+     if(side==='L'&&S.visit)off+=20;
+     drawSlot(cx,sl.nm,lx+off,ly,2.6);
+    });
    }else{
+    if(side==='L'&&S.visit){
+     cx.globalAlpha=.35;
+     drawSlot(cx,'D',lx,ly,2.6);
+     cx.globalAlpha=1;
+    }
+    var unlitSls=[];
     for(var k in S.slots){var sp_=S.slots[k],l=sp_.path[sp_.idx];
      if(!sp_.active)continue;
-     if(l==='door'+side&&Math.random()<.05){
+     if(l==='door'+side)unlitSls.push(sp_);
+    }
+    unlitSls.forEach(function(sp_,i){
+     if(Math.random()<.05){
+      var off=(i-(unlitSls.length-1)/2)*28;
+      if(side==='L'&&S.visit)off+=20;
       cx.globalAlpha=.2;
-      drawSlot(cx,sp_.nm,lx,ly,2.6);
-      cx.globalAlpha=1}}
+      drawSlot(cx,sp_.nm,lx+off,ly,2.6);
+      cx.globalAlpha=1;
+     }
+    });
    }}});
  if(CFG.board.smiley&&!S.board.state){
   var smT=CFG.board.at-4;
@@ -1313,6 +1420,11 @@ function renderOffice(){
      cx.fillText(String(CFG.board.preFaint),sx,sy2-26);cx.textAlign='left';cx.globalAlpha=1}}}}
  if(S.board.state===1&&CFG.board.noiseFx&&window.NFX&&NFX.boardNoise)NFX.boardNoise(cx,S.time);
  renderFxLayers();
+ if(S.visitScare>0){
+  drawFaceS(cx,'slot_D',192+(Math.random()*16-8),110+(Math.random()*14-7),7.6);
+  sliceGlitch(cx,cv,0,0,384,216,2,4+rnd(3));
+  drawNoise(.28);
+ }
  if(S.staLock>0){cx.fillStyle='rgba(0,0,0,.72)';cx.fillRect(0,0,384,216)}
  var n=.025;if(S.sta<30)n=.06;if(S.sta<15)n=.12;if(S.staLock>0)n=.4;
  drawNoise(n)}
@@ -1321,7 +1433,8 @@ function renderBoardClose(){var b=S.board;
  cx.fillStyle='#000';cx.fillRect(0,0,384,216);
  /* 用户指令：近看=直接放大背景图上的白板本体（closeGrid 与远景同源） */
  var cg=closeGrid(),c=cg.c;
- if(IMG.office)cx.drawImage(IMG.office,cg.src.x,cg.src.y,cg.src.w,cg.src.h,c.x,c.y,c.w,c.h);
+ var oim=officeImg();
+ if(oim)cx.drawImage(oim,cg.src.x,cg.src.y,cg.src.w,cg.src.h,c.x,c.y,c.w,c.h);
  var bx=cg.bx,by=cg.by,bw=cg.bw,bh=cg.bh;
  cx.save();cx.beginPath();cx.rect(bx,by,bw,bh);cx.clip();
  /* 残影层（A14）：NFX.ghostLayer 优先，缺失时引擎兜底淡字 */
@@ -1383,8 +1496,10 @@ function renderFxLayers(){
  if(S.cam9Ev&&S.cams&&S.camRoom==='corrB'){
   if(window.NFX&&NFX.cam9)NFX.cam9(cx,S.cam9Ev.type,S.cam9Ev.t,S.cam9Ev.t/S.cam9Ev.dur)}
  if(S.capText&&window.NFX&&NFX.glitchCaption)NFX.glitchCaption(cx,S.capText,4-S.capT)}
-function edgeSlot(side){for(var k in S.slots){var s=S.slots[k];
- if(s.active&&s.path[s.idx]===side)return s}return null}
+function edgeSlots(side){var r=[];
+ for(var k in S.slots){var s=S.slots[k];
+  if(s.active&&s.path[s.idx]===side)r.push(s)}return r}
+function edgeSlot(side){var r=edgeSlots(side);return r.length?r[0]:null}
 function squiggle(g,x,y,w,color,alpha){              /* A-43：波浪笔触（可分笔迹、不辨字） */
  if(alpha<=0)return;
  g.strokeStyle=color;g.globalAlpha=alpha;g.lineWidth=1.5;
@@ -1394,22 +1509,21 @@ function squiggle(g,x,y,w,color,alpha){              /* A-43：波浪笔触（�
 function drawBoard(g){var b=S.board;
  if(!b.state)return;
  var br=OFFICE.board,x=br.x,y=br.y,w=br.w,h=br.h,cw=w/3,ch=h/3;
- R(g,x-3,y-3,w+6,h+6,b.state===1?'#2c2c34':'#26262e');
- R(g,x-1,y-1,w+2,h+2,'#c8c8cc');
- if(b.state===3){                                   /* 夜2：字迹浮现=棕红波浪线 */
-  var a3=clamp(b.msgT/2,0,1)*.8;
-  squiggle(g,x+cw*.3,y+ch*.4,w*.5,'#7a4040',a3);
-  squiggle(g,x+cw*.3,y+ch*.7,w*.4,'#7a4040',a3*.7);return}
- var cellA=1;
- if(b.state===2&&b.result==='draw')cellA=b.phase===0?clamp(1-b.msgT/3,0,1):0;
- if(cellA>0&&b.state===1){                          /* 批次3 A-44①：淡井字格线两横两竖（不画双斜线） */
-  g.strokeStyle='rgba(70,74,84,.75)';g.lineWidth=1.5;
-  g.beginPath();
-  for(var i=1;i<3;i++){
-   g.moveTo(x+i*cw,y+4);g.lineTo(x+i*cw,y+h-4);
-   g.moveTo(x+4,y+i*ch);g.lineTo(x+w-4,y+i*ch);
-  }
-  g.stroke();g.lineWidth=1}
+  /* A-72 去白底：不叠全透明白块与外暗框，笔迹与格线直接落在背景显示器上 */
+  if(b.state===3){                                   /* 夜2：字迹浮现=棕红波浪线 */
+   var a3=clamp(b.msgT/2,0,1)*.8;
+   squiggle(g,x+cw*.3,y+ch*.4,w*.5,'#7a4040',a3);
+   squiggle(g,x+cw*.3,y+ch*.7,w*.4,'#7a4040',a3*.7);return}
+  var cellA=1;
+  if(b.state===2&&b.result==='draw')cellA=b.phase===0?clamp(1-b.msgT/3,0,1):0;
+  if(cellA>0&&b.state===1){                          /* 批次3 A-44①：淡井字格线两横两竖（不画双斜线） */
+   g.strokeStyle='rgba(65,68,78,.88)';g.lineWidth=1.5;
+   g.beginPath();
+   for(var i=1;i<3;i++){
+    g.moveTo(x+i*cw,y+4);g.lineTo(x+i*cw,y+h-4);
+    g.moveTo(x+4,y+i*ch);g.lineTo(x+w-4,y+i*ch);
+   }
+   g.stroke();g.lineWidth=1}
  if(b.state===2&&b.result==='draw'&&b.phase>=1){    /* 挂起：棕红/蓝波浪笔触 */
   var a2=clamp(b.msgT/1.2,0,1);
   squiggle(g,x+w*.14,y+h*.3,w*.6,'#7a4040',a2*.85);
@@ -1429,28 +1543,35 @@ function renderCams(){var rm=S.camRoom;
   var here=[];
   for(var k in S.slots){var s=S.slots[k];
    if(s.active&&!s.retreating&&s.path[s.idx]===rm)here.push(s)}
-  var usedTier={};
-  here.forEach(function(s,i){
-   var targetTier=(s.sprintOn&&s.sprint&&rm==='corrB')?1:(s.tier||0);
-   if(usedTier[targetTier])targetTier=1-targetTier;
-   usedTier[targetTier]=true;
-   var p=SLOTPOS[rm][targetTier]||SLOTPOS[rm][0];
+  /* A-70：4 刷新位动态分配（近位2,3；远位0,1；同房互不重合） */
+  var usedSlots={};
+  here.forEach(function(s){
+   var isSprint=(s.sprintOn&&s.sprint&&rm==='corrB');
+   var isNear=isSprint||(s.tier===1);
+   var slot=s.slotIdx;
+   if(slot==null||usedSlots[slot]||(isNear&&slot<2)||(!isNear&&slot>=2)){
+    var cand=isNear?[2,3,0,1]:[0,1,2,3];
+    var avail=cand.filter(function(idx){return !usedSlots[idx]});
+    if(avail.length>1&&((cand[0]===avail[0]&&cand[1]===avail[1])||(cand[0]===avail[1]&&cand[1]===avail[0]))){
+     slot=Math.random()<.5?avail[0]:avail[1];
+    }else{
+     slot=avail.length?avail[0]:0;
+    }
+    s.slotIdx=slot;
+   }
+   usedSlots[slot]=true;
+   var p=(SLOTPOS[rm]&&SLOTPOS[rm][slot])||(SLOTPOS[rm]&&SLOTPOS[rm][0])||[192,150,2];
    drawSlot(cx,s.nm,p[0],p[1],p[2]);
-   if(s.sprintOn&&s.sprint&&rm==='corrB'){
+   if(isSprint){
     cx.fillStyle='rgba(255,255,255,.14)';
     cx.fillRect(150,100,30,1);cx.fillRect(160,120,40,1);cx.fillRect(150,140,26,1);
    }
   });
-  /* A-61：CAM1 低电量告警仅纯数字倒计时 + 命中高亮描边 */
-  var jWarnTh=CFG.juke.warn||(CUR===7?3:5);
-  var inJukeAlert=S.juke.started&&!S.juke.dead&&(S.juke.batt<=jWarnTh||S.juke.warn>0);
+  /* A-74：CAM1 低电量告警花屏闪动（水平切片+RGB色散，非红罩；倒计时由右上角按钮常驻） */
+  var inJukeAlert=S.juke.started&&!S.juke.dead&&(S.juke.batt<=jukeWarn()||S.juke.warn>0);
   if(rm==='hall'&&inJukeAlert){
-   cx.fillStyle='rgba(120,10,10,.28)';cx.fillRect(0,0,384,216);
-   cx.fillStyle='#ff5050';cx.font='bold 16px "Fusion Pixel",monospace';
-   cx.textAlign='center';
-   cx.fillText(Math.ceil(S.juke.batt>0?S.juke.batt:S.juke.warn),138,70);
-   cx.textAlign='left';
-   for(var i3=0;i3<10;i3++)cx.fillRect(rnd(384),rnd(216),2,2)}
+   sliceGlitch(cx,cv,0,0,384,216,glitchLv(),2+rnd(3));
+  }
   if(rm==='hall'&&S.jukeFlash>0){
    S.jukeFlash--;
    cx.strokeStyle='rgba(255,220,120,.55)';cx.lineWidth=2;
@@ -1541,8 +1662,18 @@ function updateHud(){if(!S)return;
  for(var i=0;i<bars.length;i++)bars[i].className=i<usage?'on':'';
  $('camStrip').style.display=S.black?'none':'';
    var dot=$('alertDot'),j=S.juke;
-   var jWarnTh=CFG.juke.warn||(CUR===7?3:5);
+   var jWarnTh=jukeWarn();
    var jukeAlert=j.started&&!j.dead&&(j.batt<=jWarnTh||j.warn>0);
+   var jw=$('jukeWrap');
+   if(jw){
+    var jShow=S.cams&&S.camRoom==='hall'&&!S.black&&!j.dead;
+    jw.style.display=jShow?'flex':'none';
+    if(jShow){
+     var secVal=Math.ceil(j.batt>0?j.batt:j.warn);
+     $('jukeSec').textContent=secVal;
+     $('jukeSec').style.color=(j.batt<=jWarnTh||j.warn>0)?'#ff5050':'#ffd24a';
+    }
+   }
    var anySprint=false;
    for(var ksp in S.slots){if(S.slots[ksp].sprint){anySprint=true;break}}
    dot.className=(jukeAlert?'fast on':(anySprint?'on':'pe'));
@@ -1574,7 +1705,14 @@ function updateHud(){if(!S)return;
     db.textContent=lines}
    else db.classList.remove('on')}
 /* ============ 菜单 ============ */
-function buildMenu(){var box=$('mNights');box.innerHTML='';
+function buildMenu(){
+ var sub=(META&&META.menu&&META.menu.subtitle)||'七 夜 · 值 班 记 录';
+ var foot=(META&&META.menu&&META.menu.foot)||'值班记录实时保存 · 灯请保持常亮';
+ var subEl=$('mSubtitle')||($('mTitle')&&$('mTitle').querySelector('span'));if(subEl)subEl.textContent=sub;
+ var footEl=$('mFoot');if(footEl)footEl.textContent=foot;
+ var showDbg=(location.search.indexOf('debug=1')!==-1||location.search.indexOf('smoke')!==-1);
+ $('mUnlock').style.display=showDbg?'':'none';
+ var box=$('mNights');box.innerHTML='';
  for(var n=1;n<=7;n++)(function(n){
   var b=document.createElement('button');
   b.className='mbtn nbtn'+(n>SAVE.unlockedNight?' lock':'');
@@ -1583,13 +1721,30 @@ function buildMenu(){var box=$('mNights');box.innerHTML='';
   box.appendChild(b)})(n)}
 function buildLog(){var el=$('logList');
  var hasDiy=SAVE.diaryHeard.length>0,hasSys=Object.keys(SAVE.sysArch).length>0;
- if(!hasDiy&&!hasSys){el.innerHTML='<div class="arow">暂无记录。<br>深夜 00:00 的录音机留言会归档在这里，可随时重播；<br>夜里听到的系统声响（SYS 日志）推送后也会收录在下方。</div>';return}
+ var hasGhosts=(SAVE.ghosts&&SAVE.ghosts.length>0)||SAVE.clearedTrue;
+ if(!hasDiy&&!hasSys&&!hasGhosts){el.innerHTML='<div class="arow">暂无记录。<br>深夜 00:00 的录音机留言会归档在这里，可随时重播；<br>夜里听到的系统声响（SYS 日志）推送后也会收录在下方。</div>';return}
  var h='';
  if(hasDiy){h+='<div class="arow" style="margin-bottom:6px">—— 训练日记 · 点击重播 ——</div>';
   SAVE.diaryHeard.forEach(function(id){h+='<button class="mbtn mini logItem" data-id="'+id+'">▸ '+id+'</button>'})}
  if(hasSys){h+='<div class="arow" style="margin:10px 0 6px">—— SYS 日志 · 点击阅读 ——</div>';
   Object.keys(SAVE.sysArch).map(Number).sort(function(a,b){return a-b}).forEach(function(n){
    h+='<button class="mbtn mini sysItem" data-n="'+n+'">▸ 夜 '+n+'（'+SAVE.sysArch[n].length+' 条）</button>'})}
+ if(META&&META.boardLog&&hasGhosts){
+  var bLogTitle=META.boardLog.title||'白板留言';
+  h+='<div class="arow" style="margin:10px 0 6px">—— '+bLogTitle+' ——</div>';
+  (SAVE.ghosts||[]).forEach(function(g){
+   var nightStr=g.n?'第 '+g.n+' 夜：':'';
+   var text=g.msg||g.t||'';
+   h+='<div class="arow got" style="font-family:\'Fusion Pixel\',\'KaiTi\',serif;font-style:italic;color:#9b6b6b;padding:4px 0;line-height:1.6">'
+     +(nightStr?nightStr+' ':'')+'「'+text+'」'
+     +(g.reply?'<br><span style="color:#6a80a8;font-style:normal;padding-left:1em">↳ 训练员：'+g.reply+'</span>':'')
+     +'</div>';
+  });
+  if(SAVE.clearedTrue&&META.boardLog.trueEndLine){
+   h+='<div class="arow got" style="font-family:\'Fusion Pixel\',\'KaiTi\',serif;font-weight:bold;color:#e8a8a8;margin-top:6px;border-top:1px dashed #5a3838;padding-top:6px">'
+     +META.boardLog.trueEndLine+'</div>';
+  }
+ }
  el.innerHTML=h;
  el.querySelectorAll('.logItem').forEach(function(b){b.addEventListener('click',function(){openDiary(b.dataset.id)})});
  el.querySelectorAll('.sysItem').forEach(function(b){b.addEventListener('click',function(){openSysArch(+b.dataset.n)})})}
@@ -1656,6 +1811,7 @@ bindBtn('dnRetry',function(){startNight(CUR)});
 bindBtn('dnMenu',toMenu);
 bindBtn('goMenu',toMenu);
 bindBtn('goRetry',function(){startNight(CUR,1)});
+bindBtn('jukeBtn',function(){if(scene==='game'&&S)renewJuke()});
 /* 用户决策：点击（含面板/空白处）不再跳过答录机——中断仅 R 键 */
 OV.intro.addEventListener('click',enterGame);
 function buildMap(){var m=$('map');m.innerHTML='';
@@ -1726,7 +1882,7 @@ $('arR').addEventListener('click',function(e){e.stopPropagation();
  if(scene==='game'&&S&&S.cams){var i=CAMORDER.indexOf(S.camRoom);
   setRoom(CAMORDER[(i+1)%CAMORDER.length])}});
 addEventListener('keydown',function(e){
- if(e.key==='F1'||e.key==='F2'||e.key==='F3'||e.key==='F4'||e.key==='F5'||e.key==='F6'||e.key==='F7'||e.key==='F8'||e.key==='F9'||e.key==='F10')e.preventDefault();
+ if(e.key==='F1'||e.key==='F2'||e.key==='F3'||e.key==='F4'||e.key==='F5'||e.key==='F6'||e.key==='F7'||e.key==='F8'||e.key==='F9'||e.key==='F10'||e.key==='F11')e.preventDefault();
  if(scene!=='game'||!S)return;
  var k=e.key.toLowerCase();
  if(k==='a'||k==='arrowleft')S.holdDir=-1;
@@ -1743,13 +1899,14 @@ addEventListener('keydown',function(e){
  else if(k==='f1'){S.power=clamp(S.power-10,0,100)}
  else if(k==='f2'){S.power=clamp(S.power+10,0,100)}
  else if(k==='f3'){S.sta=100;S.staLock=0}
- else if(k==='f4'){if(S.juke.started&&!S.juke.dead)S.juke.left=Math.min(S.juke.left,5)}
+ else if(k==='f4'){if(S.juke.started&&!S.juke.dead)S.juke.batt=Math.min(S.juke.batt,3)}
  else if(k==='f5'){if(!S.board.state)boardAppear(1)}
  else if(k==='f6'){var c=S.slots.C;if(c){c.active=1;c.idx=c.path.length-1;c.doorT=c.edgeKill||CFG.edge.t;c.knock=0;AU.moan(doorSide(c))}}
  else if(k==='f7'){for(var i=0;i<30&&scene==='game';i++)updateGame(1)}
  else if(k==='f8'){S.god=!S.god}
  else if(k==='f9'){S.time=e.shiftKey?Math.max(0,S.time-30):S.time+30}              /* A22 跳时 ±30s */
- else if(k==='f10'){if(!S.board.state)boardAppear(1);if(S.board.state===1)endBoard('draw')}   /* A22 直达白板局后（平局） */});
+ else if(k==='f10'){if(!S.board.state)boardAppear(1);if(S.board.state===1)endBoard('draw')}   /* A22 直达白板局后（平局） */
+ else if(k==='f11'){triggerVisit()}});
 addEventListener('keyup',function(e){var k=e.key.toLowerCase();
  if((k==='a'||k==='arrowleft'||k==='d'||k==='arrowright')&&S)S.holdDir=0});
 /* ============ 主循环 ============ */
@@ -1786,7 +1943,7 @@ function loop(t){requestAnimationFrame(loop);
  else if(scene==='menu'||scene==='how'||scene==='log'||scene==='arch'||scene==='load')renderMenu();
  else{cx.fillStyle='#000';cx.fillRect(0,0,384,216)}}
 /* ============ 启动 ============ */
-loadAssets(function(){META=getMeta();if(!IMG.office)panoOK=0;try{bakeOfficePano()}catch(e){panoOK=0}buildMenu();buildMap();showScene('menu');
+loadAssets(function(){META=getMeta();if(!officeImg())panoOK=0;try{bakeOfficePano()}catch(e){panoOK=0}buildMenu();buildMap();showScene('menu');
  /* ?night=N 直达该夜（绕过菜单门控，供调试/无头测试）；?at=H:MM 跳时；?pan=x 办公室视角（-0.28..0.28）
     ?smoke=1/2/3 无头烟雾 · 4 纯净夜通关链 · 6 真结局链（临时旗标，不入档）
     无头模式 rAF 时间戳不随 virtual-time 前进，故用定时器直接驱动 updateGame */

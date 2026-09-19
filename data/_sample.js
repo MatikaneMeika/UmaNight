@@ -63,6 +63,14 @@ window.SAMPLE = {
       standard: { lines: ['[挂起] 无法判定 · 维持挂起'] },
       truth: { dialogue: [], button: '跑吧。', holdSec: 1.5, threeLines: [], epilogue: [] }
     },
-    bells: { diary: 'true', decoy: 'detune', comm: 'comm' }
+    bells: { diary: 'true', decoy: 'detune', comm: 'comm' },
+    menu: {
+      subtitle: '七 夜 · 值 班 记 录',
+      foot: '值班记录实时保存 · 灯请保持常亮'
+    },
+    boardLog: {
+      title: '白板留言',
+      trueEndLine: '让她把歌唱完。'
+    }
   }
 };
