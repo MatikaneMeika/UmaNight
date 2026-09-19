@@ -47,9 +47,6 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
 #map .mb.on{background:#d8e4ea;color:#0a141c}
 #map .mb.alert{border-color:#e04848;box-shadow:0 0 0 1px #e04848 inset;animation:bl .5s steps(2) infinite}
 #map .you{position:absolute;color:#7d95a4;font-size:calc(var(--u)*1.3);display:flex;align-items:center;justify-content:center;font-family:var(--fh)}
-#jukeHud{position:absolute;left:50%;bottom:calc(var(--u)*9);transform:translateX(-50%);background:rgba(0,0,0,.7);border:1px solid #3a3a48;padding:calc(var(--u)*1.2) calc(var(--u)*2.4);font-family:var(--fh);font-size:calc(var(--u)*2);color:#cdd0c6;white-space:nowrap;display:none;cursor:pointer}
-#jukeHud.on{display:block}
-#jukeHud.warn{color:#ff6060;border-color:#a02828;animation:bl .4s steps(2) infinite}
 #blackHud{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:calc(var(--u)*9);color:#5a5a66}
 #blackHud.on{display:flex}
 #dbg{position:absolute;top:calc(var(--u)*12);left:calc(var(--u)*3);font:calc(var(--u)*1.7)/1.7 'Fusion Pixel','Courier New',monospace;color:#7de07d;background:rgba(0,0,0,.6);padding:calc(var(--u)*1.2);white-space:pre;display:none;text-shadow:none}
@@ -57,8 +54,6 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
 #edgeFx{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s}
 #edgeFx.red{opacity:1;box-shadow:inset 0 0 calc(var(--u)*10) rgba(200,30,30,.55);animation:bl .5s steps(2) infinite}
 #edgeFx.white{opacity:1;box-shadow:inset 0 0 calc(var(--u)*10) rgba(220,220,200,.5);animation:bl 1.2s steps(2) infinite}
-#hint{position:absolute;top:36%;left:50%;transform:translateX(-50%);width:86%;font-family:var(--fh);font-size:calc(var(--u)*2.3);line-height:2;color:#d8d8d0;background:rgba(0,0,0,.78);border:1px solid #333;padding:calc(var(--u)*2.4);text-align:center;opacity:0;transition:opacity .8s;pointer-events:none}
-#hint.on{opacity:1}
 .ovl{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;color:#d8d8dc;text-align:center;z-index:5}
 .ovl.on{display:flex}
 .mbtn{pointer-events:auto;background:none;border:none;color:#c9c9cf;font-family:var(--fh);font-size:calc(var(--u)*3);padding:calc(var(--u)*1.2) calc(var(--u)*2);cursor:pointer;letter-spacing:2px}
@@ -102,7 +97,6 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
 #answDot{position:absolute;top:calc(var(--u)*1.5);right:calc(var(--u)*1.6);width:calc(var(--u)*1.4);height:calc(var(--u)*1.4);background:#c84848;border-radius:50%;animation:bl 1.2s steps(2) infinite}
 #answBody{line-height:2;white-space:pre-wrap;min-width:calc(var(--u)*40)}
 #answBody div{opacity:.06;transition:opacity 1s}
-#answBody .crpt{color:#8a9aa8;font-family:'Courier New',monospace}
 #reevalTag{position:absolute;top:calc(var(--u)*13.5);left:50%;transform:translateX(-50%);font-family:'Courier New',monospace;font-size:calc(var(--u)*2.1);letter-spacing:3px;color:#ff6060;display:none;animation:gl .34s steps(2) infinite}
 #reevalTag.on{display:block}
 @keyframes gl{0%{transform:translateX(-50%) translate(0,0)}25%{transform:translateX(-50%) translate(-1px,1px)}50%{transform:translateX(-50%) translate(1px,-1px)}75%{transform:translateX(-50%) translate(-1px,-1px)}100%{transform:translateX(-50%) translate(1px,1px)}}
@@ -131,12 +125,11 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
   <div id="staBox">耐力 <b id="staPct">100%</b></div>
   <div id="powBox">电力 <b id="powPct">100%</b><br>用量 <span id="usage"><i></i><i></i><i></i><i></i></span></div>
   <div id="camHud"><div id="camTitle">CAM1 · 大厅</div><div id="camSub"></div><div id="rec"><i></i>REC</div><div id="map"></div></div>
-  <div id="jukeHud" class="pe">♪ —</div>
   <div id="blackHud">10</div>
   <div id="dbg"></div>
   <div id="camStrip" class="pe">▲ 打开监控</div>
   <div id="arL" class="arw pe">‹</div><div id="arR" class="arw pe">›</div>
-  <div id="hint"></div><div id="edgeFx"></div>
+  <div id="edgeFx"></div>
   <div id="answBox"><i id="answDot"></i><div id="answBody"></div></div>
   <div id="reevalTag">RE-EVALUATING</div>
   <div id="eggFx"></div>
@@ -159,10 +152,9 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
   <em>SYS LOG</em>：系统日志在事件发生时以提示音提示，全部条目自动归档到 主菜单·记录 页阅读；<em>答录机</em>：00:00 自动留言（左上角字幕式，一次 1-2 行），仅 R 键中断（点击不跳过）；<em>白板近看</em>：点击办公室白板本体放大／F 键近看。<br>
   <em>门控（双钮）</em>：门边两个按钮——<em>锁钮</em>点击切换门锁（锁定期间 0.5%/s，再点解锁）；<em>灯钮</em>点击亮 1 秒（只显示剪影，不暂停任何东西）。键盘 Q/E 切换左右门锁、Z/X 点亮左右灯。门边是监控死角，危险抵门后必须立即锁门。<br>
   <em>进程稳定度</em>（HUD 标签为「耐力」）：<span id="howSta">监控对准所在房间约 1 秒可冻结它（盯视 −2%/s）；开监控 +1%/s、收监控 +2%/s、切台 −0.5%。<br>&lt;20% 盯视失效且切台冷却翻倍，&lt;10% 开不了监控；归零僵直 5 秒后回到 30%（锁门期间门锁维持）。</span><br>
-  <em>点歌机</em>：00:00 自动开播，电量余量在底部♪提示条常显；低电量或没电告警时按【空格】或点击♪提示条续发条（耗电）。停机将触发冲刺袭击，当晚无法再恢复。<br>
+  <em>点歌机</em>：00:00 自动开播；打开监控查看大厅（CAM1），点击画面中的点唱机即可续电（耗电）。电量不足 5 秒时镜头泛红并开始倒计时，停机将触发冲刺袭击，当晚无法再恢复。<br>
   <em>白板</em>：深夜会亮起，与接入方对弈——点击办公室白板本体放大／F 键近看；落子需收起监控，对局期间全场移动变慢。对局结果各有其意义。<br>
   <em>电力</em>：待机、监控、门锁、灯光、切换都耗电，用量格实时显示；归零进入黑暗倒计时，撑到 06:00 仍算幸存。<br>
-  <em>失焦</em>：页面挂起超过 1 秒 = 全局冻结 + 电力空转，时间不推进。<br>
   <em>调试</em>：F1/F2 电力∓10 · F3 稳定度回满 · F4 点歌机逼近归零 · F5 强制白板 · F6 强制C到左门 · F7 快进30秒 · F8 上帝视角
   <div class="btnrow" style="margin-top:12px"><button class="mbtn" id="howBack">返回</button></div>
 </div></div>
@@ -245,26 +237,26 @@ function getMeta(){return deepMerge(SAMPLE.meta||{},window.META||{})}
 function buildRT(){var p=N.power||{},b=N.board||{},j=N.juke||{};
  var oppX=b.oppInterval!=null?b.oppInterval:4;
  return{
-  drain:Object.assign({base:.05,cam:.10,lock:.5,light:.1,switch:.15,renew:.5,afk:.5},p.drain||{}),
-  safeHalf:p.safeHalf!=null?p.safeHalf:60,
-  sta:{stare:2,recOpen:1,recClosed:2,sw:.5,low:20,crit:10,lockT:5,back:30},
-  stareRamp:1,
-  edge:{t:3,knock:1,backCd:10},
-  juke:{start:parseClock(j.start,N.hourLen),warn:j.warn!=null?j.warn:(CUR===7?3:5),tracks:j.tracks||[],finale:!!j.finale,
-        battery:j.battery||{cap:30,renew:30}},   /* A-39/A-47 发条单轨化，缺省提供兜底 */
-  board:{mode:b.mode||'game',at:parseClock(b.at,N.hourLen),limit:b.playerTimer||8,opp:oppX,
-         grace:b.grace!=null?b.grace:1.5,firstStone:b.firstStone||'random',
-         block:b.blockChance!=null?b.blockChance:.5,       /* blockChance：抢占玩家即胜点的概率（A7 陪练 AI） */
-         policy:b.winPolicy||'reeval',                     /* reeval（夜3-6 紧急评估）| instant（夜7 即刻回收） */
-         message:b.message||null,autoReply:b.autoReply||null,
-         cornerBias:!!b.cornerBias},                       /* 夜4/5 首个自由落子偏置角落（v1.7 §3.1，B 已双写数据） */
-  evalDelta:2,                                             /* 紧急评估幅度 +2（v1.7 §13.8 倾向，P4 可调） */
-  evalText:(META&&META.evalText)||'[评估] 反应模式超出基线',
-  stopAt:(META&&META.diaryStopAt)||'站在训练场门口，声音很轻。',
-  wbTrashName:(META&&META.wbTrashName)||'[损坏] ▓▓1095▓▓',
-  diary:N.diary||null,
-  blackT:10,camCd:1,slowX:2,               /* 白板对局期间全场移动 ×2 慢（引擎常量） */
-  hints:N.hints||{}}}
+   drain:Object.assign({base:.05,cam:.10,lock:.5,light:.1,switch:.15,renew:.5},p.drain||{}),
+   safeHalf:p.safeHalf!=null?p.safeHalf:60,
+   sta:{stare:2,recOpen:1,recClosed:2,sw:.5,low:20,crit:10,lockT:5,back:30},
+   stareRamp:1,
+   edge:Object.assign({t:3,knock:1,backCd:10,giveUp:3,retreatCd:25},N.edge||{}),
+   juke:{start:parseClock(j.start,N.hourLen),warn:j.warn!=null?j.warn:(CUR===7?3:5),tracks:j.tracks||[],finale:!!j.finale,
+         battery:j.battery||{cap:30,renew:30}},   /* A-39/A-47 发条单轨化，缺省提供兜底 */
+   board:{mode:b.mode||'game',at:parseClock(b.at,N.hourLen),limit:b.playerTimer||8,opp:oppX,
+          grace:b.grace!=null?b.grace:1.5,firstStone:b.firstStone||'random',
+          block:b.blockChance!=null?b.blockChance:.5,       /* blockChance：抢占玩家即胜点的概率（A7 陪练 AI） */
+          policy:b.winPolicy||'reeval',                     /* reeval（夜3-6 紧急评估）| instant（夜7 即刻回收） */
+          message:b.message||null,autoReply:b.autoReply||null,
+          cornerBias:!!b.cornerBias},                       /* 夜4/5 首个自由落子偏置角落（v1.7 §3.1，B 已双写数据） */
+   evalDelta:2,                                             /* 紧急评估幅度 +2（v1.7 §13.8 倾向，P4 可调） */
+   evalText:(META&&META.evalText)||'[评估] 反应模式超出基线',
+   stopAt:(N.diary&&N.diary.stopAt)||(META&&META.diaryStopAt)||'站在训练场门口，声音很轻。',
+   wbTrashName:(N.wbTrashName||(META&&META.wbTrashName)||(META&&META.corruptDiaryTitle)||'[损坏] ▓▓1095▓▓'),
+   diary:N.diary||null,
+   blackT:10,camCd:1,slowX:2,               /* 白板对局期间全场移动 ×2 慢（引擎常量） */
+   hints:N.hints||{}}}
 /* ============ 存档（契约 §3.4） ============ */
 const SAVE_KEY='umanight_save_v1';
 function defSave(){return{unlockedNight:1,diaryHeard:[],archFlags:{A:0,B:0,C:0,D:0,final:0},winCount:0,everWon:false,clearedTrue:false,
@@ -287,17 +279,25 @@ let SAVE=loadSave();
 const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const JUKEMEL=[[69,.5],[72,.5],[71,.25],[69,.25],[67,.5],[69,1],[64,.5],[67,.5],[69,1],[0,.5],[65,.5],[69,.5],[71,1],[67,1]];
 const JOFF={slot_A:0,slot_B:0,slot_C:0,slot_D:0,shadow:0};
-const RN={hall:'大厅',gym:'健身房',shop:'商店',lib:'图书馆',pool:'游泳馆',gymn:'室内体育馆',plaza:'三女神广场',corrA:'走廊A',corrB:'走廊B'};
+const RN={hall:'大厅',gym:'健身房',shop:'商店',lib:'图书馆',pool:'游泳馆',gymn:'室内体育馆',plaza:'三女神广场',corrA:'左走廊',corrB:'右走廊'};
 const CAMORDER=['hall','gym','shop','lib','pool','gymn','plaza','corrA','corrB'];
 const CAMNO={hall:'CAM1',gym:'CAM2',shop:'CAM3',lib:'CAM4',pool:'CAM5',gymn:'CAM6',plaza:'CAM7',corrA:'CAM8',corrB:'CAM9'};
 const MAPLAY=[['gym',2,4,26,13],['hall',30,2,40,17],['lib',72,4,26,13],
  ['shop',2,20,26,15],['pool',72,20,26,15],
  ['corrA',30,42,9,18],['corrB',61,42,9,18],
  ['gymn',4,60,26,20],['plaza',34,58,32,24]];   /* 用户指令：地图快捷切换样式恢复旧拟真布局 */
-const SLOTPOS={hall:[[150,150,2],[240,152,2]],gym:[[180,150,2.2],[262,152,2]],
- shop:[[176,150,2.1],[262,152,2.1]],lib:[[186,150,2.2],[186,150,2.2]],
- pool:[[192,140,2.2],[192,140,2.2]],gymn:[[166,154,2.3],[252,154,2.3]],
- plaza:[[128,150,2.1],[248,150,2.1]],corrA:[[192,150,2.5],[192,150,2.5]],corrB:[[192,150,2.5],[192,150,2.5]]};
+const SLOTPOS={
+ hall:[[232,124,1.5],[150,200,2.9]],
+ gym:[[62,126,1.4],[150,200,2.9]],
+ shop:[[118,136,1.4],[205,200,2.8]],
+ lib:[[235,128,1.5],[150,200,2.9]],
+ pool:[[290,116,1.5],[150,200,2.9]],
+ gymn:[[205,124,1.5],[150,200,3.0]],
+ plaza:[[128,150,2.1],[248,150,2.1]],
+ corrA:[[168,126,1.4],[134,196,2.9]],
+ corrB:[[215,126,1.4],[250,196,2.9]]
+};
+const FOOT={slot_A:24,slot_B:21,slot_C:6,slot_D:28};
 /* A-31/A-57 去 FNAF 化映射：slot→贴图映射常量。
    img=全身立绘主键（三档：原色/_glitch 静息/_glitch_strong 加强）；d=特写键（face_slot_A..D）。 */
 const SLOTDEF={A:{img:'slot_A',d:'slot_A',t0:6},B:{img:'slot_B',d:'slot_B',t0:7},
@@ -331,21 +331,26 @@ function aInit(){if(AU.ctx)return;const C=new(window.AudioContext||window.webkit
  AU.st=C.createBufferSource();AU.st.buffer=nb;AU.st.loop=true;AU.st.loopEnd=.5;
  AU.sf=C.createBiquadFilter();AU.sf.type='highpass';AU.sf.frequency.value=1200;
  AU.sg=C.createGain();AU.sg.gain.value=0;AU.st.connect(AU.sf);AU.sf.connect(AU.sg);AU.sg.connect(AU.mg);AU.st.start()}
-function tone(f0,f1,dur,type,vol,fl,when){const C=AU.ctx;if(!C)return;const t=when||C.currentTime;
+function panDest(side){const C=AU.ctx;if(!C)return null;
+ if(side&&C.createStereoPanner){
+  const pan=side==='L'?-0.7:(side==='R'?0.7:0);
+  const p=C.createStereoPanner();p.pan.setValueAtTime(pan,C.currentTime);p.connect(AU.mg);return p}
+ return AU.mg}
+function tone(f0,f1,dur,type,vol,fl,when,dest){const C=AU.ctx;if(!C)return;const t=when||C.currentTime;
  const o=C.createOscillator(),g=C.createGain();o.type=type||'sine';
  o.frequency.setValueAtTime(f0,t);if(f1)o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
  let n=o;if(fl){const f=C.createBiquadFilter();f.type='lowpass';f.frequency.value=fl;o.connect(f);n=f}
- n.connect(g);g.connect(AU.mg);o.start(t);o.stop(t+dur+.05)}
-function nz(dur,freq,vol,type,q){const C=AU.ctx;if(!C)return;const t=C.currentTime;
+ n.connect(g);g.connect(dest||AU.mg);o.start(t);o.stop(t+dur+.05)}
+function nz(dur,freq,vol,type,q,dest){const C=AU.ctx;if(!C)return;const t=C.currentTime;
  const s=C.createBufferSource();s.buffer=AU.nb;const f=C.createBiquadFilter();f.type=type||'lowpass';f.frequency.value=freq;f.Q.value=q||1;
  const g=C.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
- s.connect(f);f.connect(g);g.connect(AU.mg);s.start(t);s.stop(t+dur+.05)}
+ s.connect(f);f.connect(g);g.connect(dest||AU.mg);s.start(t);s.stop(t+dur+.05)}
 AU.blip=()=>{tone(1500,900,.06,'square',.05);nz(.05,3000,.04,'highpass')};
 AU.camOn=()=>{nz(.2,1500,.2,'highpass');tone(700,300,.1,'square',.04)};
 AU.door=p=>{tone(p?90:60,38,.14,'sine',.4);nz(.12,320,.22)};
 AU.thump=v=>{tone(75,42,.12,'sine',v);nz(.07,220,v*.6)};
-AU.knock=()=>{[0,180,360].forEach(d=>setTimeout(()=>{tone(85,50,.1,'sine',.34);nz(.08,400,.2)},d))};
+AU.knock=side=>{const dest=panDest(side);[0,180,360].forEach(d=>setTimeout(()=>{tone(85,50,.1,'sine',.34,null,null,dest);nz(.08,400,.2,null,null,dest)},d))};
 AU.run=()=>{for(let i=0;i<9;i++)setTimeout(()=>{tone(100,55,.08,'sine',.1+i*.03);nz(.05,300,.08)},i*115)};
 AU.whis=()=>nz(.5,700,.05,'bandpass',8);
 AU.ring=()=>{if(!AU.ctx)return;[0,500].forEach(d=>{tone(640,640,.36,'square',.05,null,AU.ctx.currentTime+d);tone(485,485,.36,'square',.045,null,AU.ctx.currentTime+d)})};
@@ -363,7 +368,7 @@ AU.renew=()=>{if(!AU.ctx)return;tone(660,880,.12,'square',.1);tone(880,1320,.16,
 AU.tick=()=>tone(900,860,.04,'square',.07);
 AU.place=h=>{tone(h?520:340,h?480:300,.06,'square',.1);nz(.04,2400,.06,'highpass')};
 AU.gear=()=>{[0,70].forEach(d=>setTimeout(()=>{tone(1100,900,.04,'square',.07);nz(.03,3200,.06,'highpass')},d))};
-AU.moan=()=>tone(120,86,.5,'sawtooth',.05,240);
+AU.moan=side=>{const dest=panDest(side);tone(120,86,.5,'sawtooth',.05,240,null,dest)};
 AU.boardOn=()=>{tone(300,620,.5,'triangle',.12);nz(.3,900,.06,'bandpass',6)};
 AU.boardEnd=()=>{if(!AU.ctx)return;[520,660,780].forEach((f,i)=>tone(f,f,.22,'triangle',.09,null,AU.ctx.currentTime+i*.12))};
 /* P2 暖音色（音频二分法：暖=信息/她，冷=系统/威胁） */
@@ -372,16 +377,9 @@ AU.pen=()=>{tone(340,300,.05,'triangle',.05);nz(.03,1800,.03,'highpass')};   /* 
 AU.tape=()=>{if(!AU.ctx)return;tone(320,250,.07,'square',.10);nz(.04,1400,.05,'highpass')};   /* 答录机行浮现「嘟」（用户要求可闻） */
 AU.beep2=()=>{if(!AU.ctx)return;var C=AU.ctx;   /* 「嘟嘟」：录音机走带开始/结束（暖方波双响） */
  [0,.17].forEach(function(d){tone(560,560,.07,'square',.10,null,C.currentTime+d)})};
+AU.glitchCut=()=>{if(!AU.ctx)return;nz(.35,900,.30,'bandpass',3);tone(1600,120,.18,'square',.12)};   /* A-64：戛然而止错乱音效 */
 function setStatic(on){if(AU.sg)AU.sg.gain.linearRampToValueAtTime(on?.045:0,AU.ctx.currentTime+.06)}
 addEventListener('pointerdown',()=>{aInit();if(AU.ctx.state==='suspended')AU.ctx.resume()},{capture:true});
-/* 失焦：>1 秒硬冻结 + 电力空转，时间不推进 */
-let hidAt=0;
-document.addEventListener('visibilitychange',()=>{
- if(document.hidden)hidAt=performance.now();
- else if(hidAt){const dur=(performance.now()-hidAt)/1000;hidAt=0;
-   if(S&&scene==='game'&&!S.black&&CFG&&dur>1){
-    S.power=Math.max(0,S.power-(dur-1)*CFG.drain.afk);
-    if(S.power<=0)triggerBlackout()}}});
 /* ============ 噪声/扫描线（复用） ============ */
 const nCv=mk(128,72),nCx=nCv.getContext('2d'),nId=nCx.createImageData(128,72);
 let nSeed=12345;
@@ -403,14 +401,17 @@ function drawFaceS(g,tp,X,Y,s){const im=IMG['face_'+tp];if(!im)return;
 /* ============ v1.9 槽位立绘（A-28/A-30）============ */
 function glitchLv(){return CUR>=5?2:1}                 /* A-28 逐夜花屏强度：1-4 夜常规，5-7 夜加强 */
 function slotImg(k){var def=SLOTDEF[k];return def?IMG[def.img]||null:null}
-function drawSlot(g,k,X,Y,s){                          /* 槽位立绘：原色图 + 渲染时抖动/闪动/平滑撕裂（非烘焙非马赛克） */
- var im=slotImg(k);
- if(!im){drawChar(g,SLOTDEF[k]&&SLOTDEF[k].d,X,Y,s);return}   /* 贴图缺失回退旧绘制 */
- var hh=s*30,ww=hh*im.width/im.height;
- var lv=glitchLv();
- var jx=0,jy=0;
- if(Math.random()<.14*lv){jx=rnd(2*lv+1)-lv;jy=rnd(2)-1}      /* 位置抖动 */
- var dx=X-ww/2+jx,dy=Y-hh+jy;
+ function drawSlot(g,k,X,Y,s){                          /* 槽位立绘：原色图 + 渲染时抖动/闪动/平滑撕裂（非烘焙非马赛克） */
+  var im=slotImg(k);
+  if(!im){drawChar(g,SLOTDEF[k]&&SLOTDEF[k].d,X,Y,s);return}   /* 贴图缺失回退旧绘制 */
+  var hh=s*30,ww=hh*im.width/im.height;
+  var ftKey=(SLOTDEF[k]&&SLOTDEF[k].d)||k;
+  var ft=(FOOT&&FOOT[ftKey])||0;
+  var footOff=(ft/im.height)*hh;                               /* A-60 脚底补偿：贴地对齐 */
+  var lv=glitchLv();
+  var jx=0,jy=0;
+  if(Math.random()<.14*lv){jx=rnd(2*lv+1)-lv;jy=rnd(2)-1}      /* 位置抖动 */
+  var dx=X-ww/2+jx,dy=Y-hh+footOff+jy;
  g.globalAlpha=Math.random()<.16*lv?(.68+Math.random()*.24):1; /* 闪动 */
  g.drawImage(im,dx,dy,ww,hh);
  g.globalAlpha=1;
@@ -503,19 +504,25 @@ function startDiary(){var d=CFG.diary;if(!d||!d.id)return;
  if(AU.ctx)AU.ring()}                                    /* 真铃（仅此时刻） */
 function beginDiaryPlayback(){var a=S.answ,d=CFG.diary;
  if(AU.ctx)AU.beep2();                                   /* 走带开始「嘟嘟」 */
- if(d.corrupt&&d.corrupt.length){                        /* 夜7 脚本中断：乱码三行 → #001 截断播放 */
-  a.phase='corrupt';a.corrupt=d.corrupt.slice();a.ci=0;a.t=0;
-  pushDiaryHeard(CFG.wbTrashName);
-  var nl=(window.NIGHTS||[]).filter(function(x){return x&&+x.id===1})[0];
-  if(nl&&nl.diary&&nl.diary.text){a.lines=String(nl.diary.text).split('\n');
-   a.perLine=Math.max(2,(nl.diary.duration||55)/Math.max(1,a.lines.length)/ANSW_RATE);
-   a.truncate=1}                                        /* 仅夜7 补放 #001 启用 stopAt 截断——夜1 本尊播放不受影响 */
-  a.li=-1;return}
+ var corAt=(d&&d.corruptAt)||(CUR===7?'post+0':'00:00');
+ if(d.corrupt&&d.corrupt.length&&corAt==='00:00'){      /* 仅当 corruptAt 为 00:00 时在开局播放（向后兼容） */
+  startCorruptPlayback();
+  return}
  a.phase='play';
  a.lines=String(d.text||'').split('\n');
  a.li=-1;a.t=0;
  a.perLine=Math.max(1,(d.duration||55)/Math.max(1,a.lines.length)/ANSW_RATE);
  renderAnswLine(-1)}
+function startCorruptPlayback(){var a=S.answ,d=CFG.diary;
+ a.on=1;a.phase='corrupt';a.corrupt=(d.corrupt||[]).slice();a.ci=0;a.t=0;
+ pushDiaryHeard(CFG.wbTrashName);
+ var nl=(window.NIGHTS||[]).filter(function(x){return x&&+x.id===1})[0];
+ if(nl&&nl.diary&&nl.diary.text){a.lines=String(nl.diary.text).split('\n');
+  a.perLine=Math.max(2,(nl.diary.duration||55)/Math.max(1,a.lines.length)/ANSW_RATE);
+  a.truncate=1}                                        /* 仅夜7 补放 #001 启用 stopAt 截断——夜1 本尊播放不受影响 */
+ a.li=-1;
+ $('answBody').innerHTML='';
+ $('answBox').classList.add('on');}
 function tickAnsw(dt){var a=S.answ;if(!a.on||S.black)return;
  if(a.phase==='delay'){a.t+=dt;if(a.t>=1.2){a.t=0;beginDiaryPlayback()}return}
  if(a.phase==='corrupt'){                                /* 乱码三行：每行 2.2s，同时中屏故障字幕 */
@@ -533,7 +540,9 @@ function tickAnsw(dt){var a=S.answ;if(!a.on||S.black)return;
   if(li!==a.li){a.li=li;renderAnswLine(li);AU.tape();
    var line=a.lines[li];
    if(a.truncate&&CFG.stopAt&&line.indexOf(CFG.stopAt)>=0){  /* 播至指定句自停——仅夜7 补放路径（a.truncate） */
-    a.phase='end';setTimeout(endDiary,1400);return}}
+    a.phase='end';a.cutOff=1;
+    if(AU.ctx)AU.glitchCut();                               /* A-64：戛然而止错乱音效 */
+    setTimeout(endDiary,1400);return}}
   if(a.t>=a.perLine*a.lines.length){a.phase='end';endDiary()}}}
 function renderAnswLine(li){var el=$('answBody');
  if(li<0){el.innerHTML='';return}
@@ -542,13 +551,13 @@ function renderAnswLine(li){var el=$('answBody');
  el.innerHTML='';
  for(var i=Math.max(0,li-1);i<=li;i++){
   var dv=document.createElement('div');
-  if(a.corrupt&&a.phase==='corrupt')dv.className='crpt';
   dv.textContent=a.lines[i]!==undefined?a.lines[i]:'';
   el.appendChild(dv);
   (function(node,tgt){requestAnimationFrame(function(){node.style.opacity=tgt})})(dv,i<li?.4:1)}}
 function endDiary(){var a=S.answ;if(!a.on)return;
- a.on=0;a.phase='';
- if(AU.ctx)AU.beep2();                                   /* 走带结束「嘟嘟」 */
+ var wasCut=!!a.cutOff;
+ a.on=0;a.phase='';a.cutOff=0;
+ if(!wasCut&&AU.ctx)AU.beep2();                          /* 走带结束「嘟嘟」——截断路径互斥不响 */
  $('answBox').classList.remove('on');
  pushDiaryHeard(a.id)}
 function interruptDiary(){var a=S.answ;if(!a||!a.on||scene!=='game')return;
@@ -563,7 +572,7 @@ function mkSlots(){var out={};
  for(var k in N.slots){
   var sd=N.slots[k],def=SLOTDEF[k]||SLOTDEF.A;
   var mat=parseClock(sd.at,N.hourLen);
-  var o={nm:k,d:def.d,ai:sd.ai||0,at:mat,moveAt:mat,moved:0,path:(sd.path||[]).slice(),idx:0,t:def.t0,doorT:0,knock:0,stareT:0,active:1,sprint:0};
+  var o={nm:k,d:def.d,ai:sd.ai||0,at:mat,moveAt:mat,moved:0,path:(sd.path||[]).slice(),idx:0,t:def.t0,doorT:0,knock:0,stareT:0,active:1,sprint:0,fails:0,tier:0,stayT:0,retreating:0,edgeKill:sd.edgeKill||CFG.edge.t,drainMul:sd.drainMul||1.0};
   if(sd.sprintOnJukeDead)o.sprintOn=1;
   if(sd.fast)o.fast=1;
   if(sd.skipChance!=null)o.skip=sd.skipChance;
@@ -608,16 +617,13 @@ function startNight(n,fromDeath){
  $('arL').style.display=$('arR').style.display='none';
  document.querySelectorAll('#map .mb').forEach(function(b){b.classList.remove('on','alert')});
  $('camTitle').textContent='CAM1 · 大厅';
- $('edgeFx').className='';$('jukeHud').className='pe';$('dbg').classList.remove('on');
+ $('edgeFx').className='';$('dbg').classList.remove('on');
  $('answBox').classList.remove('on');$('answBody').innerHTML='';
  $('reevalTag').classList.remove('on');
  $('eggFx').classList.remove('on');
  showScene('intro')}
 function enterGame(){if(scene!=='intro'||!S)return;
  S.introT=0;showScene('game');
- var h=$('hint');
- h.innerHTML=CFG.hints.open||'A/D 转头 · C 监控<br>撑到 6:00';
- h.classList.add('on');setTimeout(function(){h.classList.remove('on')},9000);
  checkEgg()}   /* 紧急评估次日彩蛋（A15） */
 function checkEgg(){if(!SAVE.winCount||SAVE.winCount<=SAVE.eggAt)return;
  var eg=META&&META.easterEggs;
@@ -640,7 +646,26 @@ function win(){scene='done';hud.classList.remove('on');setStatic(false);
  if(CFG.board.message&&CFG.board.mode!=='none'){
   SAVE.ghosts.push({n:CUR,t:String(CFG.board.message),o:CFG.board.ghostOpacity!=null?CFG.board.ghostOpacity:.06});
   if(SAVE.ghosts.length>10)SAVE.ghosts=SAVE.ghosts.slice(-10)}
+ /* A-66 档案归档接线：通关根据 trigger 判定点亮 A-D 旗标 */
+ var archUnlocked=false;
+ var archMeta=(META&&META.archives)||{};
+ ['A','B','C','D'].forEach(function(k){
+  if(SAVE.archFlags[k])return;
+  var un=archMeta[k]&&archMeta[k].unlock;
+  var trig=un&&un.trigger;
+  var pass=false;
+  if(trig==='clearNight')pass=CUR>=(un.night||0);
+  else if(trig==='winCount')pass=(SAVE.winCount||0)>=(un.min||1);
+  else{
+   if(k==='A'&&CUR>=3)pass=true;
+   if(k==='B'&&(SAVE.winCount||0)>=1)pass=true;
+   if(k==='C'&&CUR>=5)pass=true;
+   if(k==='D'&&CUR>=6)pass=true;
+  }
+  if(pass){SAVE.archFlags[k]=1;archUnlocked=true}
+ });
  writeSave();
+ if(archUnlocked&&AU.ctx)AU.chime();
  /* 谢幕曲续播（A12 finale）：夜7 末曲在播 → 旋律延续进终局 */
  var j=S.juke;
  if(CFG.juke.finale&&j.started&&!j.dead&&j.left>0)S.finaleMel=1;
@@ -782,7 +807,8 @@ function moveInterval(s){var iv=5*(1-s.ai/40);
  if(S.board.state===1)iv*=CFG.slowX;      /* 白板对局：全场 ×2 慢 */
  if(s.sprint)iv*=.5;                      /* 冲刺：间隔减半 */
  return iv}
-function lockedFor(s){return s.path[s.path.length-1]==='doorR'?S.lockR:S.lockL}
+function doorSide(s){var d=s.path[s.path.length-1];return d==='doorR'?'R':(d==='doorL'?'L':null)}
+function lockedFor(s){var side=doorSide(s);return side==='R'?S.lockR:(side==='L'?S.lockL:false)}
 function watched(s){
  if(!S.cams||S.camRoom!==s.path[s.idx])return false;
  var loc=s.path[s.idx];
@@ -794,7 +820,7 @@ function tickSlot(s,dt){
  if(watched(s)){s.stareT=Math.min(2,s.stareT+dt)}
  else s.stareT=0;
  if(!s.moved){
-  if(S.time>=s.moveAt){s.moved=1;if(s.sprintOn)AU.gear();else AU.thump(.12)}
+  if(S.time>=s.moveAt){s.moved=1;s.retreating=0;s.stayT=0;s.tier=0;if(s.sprintOn)AU.gear();else AU.thump(.12)}
   else return}
  /* 变调铃：响铃=2 秒后掷骰 */
  if(s.bell){
@@ -806,15 +832,28 @@ function tickSlot(s,dt){
  if(loc==='doorL'||loc==='doorR'){
   if(lockedFor(s)){s.knock+=dt;
    if(s.knock>=CFG.edge.knock){
-    AU.knock();S.shake=.25;s.knock=0;
-    s.idx=Math.max(0,s.idx-(s.sprint?2:1));
-    s.t=CFG.edge.backCd+rnd(6);S.stats.blocks++;
+    var side=doorSide(s);
+    AU.knock(side);S.shake=.25;s.knock=0;
+    s.fails=(s.fails||0)+1;
+    if(s.fails<CFG.edge.giveUp){
+     s.idx=Math.max(0,s.idx-(s.sprint?2:1));
+     s.t=CFG.edge.backCd+rnd(6);S.stats.blocks++;
+    }else{
+     s.fails=0;s.idx=0;s.moved=0;s.retreating=1;
+     s.moveAt=S.time+CFG.edge.retreatCd;
+     s.sprint=0;s.t=moveInterval(s);S.stats.blocks++;
+     AU.thump(.1);
+    }
     if(navigator.vibrate)navigator.vibrate(40)}}
   else{s.doorT-=dt;
-   if(s.doorT<=0){var tag=s.path[s.path.length-1]==='doorR'?'R-DOOR':'L-DOOR';
+   if(s.doorT<=0){var side=doorSide(s);
+    var tag=side==='R'?'R-DOOR':(side==='L'?'L-DOOR':'DOOR');
     if(s.sprintOn&&S.juke.dead)tag='JUKE→'+s.nm;
-    jump(s.d,loc==='doorL'?'门那边的东西，从左边进来了。':'门那边的东西，从右边进来了。',tag)}}
+    var sideTxt=side==='L'?'门那边的东西，从左边进来了。':(side==='R'?'门那边的东西，从右边进来了。':'门那边的东西进来了。');
+    jump(s.d,sideTxt,tag)}}
   return}
+ s.stayT=(s.stayT||0)+dt;
+ if(s.stayT>=moveInterval(s)*0.5)s.tier=1;else s.tier=0;
  if(s.sprintOn&&!s.sprint)return;                   /* 绑定点歌机的槽：播着完全不动 */
  s.t-=dt;if(s.t>0)return;
  s.t=moveInterval(s);
@@ -823,8 +862,9 @@ function tickSlot(s,dt){
 function tryMove(s){
  var loc=s.path[s.idx];
  if(loc==='doorL'||loc==='doorR')return;
+ s.stayT=0;s.tier=0;
  if(s.idx===s.path.length-2){
-  s.idx++;s.doorT=CFG.edge.t;s.knock=0;AU.moan()}
+  s.idx++;s.doorT=s.edgeKill||CFG.edge.t;s.knock=0;AU.moan(doorSide(s))}
  else{var step=1;
   if(s.fast&&Math.random()<(s.skip!=null?s.skip:.2))step=2;   /* 跳区 */
   s.idx=Math.min(s.path.length-2,s.idx+step);
@@ -839,20 +879,30 @@ function jukeSprintChain(){                          /* A-39：余量窗耗尽�
  S.stats.miss++;
  var spr=false;
  for(var ka in S.slots){var a=S.slots[ka];
-  if(a.sprintOn){a.sprint=1;a.idx=Math.min(1,a.path.length-2);a.t=moveInterval(a);a.doorT=0;a.knock=0;a.stareT=0;spr=true}}
+  if(a.sprintOn){a.sprint=1;a.idx=Math.min(1,a.path.length-2);a.t=moveInterval(a);a.doorT=0;a.knock=0;a.stareT=0;a.stayT=0;a.tier=1;spr=true}}
  if(spr)AU.run()}                                    /* A-41：冲刺提醒=奔跑音+alertDot 快闪+edgeFx 门缘红 */
 function tickJuke(dt){var j=S.juke;
  if(!j.started){if(S.time>=CFG.juke.start){j.started=1;AU.gear();
   j.batt=CFG.juke.battery.cap}return}   /* 起播自动充满 */
  if(j.dead)return;
- if(j.muted){                                          /* A-39：没电静音+余量窗（夜1-6=5s·夜7=3s） */
+ var jWarnTh=CFG.juke.warn||(CUR===7?3:5);
+ if(j.muted){                                          /* A-39：没电静音+余量窗 */
   var before=Math.ceil(j.warn);
   j.warn-=dt;var now=Math.ceil(j.warn);
-  if(now!==before&&now>0)AU.warn();
-  if(j.warn<=0){j.warn=0;j.muted=0;j.dead=1;jukeSprintChain()}
+  if(now!==before&&now>0){
+   if(now<=1)AU.warn();else AU.tick()}
+  if(j.warn<=0){j.warn=0;j.muted=0;j.dead=1;j.warnActive=0;jukeSprintChain()}
   return}
+ var beforeBatt=j.batt;
  j.batt-=dt;
- if(j.batt<=0){j.batt=0;j.muted=1;j.warn=CFG.juke.warn||(CUR===7?3:5);AU.warn();return}
+ if(beforeBatt>jWarnTh&&j.batt<=jWarnTh){
+  j.warnActive=1;AU.warn();
+ }else if(j.batt<=jWarnTh&&j.batt>0){
+  var bSec=Math.ceil(beforeBatt),cSec=Math.ceil(j.batt);
+  if(cSec!==bSec){
+   if(cSec<=1)AU.warn();else AU.tick()}
+ }
+ if(j.batt<=0){j.batt=0;j.muted=1;j.warn=jWarnTh;AU.warn();return}
  j.left-=dt;
  if(j.left<=0){                                        /* 曲终：自主切歌（与电量解耦） */
   j.track++;
@@ -860,13 +910,16 @@ function tickJuke(dt){var j=S.juke;
   j.left=CFG.juke.tracks[j.track].len}}
 function renewJuke(){var j=S.juke;
  if(!S||scene!=='game'||!j.started||j.dead)return;
- if(S.black||S.staLock>0)return;                     /* 上发条不限 CAM1，任意位置空格/点♪条均可 */
+ if(S.black||S.staLock>0)return;
+ if(!(S.cams&&S.camRoom==='hall'))return;             /* 批次5 裁决④：必须正在查看大厅监控 */
  j.batt=CFG.juke.battery.renew;
+ j.warnActive=0;
  if(j.muted){j.muted=0;j.warn=0}                      /* 余量窗内续上=解静音 */
  S.power=Math.max(0,S.power-CFG.drain.renew);
  S.stats.renewals++;
  for(var ka in S.slots){var a=S.slots[ka];
   if(a.sprintOn&&a.sprint){a.sprint=0;a.idx=0;a.t=12}}
+ S.jukeFlash=4;
  AU.renew()}
 /* ---- 白板：数据驱动（陪练 AI 与判定分级由 P2 A7/A8 实现） ---- */
 function boardWinner(p){return LINES.some(function(l){return l.every(function(i){return S.board.cells[i]===p})})}
@@ -957,29 +1010,58 @@ function updateGame(dt){S.time+=dt;
  var h=Math.floor(S.time/N.hourLen);
  if(h!==S.hour)S.hour=h;
  if(S.hour>=6){win();return}                        /* 06:00 整点结算优先（含续播窗口边缘豁免） */
- /* 答录机（A9）：autoplayAt 到点真铃自动播放 */
- if(CFG.diary&&!S.answPlayed&&S.time>=parseClock(CFG.diary.autoplayAt||'00:00',N.hourLen)){
-  S.answPlayed=1;startDiary()}
- tickAnsw(dt);
- tickEvents();                                      /* 脚本事件引擎（A11）：syslog/cam9/dream/stamina */
- if(S.cam9Ev){S.cam9Ev.t+=dt;if(S.cam9Ev.t>=S.cam9Ev.dur)S.cam9Ev=null}
- if(S.cam9Pending&&S.postAt!=null){                 /* 残影窗口：仅奖励查看监控的玩家，无音效无红点 */
-  var cp=S.cam9Pending;cp.left-=dt;
-  if(!cp.shown&&S.cams&&S.camRoom==='corrB'){S.cam9Ev={type:cp.type,dur:cp.dur,t:0};S.cam9Pending=null}
-  else if(cp.left<=0)S.cam9Pending=null}
- if(S.dreamEv){S.dreamEv.t+=dt;if(S.dreamEv.t>=S.dreamEv.dur)S.dreamEv=null}
- if(S.capT>0){S.capT-=dt;if(S.capT<=0)S.capText=null}
- /* 白板挂起演出时序（A8）：格子消退 3s → 留言浮现 → 再 3s 自动回写（不受玩家控制） */
- var bb=S.board;
- if(bb.state===2&&bb.result==='draw'&&bb.phase<2){bb.msgT+=dt;
-  if(bb.msgT>=3){bb.phase++;bb.msgT=0;if(AU.ctx)AU.pen()}}
- else if(bb.state===3)bb.msgT+=dt;                  /* message 模式（夜2）字迹渐显 */
- if(S.introT>0){S.introT-=dt;return}
- /* 电力：待机（首小时减半）/监控/锁 */
- var dr=S.cams?CFG.drain.cam:CFG.drain.base;
- if(S.time<CFG.safeHalf)dr*=.5;
- if(S.lockL)dr+=CFG.drain.lock;
- if(S.lockR)dr+=CFG.drain.lock;
+  /* 答录机（A9）：autoplayAt 到点真铃自动播放 */
+  if(CFG.diary&&!S.answPlayed&&S.time>=parseClock(CFG.diary.autoplayAt||'00:00',N.hourLen)){
+   S.answPlayed=1;startDiary()}
+  /* A-64：夜7 乱码时序迁至白板局后留言窗口 */
+  var corAt=(CFG.diary&&CFG.diary.corruptAt)||(CUR===7?'post+0':'00:00');
+  if(corAt.indexOf('post')===0&&S.postAt!=null&&!S.corruptTriggered&&CFG.diary&&CFG.diary.corrupt&&CFG.diary.corrupt.length){
+   var off=parseFloat(corAt.slice(4))||0;
+   if(S.time>=S.postAt+off){
+    S.corruptTriggered=1;
+    startCorruptPlayback()}}
+  tickAnsw(dt);
+  tickEvents();                                      /* 脚本事件引擎（A11）：syslog/cam9/dream/stamina */
+  if(S.cam9Ev){S.cam9Ev.t+=dt;if(S.cam9Ev.t>=S.cam9Ev.dur)S.cam9Ev=null}
+  if(S.cam9Pending&&S.postAt!=null){                 /* 残影窗口：仅奖励查看监控的玩家，无音效无红点 */
+   var cp=S.cam9Pending;cp.left-=dt;
+   if(!cp.shown&&S.cams&&S.camRoom==='corrB'){S.cam9Ev={type:cp.type,dur:cp.dur,t:0};S.cam9Pending=null}
+   else if(cp.left<=0)S.cam9Pending=null}
+  if(S.dreamEv){S.dreamEv.t+=dt;if(S.dreamEv.t>=S.dreamEv.dur)S.dreamEv=null}
+  if(S.capT>0){S.capT-=dt;if(S.capT<=0)S.capText=null}
+  /* A-69 耐力<20% 且正在监控马娘房间时：灰角 + 低鸣节流 */
+  if(S.cams&&S.sta<CFG.sta.low){
+   var looking=false;
+   for(var kst in S.slots){
+    var sst=S.slots[kst],rst=sst.path[sst.idx];
+    if(sst.active&&rst===S.camRoom&&rst!=='doorL'&&rst!=='doorR'){looking=true;break}
+   }
+   S.staLowLooking=looking;
+   if(looking){
+    S.staWarnT=(S.staWarnT||0)-dt;
+    if(S.staWarnT<=0){S.staWarnT=2.0;if(AU.ctx)AU.warn()}
+   }else S.staWarnT=0;
+  }else{S.staLowLooking=false;S.staWarnT=0}
+  /* 白板挂起演出时序（A8）：格子消退 3s → 留言浮现 → 再 3s 自动回写（不受玩家控制） */
+  var bb=S.board;
+  if(bb.state===2&&bb.result==='draw'&&bb.phase<2){bb.msgT+=dt;
+   if(bb.msgT>=3){bb.phase++;bb.msgT=0;if(AU.ctx)AU.pen()}}
+  else if(bb.state===3)bb.msgT+=dt;                  /* message 模式（夜2）字迹渐显 */
+  if(S.introT>0){S.introT-=dt;return}
+  /* 电力：待机（首小时减半）/监控/锁 (A-68 drainMul) */
+  var dr=S.cams?CFG.drain.cam:CFG.drain.base;
+  if(S.time<CFG.safeHalf)dr*=.5;
+  var lockDrL=CFG.drain.lock,lockDrR=CFG.drain.lock;
+  for(var kdm in S.slots){
+   var sdm=S.slots[kdm];
+   if(sdm.active&&sdm.drainMul){
+    var ldm=sdm.path[sdm.idx];
+    if(ldm==='doorL')lockDrL=Math.max(lockDrL,CFG.drain.lock*sdm.drainMul);
+    if(ldm==='doorR')lockDrR=Math.max(lockDrR,CFG.drain.lock*sdm.drainMul);
+   }
+  }
+  if(S.lockL)dr+=lockDrL;
+  if(S.lockR)dr+=lockDrR;
  S.power-=dr*dt;
  if(S.power<=0&&!S.black)triggerBlackout();
  if(S.black){tickBlackout(dt);return}
@@ -1335,30 +1417,49 @@ function drawBoard(g){var b=S.board;
   if(b.phase>=2)squiggle(g,x+w*.26,y+h*.78,w*.4,'#2848a8',a2*.85)}}
 function renderCams(){var rm=S.camRoom;
  if(camStaticOn(rm)){renderCamStatic();return}          /* A-27：camStatic 房间整屏纯雪花，抑制场景本体 */
- var bg=rm;                                             /* v1.9b：大厅双态——点歌机在播=亮灯图，其余（未开播/停机/归零警告）=熄灯图 */
- if(rm==='hall'&&S.juke.started&&!S.juke.dead&&S.juke.left>0)bg='hall_on';
- /* FNAF 式镜头：放大 1.14 + 极缓慢晃动（每房间相位不同） */
- var ph=CAMORDER.indexOf(rm)*1.7;
- var swx=Math.sin(frame*.006+ph)*5,swy=Math.cos(frame*.0043+ph)*3;
- var zm=1.14;
- cx.save();
- cx.translate(192+swx,108+swy);cx.scale(zm,zm);cx.translate(-192,-108);
- if(IMG[bg])cx.drawImage(IMG[bg],0,0,384,216);
- var here=[];
- for(var k in S.slots){var s=S.slots[k];
-  if(s.active&&s.path[s.idx]===rm)here.push(s)}
- here.forEach(function(s,i){var p=SLOTPOS[rm][i]||SLOTPOS[rm][0];
-  if(s.sprintOn&&s.sprint&&rm==='corrB'){
-   drawSlot(cx,s.nm,200,160,2.3);
-   cx.fillStyle='rgba(255,255,255,.14)';
-   cx.fillRect(150,100,30,1);cx.fillRect(160,120,40,1);cx.fillRect(150,140,26,1);return}
-  drawSlot(cx,s.nm,p[0],p[1],p[2])});
-  /* A-46：CAM1 点歌机常驻计时器与 EQ 条已移除，信息唯一出口=底部 ♪ 条 */
- if(rm==='hall'&&S.juke.warn>0){
-  cx.fillStyle='rgba(120,10,10,.28)';cx.fillRect(0,0,384,216);
-  cx.fillStyle='#ff5050';cx.font='bold 12px "Fusion Pixel",monospace';
-  cx.fillText('续播 '+Math.ceil(S.juke.warn),170,110);
-  for(var i3=0;i3<10;i3++)cx.fillRect(rnd(384),rnd(216),2,2)}
+  var bg=rm;                                             /* v1.9b：大厅双态——点歌机在播=亮灯图，其余（未开播/停机/归零警告）=熄灯图 */
+  if(rm==='hall'&&S.juke.started&&!S.juke.dead&&S.juke.left>0&&!S.juke.muted&&S.juke.batt>0)bg='hall_on';
+  /* FNAF 式镜头：放大 1.14 + 极缓慢晃动（每房间相位不同） */
+  var ph=CAMORDER.indexOf(rm)*1.7;
+  var swx=Math.sin(frame*.006+ph)*5,swy=Math.cos(frame*.0043+ph)*3;
+  var zm=1.14;
+  cx.save();
+  cx.translate(192+swx,108+swy);cx.scale(zm,zm);cx.translate(-192,-108);
+  if(IMG[bg])cx.drawImage(IMG[bg],0,0,384,216);
+  var here=[];
+  for(var k in S.slots){var s=S.slots[k];
+   if(s.active&&!s.retreating&&s.path[s.idx]===rm)here.push(s)}
+  var usedTier={};
+  here.forEach(function(s,i){
+   var targetTier=(s.sprintOn&&s.sprint&&rm==='corrB')?1:(s.tier||0);
+   if(usedTier[targetTier])targetTier=1-targetTier;
+   usedTier[targetTier]=true;
+   var p=SLOTPOS[rm][targetTier]||SLOTPOS[rm][0];
+   drawSlot(cx,s.nm,p[0],p[1],p[2]);
+   if(s.sprintOn&&s.sprint&&rm==='corrB'){
+    cx.fillStyle='rgba(255,255,255,.14)';
+    cx.fillRect(150,100,30,1);cx.fillRect(160,120,40,1);cx.fillRect(150,140,26,1);
+   }
+  });
+  /* A-61：CAM1 低电量告警仅纯数字倒计时 + 命中高亮描边 */
+  var jWarnTh=CFG.juke.warn||(CUR===7?3:5);
+  var inJukeAlert=S.juke.started&&!S.juke.dead&&(S.juke.batt<=jWarnTh||S.juke.warn>0);
+  if(rm==='hall'&&inJukeAlert){
+   cx.fillStyle='rgba(120,10,10,.28)';cx.fillRect(0,0,384,216);
+   cx.fillStyle='#ff5050';cx.font='bold 16px "Fusion Pixel",monospace';
+   cx.textAlign='center';
+   cx.fillText(Math.ceil(S.juke.batt>0?S.juke.batt:S.juke.warn),138,70);
+   cx.textAlign='left';
+   for(var i3=0;i3<10;i3++)cx.fillRect(rnd(384),rnd(216),2,2)}
+  if(rm==='hall'&&S.jukeFlash>0){
+   S.jukeFlash--;
+   cx.strokeStyle='rgba(255,220,120,.55)';cx.lineWidth=2;
+   cx.beginPath();cx.arc(138,82,30,0,Math.PI*2);cx.stroke()}
+  if(S.staLowLooking){
+   var gv=cx.createRadialGradient(192,108,60,192,108,240);
+   gv.addColorStop(0,'rgba(0,0,0,0)');
+   gv.addColorStop(1,'rgba(30,30,36,.75)');
+   cx.fillStyle=gv;cx.fillRect(0,0,384,216)}
  /* 监控开着时：白板角落可见（局面+倒计时）但点不了 */
  if(S.board.state===1){
   var bx=344,by=8,cs=11;
@@ -1439,44 +1540,39 @@ function updateHud(){if(!S)return;
  var bars=$('usage').children;
  for(var i=0;i<bars.length;i++)bars[i].className=i<usage?'on':'';
  $('camStrip').style.display=S.black?'none':'';
-  var dot=$('alertDot'),j=S.juke;
-  dot.className=(j.started&&!j.dead&&(j.warn>0||(!j.muted&&j.batt<8)))?'fast':'';
-  document.querySelectorAll('#map .mb').forEach(function(b){
-   b.classList.toggle('alert',b.dataset.r==='hall'&&!S.black&&j.started&&!j.dead&&(j.warn>0||j.batt<8))});
-  $('camSub').textContent='';
-  if(S.cams){var held=0;
-   for(var k in S.slots){if(stareEffective(S.slots[k]))held++}
-   if(held)$('camSub').textContent='● 遏制中 ×'+held}
-  var jh=$('jukeHud');
-  if(!S.black&&j.started&&!j.dead){                   /* 电量条常显（办公室也能看到发条余量） */
-   if(j.muted){jh.className='on warn pe';
-    jh.textContent='⚠ 没电了！【空格】续上 — '+Math.ceil(j.warn)}
-   else{jh.className='on pe'+(j.batt<8?' warn':'');
-    jh.textContent='♪ '+songName(j.track)+' — 电量 '+Math.ceil(j.batt)+'s（空格续 30s）'}}
-  else jh.className='pe';
-  var bl=$('blackHud');
-  if(S.black){bl.textContent=Math.max(0,Math.ceil(S.blackT));bl.className='on'}
-  else bl.className='';
-  var anySprint=false;
-  for(var ksp in S.slots){if(S.slots[ksp].sprint){anySprint=true;break}}
-  var warnRed=(j.warn>0||anySprint)&&!S.black;   /* A-41：停机冲刺=门缘红提示 */
-  var warnWhite=S.board.state===1&&S.board.turn==='you'&&S.board.moveT<=3.5&&!S.black;
-  $('edgeFx').className=warnRed?'red':(warnWhite?'white':'');
-  var db=$('dbg');
-  if(S.god){db.classList.add('on');
-   var lines='GOD VIEW  '+Math.floor(S.time)+'s';
-   for(var k2 in S.slots){var s3=S.slots[k2],loc=s3.path[s3.idx];
-    lines+='\n'+s3.nm+' '+(s3.moved?(loc.indexOf('door')===0?(loc==='doorL'?'左门!':'右门!'):CAMNO[loc]+' '+RN[loc]):'待机('+(s3.moveAt/N.hourLen)+'h '+CAMNO[loc]+')')+
-     (s3.moved?' doorT:'+Math.max(0,s3.doorT).toFixed(1):'')}
-   lines+='\nJuke '+(j.dead?'已停机':j.warn>0?'窗口 '+j.warn.toFixed(1):(j.started?'电量 '+Math.ceil(j.batt)+'s':'未开播'))+
-    '  Board '+(S.board.state===1?(S.board.turn==='you'?'你的回合 '+Math.max(0,S.board.moveT).toFixed(1):'敌方思考'):(S.board.state===2?S.board.result:S.board.state===3?'message':'not shown'))+
-    '\nREEVAL '+(S.reeval?'进行中':'-')+'  POST '+(S.postAt!=null?fmtClock(S.postAt):'-')+
-    '  事件 '+S.events.filter(function(e){return e.fired}).length+'/'+S.events.length+
-    '  LOG '+((SAVE.sysArch[CUR]||[]).length)+'  答录机 '+(S.answ.on?(S.answ.phase||'播放中'):'-')+
-    (S.cam9Ev?'\nCAM9 '+S.cam9Ev.type+' '+S.cam9Ev.t.toFixed(1)+'s':'')+(S.dreamEv?'\nDREAM '+S.dreamEv.t.toFixed(1)+'s':'')+
-    (S.capText?'\nCAPTION '+S.capText.slice(0,12):'');
-   db.textContent=lines}
-  else db.classList.remove('on')}
+   var dot=$('alertDot'),j=S.juke;
+   var jWarnTh=CFG.juke.warn||(CUR===7?3:5);
+   var jukeAlert=j.started&&!j.dead&&(j.batt<=jWarnTh||j.warn>0);
+   var anySprint=false;
+   for(var ksp in S.slots){if(S.slots[ksp].sprint){anySprint=true;break}}
+   dot.className=(jukeAlert?'fast on':(anySprint?'on':'pe'));
+   document.querySelectorAll('#map .mb').forEach(function(b){
+    b.classList.toggle('alert',b.dataset.r==='hall'&&!S.black&&j.started&&!j.dead&&jukeAlert)});
+   $('camSub').textContent='';
+   if(S.cams){var held=0;
+    for(var k in S.slots){if(stareEffective(S.slots[k]))held++}
+    if(held)$('camSub').textContent='● 遏制中 ×'+held}
+   var bl=$('blackHud');
+   if(S.black){bl.textContent=Math.max(0,Math.ceil(S.blackT));bl.className='on'}
+   else bl.className='';
+   var warnRed=(jukeAlert||anySprint)&&!S.black;   /* A-61：余量不足或冲刺=红光 */
+   var warnWhite=S.board.state===1&&S.board.turn==='you'&&S.board.moveT<=3.5&&!S.black;
+   $('edgeFx').className=warnRed?'red':(warnWhite?'white':'');
+   var db=$('dbg');
+   if(S.god){db.classList.add('on');
+    var lines='GOD VIEW  '+Math.floor(S.time)+'s';
+    for(var k2 in S.slots){var s3=S.slots[k2],loc=s3.path[s3.idx];
+     var stDesc=s3.retreating?('离场(冷却 '+Math.ceil(Math.max(0,s3.moveAt-S.time))+'s)'):(s3.moved?(loc.indexOf('door')===0?(loc==='doorL'?'左门!':'右门!'):CAMNO[loc]+' '+RN[loc]):'待机('+(s3.moveAt/N.hourLen)+'h '+CAMNO[loc]+')');
+     lines+='\n'+s3.nm+' '+stDesc+(s3.moved&&!s3.retreating?' doorT:'+Math.max(0,s3.doorT).toFixed(1):'')}
+    lines+='\nJuke '+(j.dead?'已停机':j.warn>0?'窗口 '+j.warn.toFixed(1):(j.started?'电量 '+Math.ceil(j.batt)+'s':'未开播'))+
+     '  Board '+(S.board.state===1?(S.board.turn==='you'?'你的回合 '+Math.max(0,S.board.moveT).toFixed(1):'敌方思考'):(S.board.state===2?S.board.result:S.board.state===3?'message':'not shown'))+
+     '\nREEVAL '+(S.reeval?'进行中':'-')+'  POST '+(S.postAt!=null?fmtClock(S.postAt):'-')+
+     '  事件 '+S.events.filter(function(e){return e.fired}).length+'/'+S.events.length+
+     '  LOG '+((SAVE.sysArch[CUR]||[]).length)+'  答录机 '+(S.answ.on?(S.answ.phase||'播放中'):'-')+
+     (S.cam9Ev?'\nCAM9 '+S.cam9Ev.type+' '+S.cam9Ev.t.toFixed(1)+'s':'')+(S.dreamEv?'\nDREAM '+S.dreamEv.t.toFixed(1)+'s':'')+
+     (S.capText?'\nCAPTION '+S.capText.slice(0,12):'');
+    db.textContent=lines}
+   else db.classList.remove('on')}
 /* ============ 菜单 ============ */
 function buildMenu(){var box=$('mNights');box.innerHTML='';
  for(var n=1;n<=7;n++)(function(n){
@@ -1528,7 +1624,9 @@ function buildArch(){var el=$('archList');
   var got=!!SAVE.archFlags[k];
   h+='<div class="arow'+(got?' got':'')+'">'+title+' —— '+(got?'已解锁':'未解锁')+'</div>';
   if(got&&info.text)h+='<div class="arow got" style="opacity:.82;white-space:pre-wrap;line-height:1.9;font-size:.85em;padding-left:6%">'+info.text+'</div>';
-  else if(!got&&info.unlock)h+='<div class="arow" style="opacity:.6;font-size:.8em;padding-left:6%">解锁条件：'+info.unlock+'</div>'});
+  else if(!got){
+   var ut=info.unlockText||(typeof info.unlock==='string'?info.unlock:(info.unlock&&info.unlock.unlockText?info.unlock.unlockText:''));
+   if(ut)h+='<div class="arow" style="opacity:.6;font-size:.8em;padding-left:6%">解锁条件：'+ut+'</div>'}});
  el.innerHTML=h}
 /* ============ 输入 ============ */
 function bindBtn(id,fn){$(id).addEventListener('click',function(e){e.stopPropagation();fn()})}
@@ -1575,9 +1673,19 @@ stage.addEventListener('pointerdown',function(e){
  if(scene!=='game'||!S)return;
  if(e.target.closest('.ovl')||e.target.closest('.pe'))return;
  if(S.black)return;
- var r=cv.getBoundingClientRect();
- var px=(e.clientX-r.left)/r.width*W,py=(e.clientY-r.top)/r.height*H;
-  if(S.cams)return;                                  /* 监控态：禁止办公室判定，不通过点画面收起（保留 ESC/C/camStrip） */
+  var r=cv.getBoundingClientRect();
+  var px=(e.clientX-r.left)/r.width*W,py=(e.clientY-r.top)/r.height*H;
+  if(S.cams){
+   if(S.camRoom==='hall'&&!S.black&&S.juke&&!S.juke.dead){
+    var ph=CAMORDER.indexOf('hall')*1.7;
+    var swx=Math.sin(frame*.006+ph)*5,swy=Math.cos(frame*.0043+ph)*3;
+    var zm=1.14;
+    var bx=(px-192-swx)/zm+192,by=(py-108-swy)/zm+108;
+    if((bx-138)*(bx-138)+(by-82)*(by-82)<=30*30){
+     renewJuke();return}
+   }
+   return;
+  }
   if(S.close){                                       /* 近看：大板落子；板外退出 */
    var cg=closeGrid(),wx=px/SQ,wy=py/SQ;
    if(S.board.state===1&&wx>=cg.ox&&wx<=cg.ox+3*cg.cs&&wy>=cg.oy&&wy<=cg.oy+3*cg.cs){
@@ -1610,9 +1718,6 @@ function endDrag(e){if(!drag||e.pointerId!==drag.id)return;
 addEventListener('pointerup',endDrag);
 addEventListener('pointercancel',endDrag);
 $('camStrip').addEventListener('click',function(e){if(scene==='game'&&S&&!S.black)setCams(!S.cams)});
-/* 触控/鼠标扩展：点击♪提示条=续发条（等效空格） */
-$('jukeHud').addEventListener('click',function(e){e.stopPropagation();
- if(scene==='game'&&S)renewJuke()});
 
 $('arL').addEventListener('click',function(e){e.stopPropagation();
  if(scene==='game'&&S&&S.cams){var i=CAMORDER.indexOf(S.camRoom);
@@ -1629,7 +1734,7 @@ addEventListener('keydown',function(e){
  else if(k==='c')setCams(!S.cams);
  else if(k==='r')interruptDiary();                  /* 答录机中断无惩罚（A9） */
  else if(k==='f'){if(!S.cams)S.close=S.close?0:1}   /* 白板近看（A21 基础） */
- else if(k===' '){e.preventDefault();renewJuke()}
+ else if(k===' '){e.preventDefault()}               /* A-61 裁决④：彻底废除空格续电 */
  else if(k==='escape')setCams(false);
  else if(k==='q'){if(!e.repeat)toggleLock('L')}
  else if(k==='e'){if(!e.repeat)toggleLock('R')}
@@ -1640,7 +1745,7 @@ addEventListener('keydown',function(e){
  else if(k==='f3'){S.sta=100;S.staLock=0}
  else if(k==='f4'){if(S.juke.started&&!S.juke.dead)S.juke.left=Math.min(S.juke.left,5)}
  else if(k==='f5'){if(!S.board.state)boardAppear(1)}
- else if(k==='f6'){var c=S.slots.C;if(c){c.active=1;c.idx=c.path.length-1;c.doorT=CFG.edge.t;c.knock=0;AU.moan()}}
+ else if(k==='f6'){var c=S.slots.C;if(c){c.active=1;c.idx=c.path.length-1;c.doorT=c.edgeKill||CFG.edge.t;c.knock=0;AU.moan(doorSide(c))}}
  else if(k==='f7'){for(var i=0;i<30&&scene==='game';i++)updateGame(1)}
  else if(k==='f8'){S.god=!S.god}
  else if(k==='f9'){S.time=e.shiftKey?Math.max(0,S.time-30):S.time+30}              /* A22 跳时 ±30s */

@@ -13,7 +13,7 @@ window.SAMPLE = {
       power: {
         start: 100,
         safeHalf: 60,                       /* 00:00-01:00 耗电减半窗口（秒） */
-        drain: { base: .05, cam: .10, lock: .5, light: .1, switch: .15, renew: .5, afk: .5 }
+        drain: { base: .05, cam: .10, lock: .5, light: .1, switch: .15, renew: .5, afk: 0 /* v2.0 批次5：失焦挂起已移除，字段空置不删 */ }
       },
       slots: {
         A: { ai: 6, at: '01:00', path: ['hall', 'corrB', 'doorR'], sprintOnJukeDead: true },

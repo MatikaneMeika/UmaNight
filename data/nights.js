@@ -73,7 +73,8 @@ window.NIGHTS = [
                  '监控盯久了耐力会掉。不看的时候能回。得省着用。\n' +
                  '不能一直盯。得学会什么时候看，什么时候不看。' },
   syslog: [ { at: '03:30', sys: '[接入] 外部用户 ASTON_MACHAN · 03:30 接入 · 时长 4 分 12 秒',
-              note: null, caption: false },
+              note: '白板上……多了一行不是你写的字。', caption: false },
+              // B-24①：原 hints.open 叙事钩子改挂事件实际发生时（03:30 板上浮现「你是谁」的同分钟）
             { at: '03:35', sys: '[自检] 检测到未授权数据波动 · 来源：本进程',
               note: null, caption: false } ],
   cam9:  [ { at: '03:30', type: 'freeze', dur: 3 } ],
@@ -81,7 +82,7 @@ window.NIGHTS = [
   dream: [ { at: '03:30', dur: 2, stamina: -10 } ],
            // 全屏 2 秒碎影（握笔的手、车站钟、站台边缘）——他做梦的同一分钟，她在接入
   camStatic: [ 'plaza' ],   // S1：CAM7 常驻花屏（v1.9 仲裁定稿字段）
-  hints: { open: '03:30。白板上……多了一行不是你写的字。' }
+  hints: { open: '' }       // v2.0 批次5 B-24①：开局横幅通道停显（与 A-65 同轮），原句已迁 03:30 syslog note
 },
 
 /* ================= 夜 3 · 评估通道启用（怀疑阶段·三线重叠） =================
@@ -115,20 +116,22 @@ window.NIGHTS = [
                  '白板上下了一盘。我在角落写了几个字。她也写了，折好放进包里。我问写了什么，她说秘密。\n' +
                  '点歌机红点闪的时候要按一下。不按会出事。监控切换要电，关掉不要。\n' +
                  '差不多就这些。' },
-  syslog: [ { at: 'post+8',  sys: '[比对] 白板留言笔迹 ↔ 附件#049 一致性 98%', note: null, caption: false },
+  syslog: [ { at: '03:00', sys: '[白板] 对局请求 · 先手已落定',
+              note: '白板亮起，棋盘格和第一枚先手已经在了。', caption: false },
+              // B-24①：原 hints.open 叙事钩子改挂事件实际发生时
+            { at: 'post+8',  sys: '[比对] 白板留言笔迹 ↔ 附件#049 一致性 98%', note: null, caption: false },
             { at: 'post+25', sys: '[检索] 档案A 照片损坏（无底片）', note: null, caption: false } ],
   cam9:  [ { at: 'post+60', type: 'silhouette', dur: 2.5 } ],
            // v1.7 §5：对局结束起 60 秒内查看 CAM9 可见 2-3 秒侧影（奖励看监控的玩家）
   scriptedStamina: [ { at: 'post', delta: -5, reason: '注视留言' } ],
   camStatic: [ 'plaza' ],   // S1：CAM7 常驻花屏（v1.9 仲裁定稿字段）
-  hints: { open:  '03:00，白板亮起，棋盘格和第一枚先手已经在了。',
-           board: '关掉监控落子。你 8 秒一手，她 6.5 秒一手。' }
+  hints: { open: '' }       // v2.0 批次5 B-24①：开局横幅通道停显（与 A-65 同轮），原句已迁 03:00 syslog；board 提示（计时）板UI已实时显示，删（B-24③）
 },
 
 /* ================= 夜 4 · D 上线（怀疑阶段） =================
    v1.7 §10：[参数]+首条手写备注+[日志]；升压归因=检测到未授权检索→D 上线（C 保持）。
    blockChance .65；playerTimer 7 / oppInterval 5（ai 10）。
-   firstFreeBias='corner'（新增字段·提案）：她的首个非封堵落子偏置角落——
+   cornerBias：她的首个非封堵落子偏置角落——
    日记#049『我在角落写了几个字』的演出回响；与 §3.4『首子随机』并存（§3.1 规则3）。 */
 {
   id: 4,
@@ -145,7 +148,7 @@ window.NIGHTS = [
   board: { mode: 'game', at: '03:00',
            playerTimer: 7, oppInterval: 5, grace: 1.5, ai: 10,
            firstStone: 'random', blockChance: .65,
-           cornerBias: true, firstFreeBias: 'corner',   // 角落偏置双写：cornerBias=A 提案名，firstFreeBias=B 原名，仲裁后可删一
+           cornerBias: true,                            // 首个非封堵落子偏置角落（引擎只读本键；firstFreeBias 死字段已删·B-24②）
            message: '左手会先动', autoReply: '谁。',
            ghostOpacity: .06, winPolicy: 'reeval' },
   juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 30 },   // v2.0 发条模型：开局自动播，续播=续 30s 电量，静音超 5s 余量窗=停机
@@ -159,14 +162,16 @@ window.NIGHTS = [
                  '我没接话。她跑了。我应该在后面喊点什么的。但我没有。\n' +
                  'D 那个门边停得特别短，门锁耗电也快。灯只是照明，挡不住。\n' +
                  '我把路线背了一遍。她要是知道，肯定要说我认真。' },
-  syslog: [ { at: 'post+8',  sys: '[参数] 左手延迟 −0.03s · 来源：用户习惯数据 · 用户：不存在',
+  syslog: [ { at: '03:00', sys: '[白板] 对局请求 · 首子偏置：角落',
+              note: '白板亮了。她的先手落在角落——像被人教过那样。', caption: false },
+              // B-24①：原 hints.open 叙事钩子改挂事件实际发生时
+            { at: 'post+8',  sys: '[参数] 左手延迟 −0.03s · 来源：用户习惯数据 · 用户：不存在',
               note: '……左手？我没有左手。', caption: false },
               // TRAINER-00 首条手写备注（v1.7 §6.4 原文）
             { at: 'post+30', sys: '[日志] 4/21 值班记录→已损坏', note: null, caption: false } ],
   cam9:  [ { at: 'post+60', type: 'silhouette', dur: 2.5 } ],
   camStatic: [ 'plaza' ],   // S1：CAM7 常驻花屏（v1.9 仲裁定稿字段）
-  hints: { open:  '白板亮了。她的先手落在角落——像被人教过那样。',
-           board: '你 7 秒一手，她 5 秒一手。比昨晚快了。' }
+  hints: { open: '' }       // v2.0 批次5 B-24①：开局横幅通道停显（与 A-65 同轮），原句已迁 03:00 syslog；board 提示删（B-24③）
 },
 
 /* ================= 夜 5 · 确认（他叫出了她的名字） =================
@@ -188,7 +193,7 @@ window.NIGHTS = [
   board: { mode: 'game', at: '03:00',
            playerTimer: 6, oppInterval: 3.5, grace: 1.5, ai: 15,
            firstStone: 'random', blockChance: .8,
-           cornerBias: true, firstFreeBias: 'corner',   // 角落偏置双写（同夜4）
+           cornerBias: true,                            // 角落偏置（同夜4；firstFreeBias 死字段已删·B-24②）
            message: '你只要还在就行', autoReply: '麻酱。',
            ghostOpacity: .06, winPolicy: 'reeval' },
   juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 30 },   // v2.0 发条模型：开局自动播，续播=续 30s 电量，静音超 5s 余量窗=停机
@@ -203,14 +208,15 @@ window.NIGHTS = [
                  '她走后我把传单翻了一遍。每张背面都有字。最后一张写着：我的梦想是自己的了，所以你也要有自己的。\n' +
                  '……我是不是写太多了。\n' +
                  '切出去的话电会一直掉。断电了也别慌，撑一会儿就行。' },
-  syslog: [ { at: 'post+8',  sys: '[权限] 账号「夜班训练员」：无此账号', note: null, caption: false },
+  syslog: [ { at: '03:00', sys: '[白板] 对局请求 · 先手：随机落定', note: null, caption: false },
+              // B-24①：原 hints.open 为纯过程描述无叙事钩子，仅留系统登记
+            { at: 'post+8',  sys: '[权限] 账号「夜班训练员」：无此账号', note: null, caption: false },
             { at: 'post+16', sys: '[进程] 本进程 = TRAINER-00 · 残留数据',
               note: 'TRAINER-00……我？', caption: false },
             { at: 'post+30', sys: '[评估] 自主活动频率超基线 → 威胁等级↑', note: null, caption: false } ],
   cam9:  [ { at: 'post+60', type: 'silhouette', dur: 2.5 } ],
   camStatic: [ 'plaza' ],   // S1：CAM7 常驻花屏（v1.9 仲裁定稿字段）
-  hints: { open:  '白板亮起。先手随机落定。',
-           board: '你 6 秒一手，她 3.5 秒一手。' }
+  hints: { open: '' }       // v2.0 批次5 B-24①：开局横幅通道停显（与 A-65 同轮）；原句纯过程描述，不迁；board 提示删（B-24③）
 },
 
 /* ================= 夜 6 · 接受（第一天的节奏） =================
@@ -246,15 +252,17 @@ window.NIGHTS = [
                  '还有时间。应该来得及。\n' +
                  '我跑起来的时候没看清左边。\n' +
                  '——日记到这里断了。' },
-  syslog: [ { at: 'post+8',  sys: '[比对] 附件#092 时间线 ↔ 本进程操作日志 重合率 100%',
+  syslog: [ { at: '03:00', sys: '[白板] 对局请求 · 首子：中央',
+              note: '白板又亮了——这次的格子像是用手指一笔一笔画出来的。', caption: false },
+              // B-24①：原 hints.open 叙事钩子改挂事件实际发生时
+            { at: 'post+8',  sys: '[比对] 附件#092 时间线 ↔ 本进程操作日志 重合率 100%',
               note: '全部……对上了。', caption: false },
             { at: 'post+25', sys: '[归档] 例行归档窗口：开启',
               note: '#092 之后就停了。然后是——', caption: false },
             { at: '05:00', sys: '[例行] 归档窗口巡检：正常', note: null, caption: false } ],
   cam9:  [ { at: 'post+60', type: 'silhouette', dur: 4.5 } ],   // 残影停留更久（v1.7 §10 夜6）
   camStatic: [ 'plaza' ],   // S1：CAM7 常驻花屏（v1.9 仲裁定稿字段）
-  hints: { open:  '03:00。白板又亮了——这次的格子像是用手指一笔一笔画出来的。中央，一枚先手。',
-           board: '你 8 秒一手，她 6.5 秒一手。第一天的节奏。' }
+  hints: { open: '' }       // v2.0 批次5 B-24①：开局横幅通道停显（与 A-65 同轮），原句已迁 03:00 syslog；board 提示删（B-24③）
 },
 
 /* ================= 夜 7 · 最终评估（放手） =================
@@ -303,13 +311,15 @@ window.NIGHTS = [
                       '[████] ██ 中断 ██ 挂起 ██' ],
            stopAt: '她抱着一个人偶，站在训练场门口，声音很轻。' },
            // 归档条目名见 META.corruptDiaryTitle《[损坏] ▓▓1095▓▓》（v1.7 §6.2）
-  syslog: [ { at: '02:40', sys: '[白板] 累计对局 1095 · 平局 1095 · 胜 0 · 负 0', note: null, caption: true },
+  syslog: [ { at: '03:00', sys: '[白板] 检测到未授权笔迹 · 持续写入中',
+              note: '白板上，有什么正在自己画完。', caption: false },
+              // B-24①：原 hints.open 叙事钩子改挂事件实际发生时（「雪花里的 CAM7 暗了」一半由 META.camStaticHint.n7 承载）
+            { at: '02:40', sys: '[白板] 累计对局 1095 · 平局 1095 · 胜 0 · 负 0', note: null, caption: true },
             { at: '02:46', sys: '[历史] 模拟对手 · 1088 夜前 · 基准：已故训练员战术数据', note: null, caption: false },
             { at: '02:52', sys: '[接入方] 现实侧连续接入 1095 夜 · 训练负荷异常', note: null, caption: false },
             { at: '03:20', sys: '[留言] 第 1095 天。麻酱今天也来了。', note: '该下班了。', caption: true } ],
   cam9:  [ { at: '04:00', type: 'frontal', dur: 4 } ],
   camStatic: [ 'plaza' ],   // S1 常驻花屏；夜7 加剧由 A-28 引擎逐夜强度常量（原 camFx 按 v1.9 仲裁并入 camStatic，避免重复计）
-  hints: { open:  '雪花里的 CAM7 暗了。白板上，有什么正在自己画完。',
-           board: '你 5 秒一手，她 2 秒一手。' }
+  hints: { open: '' }       // v2.0 批次5 B-24①：开局横幅通道停显（与 A-65 同轮），原句已迁 03:00 syslog；board 提示删（B-24③）
 }
 ];
