@@ -13,7 +13,7 @@ window.SAMPLE = {
       power: {
         start: 100,
         safeHalf: 60,                       /* 00:00-01:00 耗电减半窗口（秒） */
-        drain: { base: .05, cam: .10, lock: .5, light: .1, switch: .15, renew: .5, afk: 0 /* v2.0 批次5：失焦挂起已移除，字段空置不删 */ }
+        drain: { base: .05, cam: .10, lock: .5, light: .1, switch: .15, renew: 0, afk: 0 /* v2.0 批次5：失焦挂起已移除，字段空置不删 */ }
       },
       slots: {
         A: { ai: 6, at: '01:00', path: ['hall', 'corrB', 'doorR'], sprintOnJukeDead: true },
@@ -31,8 +31,9 @@ window.SAMPLE = {
         ghostOpacity: .06                   /* 残影层不透明度（≤8%） */
       },
       juke: {
-        start: '01:00', warn: 5,
-        battery: { cap: 30, renew: 30 },   /* A-39 发条模型：起播充满 30s，点播放续 30s */
+        start: '00:00', warn: 5,
+        battery: { cap: 30, renew: 10 },   /* A-88/B-44 口径：起播充满 30s，点一次 +10s（封顶 cap） */
+        staCost: 10,                       /* 续电扣耐力（D39 终值） */
         tracks: [
           { name: '残响安可', len: 120 },
           { name: '星尘回廊', len: 75 },
@@ -66,7 +67,31 @@ window.SAMPLE = {
     bells: { diary: 'true', decoy: 'detune', comm: 'comm' },
     menu: {
       subtitle: '七 夜 · 值 班 记 录',
-      foot: '值班记录实时保存 · 灯请保持常亮'
+      foot: '值班记录实时保存 · 灯请保持常亮',
+      play: '继续游戏', back: '返回', nightsTitle: '选择夜班', locked: '▨',
+      boot: { clock: 'CLOCK', night: 'NIGHT' },
+      columns: { name: 'SYSTEM', spec: 'SPEC' }
+    },
+    /* 说明页双栏兜底行（正式值 meta.js·B-41）。{xxx} 为引擎占位符，由 CFG 插值（D9），
+       缺位时原样保留花括号也不影响可读性。 */
+    howTo: {
+      rows: [
+        { name: '视角', spec: ['A·D／←·→ 转向', '拖动手势 平移画面'] },
+        { name: '监控', spec: ['C／底部白条 开关', '地图块 选台'] },
+        { name: 'SYS LOG', spec: ['事件即归档', '查阅：主菜单 · 记录'] },
+        { name: '答录机', spec: ['00:00 自动播放', '中断：仅 R 键'] },
+        { name: '门锁', spec: ['锁钮或 Q·E 切换', '锁定耗电力 {lock}/s'] },
+        { name: '灯光', spec: ['灯钮或 Z·X', '点亮 {light}s 仅显剪影'] },
+        { name: '进程稳定度', spec: ['盯视 {freeze}s 冻结目标', '开监控 {camOn}/s', '收监控 {camOff}/s', '切台 −{switch}/次', '低于 {low}%：盯视失效', '低于 {crit}%：监控锁定', '归零：僵直 {stun}s 后回 {rec}%'] },
+        { name: '点歌机', spec: ['大厅 CAM1 · 胶囊钮续电', '余量 <{warn}s：画面告警', '停机后当夜不可恢复'] },
+        { name: '白板', spec: ['落子前提：收起监控', '开监控/近看：倒计时 {mercy}'] },
+        { name: '电力', spec: ['待机 {base}/s', '撑至 06:00 仍算幸存'] }
+      ]
+    },
+    result: {
+      renew: '续播次数', miss: '错过次数', block: '挡回次数', board: '白板对局',
+      power: '电力存量', stamina: '稳定度存量',
+      boardValues: { none: '未出现', draw: '平局 · 挂起', win: '胜利 · 已评估', safe: '安全解除', lose: '败北 · 已评估' }
     },
     boardLog: {
       title: '白板留言',

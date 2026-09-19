@@ -20,13 +20,13 @@ window.NIGHTS = [
   id: 1,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:0, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 3, at: 60, path: ['hall','corrB','doorR'], sprintOnJukeDead: true }
   },
   board: { mode: 'none',            // 空板：旧笔迹、擦不净的划痕（残影层既有铺垫，NFX.ghostLayer 绘制）
            ghostOpacity: .05 },     // 【提案】1088 夜旧痕基底层
-  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 30 },   // v2.0 发条模型：开局自动播，续播=续 30s 电量，静音超 5s 余量窗=停机
+  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 10 }, staCost: 10,   // B-44（D39 终值）：续电=+10s 电量（累加封顶 cap·A-88）·耗体力 10·**耗电力 0（B-46：用户指令取消点击耗电）**——A-88 累加语义下 cap=30 为真上限（余量 ≥20 时点击浪费，合理节奏 ≈20-25s 一下、整夜 14-18 次）；静音超 5s 余量窗=停机
           tracks: [ { name:'残响安可', len:120 },
                     { name:'星尘回廊', len:90 },
                     { name:'金属梦境', len:120 } ] },
@@ -41,6 +41,12 @@ window.NIGHTS = [
            // 不主动弹窗，仅细心的玩家会发现——教程在骗你，日志在漏真话（v1.7 §6.5）
   /* 电话字幕通道已废弃（v1.7 §6.5 口径下教程埋点由手册日志+录音机承载）；字段按契约保留置空 */
   call: [],
+  // B-44（↔A-88）：夜1 后半场「她」（=麻酱，非 D）登场 3 次——CAM9 残影通道，红线照旧：
+  // 无音效、无红点、不参与门边逻辑（温柔红线：残影永不构成威胁）；闪屏预告由 A-88 在事件前 ~1.5s 触发。
+  // 时刻=03:00 后匀场：03:40 / 04:50 / 05:40（末次贴近 06:00 收班，留谢幕感）。
+  cam9:  [ { at: '03:40', type: 'freeze', dur: 2 },
+           { at: '04:50', type: 'silhouette', dur: 2.5 },
+           { at: '05:40', type: 'freeze', dur: 2 } ],
   camStatic: [ 'plaza' ]   // S1：CAM7 三女神广场全夜常驻花屏（v1.9 仲裁定稿字段）
 },
 
@@ -53,7 +59,7 @@ window.NIGHTS = [
   id: 2,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:0, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 4, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 3, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -62,7 +68,7 @@ window.NIGHTS = [
   board: { mode: 'message', at: '03:30',
            message: '你是谁',                        // 大纲原文（她第一次试探）；无格子、无对局、无回写
            ghostOpacity: .06 },
-  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 30 },   // v2.0 发条模型：开局自动播，续播=续 30s 电量，静音超 5s 余量窗=停机
+  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 10 }, staCost: 10,   // B-44（D39 终值）：续电=+10s 电量（累加封顶 cap·A-88）·耗体力 10·**耗电力 0（B-46：用户指令取消点击耗电）**——A-88 累加语义下 cap=30 为真上限（余量 ≥20 时点击浪费，合理节奏 ≈20-25s 一下、整夜 14-18 次）；静音超 5s 余量窗=停机
           tracks: [ { name:'残响安可', len:120 },
                     { name:'星尘回廊', len:85 },
                     { name:'金属梦境', len:85 } ] },
@@ -87,13 +93,13 @@ window.NIGHTS = [
 
 /* ================= 夜 3 · 评估通道启用（怀疑阶段·三线重叠） =================
    参数=night3-t1.html T1 卡现值（总计划 §1 权威 3）+ v1.7 §3.4 参数表。
-   三线重叠（v1.7 §6 原口径）在 v2.0 发条模型下不再于 03:00 成立（电量续点每 30s 均匀分布），白板 03:00 照旧；口径变更已登记 B-进度（B-22）。
+   三线重叠（v1.7 §6 原口径）在 v2.0 发条模型下不再于 03:00 成立（电量续点每 10s 一档均匀分布·B-44 重做），白板 03:00 照旧；口径变更已登记 B-进度（B-22）。
    ai 字段（新增·信息性）=v1.7 §3.4 的 aiLevel（落子间隔 8−ai×0.3，供引擎/日志取用）。 */
 {
   id: 3,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:0, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 6, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 4, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -105,7 +111,7 @@ window.NIGHTS = [
            firstStone: 'random', blockChance: .5,
            message: '……是你', autoReply: '是。',
            ghostOpacity: .06, winPolicy: 'reeval' },
-  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 30 },   // v2.0 发条模型：开局自动播，续播=续 30s 电量，静音超 5s 余量窗=停机
+  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 10 }, staCost: 10,   // B-44（D39 终值）：续电=+10s 电量（累加封顶 cap·A-88）·耗体力 10·**耗电力 0（B-46：用户指令取消点击耗电）**——A-88 累加语义下 cap=30 为真上限（余量 ≥20 时点击浪费，合理节奏 ≈20-25s 一下、整夜 14-18 次）；静音超 5s 余量窗=停机
           tracks: [ { name:'残响安可', len:120 },
                     { name:'星尘回廊', len:75 },
                     { name:'金属梦境', len:75 },
@@ -140,7 +146,7 @@ window.NIGHTS = [
   id: 4,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:0, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 6, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 4, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -154,7 +160,7 @@ window.NIGHTS = [
            cornerBias: true,                            // 首个非封堵落子偏置角落（引擎只读本键；firstFreeBias 死字段已删·B-24②）
            message: '左手会先动', autoReply: '谁。',
            ghostOpacity: .06, winPolicy: 'reeval' },
-  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 30 },   // v2.0 发条模型：开局自动播，续播=续 30s 电量，静音超 5s 余量窗=停机
+  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 10 }, staCost: 10,   // B-44（D39 终值）：续电=+10s 电量（累加封顶 cap·A-88）·耗体力 10·**耗电力 0（B-46：用户指令取消点击耗电）**——A-88 累加语义下 cap=30 为真上限（余量 ≥20 时点击浪费，合理节奏 ≈20-25s 一下、整夜 14-18 次）；静音超 5s 余量窗=停机
           tracks: [ { name:'残响安可', len:120 },
                     { name:'星尘回廊', len:80 },
                     { name:'金属梦境', len:80 },
@@ -185,7 +191,7 @@ window.NIGHTS = [
   id: 5,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:0, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 7, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 5, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -199,7 +205,7 @@ window.NIGHTS = [
            cornerBias: true,                            // 角落偏置（同夜4；firstFreeBias 死字段已删·B-24②）
            message: '你只要还在就行', autoReply: '麻酱。',
            ghostOpacity: .06, winPolicy: 'reeval' },
-  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 30 },   // v2.0 发条模型：开局自动播，续播=续 30s 电量，静音超 5s 余量窗=停机
+  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 10 }, staCost: 10,   // B-44（D39 终值）：续电=+10s 电量（累加封顶 cap·A-88）·耗体力 10·**耗电力 0（B-46：用户指令取消点击耗电）**——A-88 累加语义下 cap=30 为真上限（余量 ≥20 时点击浪费，合理节奏 ≈20-25s 一下、整夜 14-18 次）；静音超 5s 余量窗=停机
           tracks: [ { name:'残响安可', len:120 },
                     { name:'星尘回廊', len:60 },
                     { name:'金属梦境', len:60 },
@@ -210,8 +216,10 @@ window.NIGHTS = [
                  '我说好。我陪你去。\n' +
                  '她走后我把传单翻了一遍。每张背面都有字。最后一张写着：我的梦想是自己的了，所以你也要有自己的。\n' +
                  '……我是不是写太多了。\n' +
-                 '点歌机的续点我数熟了，三十秒一下，一下都不能少。断电了也别慌，撑一会儿就行。' },
-                 // B-30：原首句教「页面切走扣电」（失焦挂起已废，A-63/B-29），改教当夜真实机制=30s 续点节奏；
+                 '点歌机的续点我数熟了，隔一阵一下，一下都不能少。断电了也别慌，撑一会儿就行。' },
+                 // B-30：原首句教「页面切走扣电」（失焦挂起已废，A-63/B-29），改教当夜真实机制=续点节奏；
+                 // B-44：节奏重做（30s→10s 一档）；B-46+D40-A（A-88 累加封顶 30 语义）：档位不再固定（余量 ≥20 时点了浪费），
+                 // 「三十秒一下/十几秒一下」两度作废，改模糊节奏「隔一阵一下」——句眼「一下都不能少」不动。
                  // 后半句「断电仁慈阀」口径有效，保留。机制变更→文案全域反查（B-30②）已过，唯一命中即此句。
   syslog: [ { at: '03:00', sys: '[白板] 对局请求 · 先手：随机落定', note: null, caption: false },
               // B-24①：原 hints.open 为纯过程描述无叙事钩子，仅留系统登记
@@ -221,8 +229,9 @@ window.NIGHTS = [
             { at: 'post+30', sys: '[评估] 自主活动频率超基线 → 威胁等级↑', note: null, caption: false },
               // B-39 叙事落点：[擦除] 归档条目与 visits 同时刻落记录页（局内零文字=用户裁决，事后可读）。
               // 系统侧视角：目标=TRAINER-00（本夜 post 揭示的残留进程）——D 的迫近在冷档案里早已写明在找谁。禁词过：无事故词、D 不称「她」。
-            { at: '02:20', sys: '[擦除] 单元 D · 例行巡检 · 目标：TRAINER-00', note: '刚才左门灯自己亮了。影子没有呼吸。', caption: false },
-            { at: '04:40', sys: '[擦除] 单元 D · 例行巡检 · 目标仍驻留', note: null, caption: false } ],
+              // B-40 预防性同修：归档条目各错开 1 分钟（同刻=pushSoft 与事件专属音叠两层，visits 时刻不动）。
+            { at: '02:21', sys: '[擦除] 单元 D · 例行巡检 · 目标：TRAINER-00', note: '刚才左门灯自己亮了。影子没有呼吸。', caption: false },
+            { at: '04:41', sys: '[擦除] 单元 D · 例行巡检 · 目标仍驻留', note: null, caption: false } ],
   cam9:  [ { at: 'post+60', type: 'silhouette', dur: 2.5 } ],
   visits: { count: 2, at: ['02:20', '04:40'], react: 2.5 },   // B-39/A-81：D 擦除单元门口迫近（第四威胁通道·非致死）；固定左门由引擎按 corrA→doorL 推得，门侧不进数据；跳脸扣一半耐力+5 电（引擎结算）
   camStatic: [ 'plaza' ],   // S1：CAM7 常驻花屏（v1.9 仲裁定稿字段）
@@ -237,7 +246,7 @@ window.NIGHTS = [
   id: 6,
   hourLen: 60,
   power: { start: 100, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:0, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 6, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 4, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -250,7 +259,7 @@ window.NIGHTS = [
            firstStone: 'center', blockChance: .9,
            message: '该你了', autoReply: '我没忘。',
            ghostOpacity: .07, winPolicy: 'reeval' },
-  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 30 },   // v2.0 发条模型：开局自动播，续播=续 30s 电量，静音超 5s 余量窗=停机
+  juke: { start: '00:00', warn: 5, battery: { cap: 30, renew: 10 }, staCost: 10,   // B-44（D39 终值）：续电=+10s 电量（累加封顶 cap·A-88）·耗体力 10·**耗电力 0（B-46：用户指令取消点击耗电）**——A-88 累加语义下 cap=30 为真上限（余量 ≥20 时点击浪费，合理节奏 ≈20-25s 一下、整夜 14-18 次）；静音超 5s 余量窗=停机
           tracks: [ { name:'残响安可', len:120 },
                     { name:'星尘回廊', len:70 },
                     { name:'金属梦境', len:70 },
@@ -271,8 +280,9 @@ window.NIGHTS = [
               note: '#092 之后就停了。然后是——', caption: false },
             { at: '05:00', sys: '[例行] 归档窗口巡检：正常', note: null, caption: false },
               // B-39 叙事落点：排程与夜5 全同=例行巡检（重复本身就是系统档案的寒意）；锁门应对只落 note（记录页口径），局内仍零文字。
-            { at: '02:20', sys: '[擦除] 单元 D · 例行巡检 · 目标：TRAINER-00', note: null, caption: false },
-            { at: '04:40', sys: '[擦除] 单元 D · 例行巡检 · 目标仍驻留', note: '它到点就来。锁上门，等它走完流程——这也是值班的一部分了。', caption: false } ],
+              // B-40 预防性同修：归档条目各错开 1 分钟（同夜5，visits 时刻不动，固定排程语义由 visits 本体承载）。
+            { at: '02:21', sys: '[擦除] 单元 D · 例行巡检 · 目标：TRAINER-00', note: null, caption: false },
+            { at: '04:41', sys: '[擦除] 单元 D · 例行巡检 · 目标仍驻留', note: '它到点就来。锁上门，等它走完流程——这也是值班的一部分了。', caption: false } ],
   cam9:  [ { at: 'post+60', type: 'silhouette', dur: 4.5 } ],   // 残影停留更久（v1.7 §10 夜6）
   visits: { count: 2, at: ['02:20', '04:40'], react: 2.5 },   // B-39：与夜5 同时刻=例行巡检固定排程（系统程序的机械感，玩家可在夜5 学会后夜6 验证）；其余口径同夜5
   camStatic: [ 'plaza' ],   // S1：CAM7 常驻花屏（v1.9 仲裁定稿字段）
@@ -283,16 +293,17 @@ window.NIGHTS = [
    v1.7 §4：数值——hourLen 70 / power 80 / B/C/D ai 16-20 / 续播窗口 2s；
    融合=A 接入白板评估子系统（C3 修正）：落子者仍是 ASTON_MACHAN（blockChance 1.0 强制平局）；
    CAM7 全夜雪花（camFx）、落子噪点（noiseFx）、03:00 笑脸在雪花中自行画完（smiley）。
-   v1.7 §4 续播时序（02:43/03:30/…）随发条模型作废：改为电量续点每 30s 一次（420s 夜≈14 次），曲单计时依旧、穷尽循环回第一首。
+   v1.7 §4 续播时序（02:43/03:30/…）随发条模型作废：改为电量续点每 10s 一次（420s 夜≈14-18 次·A-88 累加封顶语义，B-44 重做），曲单计时依旧、穷尽循环回第一首。
    板前淡字「跟平时一样，就好」=board.message（§3.5 埋点4 演出序列：笑脸→格子→中央首子→淡字）；
    夜7 无 autoReply——平局后进入真结局/标准结局流程（§8）。
    diary：乱码三行（1095 为唯一不被噪声吞没的数字）→ #001 播至「……声音很轻。」自停（§6.1）——
-   批次5 B-26：整段迁至局后留言窗起播（corruptAt 'post+0'），autoplayAt 合一为 'post+8'（D22 默认，见 B-进度）。 */
+   批次5 B-26 曾整段迁局后（corruptAt 'post+0'）；D41 二轮终口径：**完整链收归 00:00 一次**
+   （openCorrupt 乱码→#001→stopAt 戛止），局后 corrupt 重播撤销、数据保留仅作记录页重建源。 */
 {
   id: 7,
   hourLen: 70,
   power: { start: 80, safeHalf: 60,
-           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:.5, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
+           drain: { base:.05, cam:.10, lock:.5, light:.1, switch:.15, renew:0, afk:0 } },   // v2.0 批次5：失焦挂起已移除，字段空置不删（B-29）
   slots: {
     A: { ai: 18, at: 60,  path: ['hall','corrB','doorR'], sprintOnJukeDead: true },
     B: { ai: 16, at: 120, path: ['shop','gym','corrB','doorR'],
@@ -307,18 +318,26 @@ window.NIGHTS = [
            message: '跟平时一样，就好',
            ghostOpacity: .08, winPolicy: 'instant',
            noiseFx: true, smiley: true },
-  juke: { start: '00:00', warn: 3, battery: { cap: 30, renew: 30 }, finale: true,   // v2.0 发条模型；夜7 余量窗 3s（用户裁决）
+  juke: { start: '00:00', warn: 3, battery: { cap: 30, renew: 10 }, staCost: 10, finale: true,   // B-44（D39 终值）：+10s/体力10/电力0（B-46 取消点击耗电）；夜7 余量窗 3s（用户裁决）
           tracks: [ { name:'残响安可', len:120 },
                     { name:'星尘回廊', len:55 },
                     { name:'金属梦境', len:55 },
                     { name:'雨后的起跑线', len:55 },
                     { name:'云上圆舞曲', len:55 },
-                    { name:'长长的安可', len:999, finale: true } ] },
+                    { name:'潮水与谢幕曲', len:999, finale: true } ] },   // B-42：谢幕曲定名（用户暂定），真源在此（D33）
                     // 谢幕曲 05:51 起播，无归零点——持续播入终局演出与制作名单（v1.7 §6）
   diary: { id: '#001', autoplayAt: 'post+8', corruptAt: 'post+0', duration: 45,
-           // B-26/D22：乱码序列整体迁局后留言窗（A-64 同轮）——00:00 答录机不再播，唯一演出=corrupt 三行→#001 截断重播；
-           // autoplayAt 'post+8'=兜底去重锚（corrupt 补放先行置位即跳过）。⚠️ 引擎 autoplay 检查需支持 post 时基或
-           // corruptAt 在场时跳过 00:00——parseClock('post+8') 现退化为 0，A 侧不处理会双播（详见 B-进度便条）。
+           // B-47/D41 二轮终口径：**完整链收归 00:00 一次**——真铃→openCorrupt 乱码逐行（铺持续静电噪声）
+           // →接 #001→播至 stopAt「……声音很轻。」由 AU.glitchCut 戛然而止（A-94 修订轮消费）。
+           // 局后 corrupt 重播撤销：引擎按「openCorrupt 在场 ⇒ post corrupt 让位」消费，
+           // **本文件 corrupt/corruptAt 数据不动**——三行仍是记录页《[损坏] ▓▓1095▓▓》正文重建源、validate 引用 corruptAt。
+           // autoplayAt 'post+8' 保留为去重锚（开场链已占 answPlayed，post 补放自然跳过）。
+           // 数字红线：openCorrupt 含数字但不成完整句——1095 遮蔽为 10▓5；完整 refrain 的揭示由 00:00 链内
+           // 接续的 #001 正片段承载（记录页档案=回收残片，与开场新压带两条坏带不同源，叙事成立·B-47②复核结论）。
+           // 字符只用现字集（█ ▓ ＠ ＾ ＊ ／ · 与既有 corrupt 两行同源）。
+           openCorrupt: [ '[记录] 值班进程 TRAINER-00 · 第 10▓5 夜 · 4/2▓',
+                          '[留言] 第 ▓▓▓ 天。麻酱今天▓▓▓▓▓',
+                          '嗒……噪声侧＠＾＊／▓▓▓█' ],
            text: '嗒——训练日记，第一天。\n' +
                  '拿到担当了。她抱着一个人偶，站在训练场门口，声音很轻。\n' +
                  '管理员教了夜班操作。看监控、守门、点歌机响了按一下。电力别用完。\n' +
@@ -336,11 +355,14 @@ window.NIGHTS = [
             { at: '02:46', sys: '[历史] 模拟对手 · 1088 夜前 · 基准：已故训练员战术数据', note: null, caption: false },
             { at: '02:52', sys: '[接入方] 现实侧连续接入 1095 夜 · 训练负荷异常', note: null, caption: false },
             { at: '03:20', sys: '[留言] 第 1095 天。麻酱今天也来了。', note: '该下班了。', beat: '该下班了。', caption: true },
-              // B-39 叙事落点：终评前清场——次数与时刻随 visits 收紧；不占 beat（夜7 beat 已归 03:20），最近一条 03:40 在 beat 后 20s。
-            { at: '01:50', sys: '[擦除] 单元 D · 例行巡检 · 目标：TRAINER-00', note: null, caption: false },
-            { at: '03:40', sys: '[擦除] 单元 D · 例行巡检 · 目标仍驻留', note: null, caption: false },
-            { at: '05:10', sys: '[擦除] 单元 D · 评估前清场 · 目标：TRAINER-00', note: null, caption: false } ],
-              // 夜7 beat 在 03:20 固定时点，与 corruptAt 'post+0' 窗（局后 30s 内，≈03:00-03:04）实际不相交；A-76 仍按 corrupt 优先兜底
+              // B-39 叙事落点：终评前清场——次数与时刻随 visits 收紧；不占 beat（夜7 beat 已归 03:20），最近一条 03:41 在 beat 后 21s。
+              // B-40：三条与 visits 同刻会叠两层软音（pushSyslog→pushSoft + 事件专属音同帧）——各错开 1 分钟；
+              // 小数秒（01:50.5）被引擎 parseClock 四舍五入吞掉、且 validate atOk 的 \d{1,2}:\d{2} 拒收，故取整分。visits 时刻不动。
+            { at: '01:51', sys: '[擦除] 单元 D · 例行巡检 · 目标：TRAINER-00', note: null, caption: false },
+            { at: '03:41', sys: '[擦除] 单元 D · 例行巡检 · 目标仍驻留', note: null, caption: false },
+            { at: '05:11', sys: '[擦除] 单元 D · 评估前清场 · 目标：TRAINER-00', note: null, caption: false } ],
+              // 夜7 beat 在 03:20 固定时点；D41 二轮后 corruptAt 'post+0' 播放让位（完整链已收归 00:00），
+              // 本条排程互斥兜底保留无害（A-76 口径；若引擎让位规则变更此注随之作废）。
   cam9:  [ { at: '04:00', type: 'frontal', dur: 4 } ],
   visits: { count: 3, at: ['01:50', '03:40', '05:10'], react: 2.5 },   // B-39：终评清场升级取上限 3 次；时刻错开 02:40-03:20 syslog 群与 cam9 04:00，末次 05:10 在谢幕曲（05:51）前
   camStatic: [ 'plaza' ],   // S1 常驻花屏；夜7 加剧由 A-28 引擎逐夜强度常量（原 camFx 按 v1.9 仲裁并入 camStatic，避免重复计）

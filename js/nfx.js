@@ -313,6 +313,8 @@ window.NFX = (function () {
     } else if (scene === 'board') {
       /* 白板特写：字行从右往左被板擦吞掉，角落「你」以 40% 残留（v1.7 §3.3） */
       var wp = clamp01(t / 3);                        // 擦除进度
+      /* B-40 附带判断（2026-09-20）：此处 #c8c8cc 是白板本体表面（画幅外圈仍铺黑），
+         非 A-72 所去的装饰性白底——大特写里白板就该是亮的，保留。 */
       g.fillStyle = '#c8c8cc';
       g.fillRect(48, 36, 288, 144);
       g.fillStyle = '#5a5a64';

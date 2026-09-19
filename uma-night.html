@@ -7,9 +7,9 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;background:#000;overflow:hidden;touch-action:none}
-body{display:flex;align-items:center;justify-content:center;font-family:'Fusion Pixel','Courier New',monospace}
+body{display:flex;align-items:center;justify-content:center;font-family:var(--fm)}
 @font-face{font-family:'Fusion Pixel';src:url('fonts/fusion-pixel-12px-sc.woff2') format('woff2');font-display:swap}
-:root{--u:4px;--fh:"Fusion Pixel","PingFang SC","Microsoft YaHei",sans-serif}
+:root{--u:4px;--fh:"Fusion Pixel","PingFang SC","Microsoft YaHei",sans-serif;--fm:'Fusion Pixel','Courier New',monospace}
 #stage{position:relative;background:#000;cursor:grab}
 #stage.drag{cursor:grabbing}
 #cv{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
@@ -18,16 +18,19 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
 .pe{pointer-events:auto}
 #tTime{position:absolute;top:calc(var(--u)*3);right:calc(var(--u)*3.4);font-size:calc(var(--u)*3.6)}
 #tNight{position:absolute;top:calc(var(--u)*8);right:calc(var(--u)*3.4);font-size:calc(var(--u)*1.9);color:#93939d;font-family:var(--fh)}
-#alertDot{position:absolute;top:calc(var(--u)*3);left:50%;transform:translateX(-50%);width:calc(var(--u)*1.8);height:calc(var(--u)*1.8);background:#e04848;border-radius:50%;box-shadow:0 0 calc(var(--u)*1) #ff3030;opacity:0}
-#alertDot.on{opacity:1;animation:bl 1s steps(2) infinite}
-#alertDot.fast{opacity:1;animation:bl .3s steps(2) infinite}
-#jukeWrap{position:absolute;top:calc(var(--u)*2.2);right:calc(var(--u)*16);display:none;align-items:center;gap:calc(var(--u)*1.5);z-index:4}
-#jukeSec{font-family:var(--fh);font-size:calc(var(--u)*2.8);color:#ffd24a;min-width:calc(var(--u)*4);text-align:right}
-#jukeBtn{width:calc(var(--u)*8);height:calc(var(--u)*8);background:#2c2c34;border:1px solid #3a3a48;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;box-sizing:border-box}
-#jukeBtn:hover{background:#363640;border-color:#505060}
-#jukeBtn:active{background:#222228;border-color:#ffd24a;transform:translateY(1px)}
-@media (pointer:coarse){#jukeBtn{width:calc(var(--u)*10);height:calc(var(--u)*10)}}
-@keyframes bl{50%{opacity:.15}}
+/* ---- 批次7 §7.0 工控面板令牌：结构底/结构线/静默字/可用字/告警/致命（不新增色值） ---- */
+#alertDot{position:absolute;top:calc(var(--u)*3);left:50%;transform:translateX(-50%);width:calc(var(--u)*2);height:calc(var(--u)*2);background:#6a7480;box-shadow:0 0 0 1px #3a3a48}
+#alertDot.on{background:#ffd24a;box-shadow:0 0 0 1px #ffd24a}
+#alertDot.crit{background:#e04848;box-shadow:0 0 0 1px #e04848}
+#jukeGauge{position:absolute;top:calc(var(--u)*11.5);right:calc(var(--u)*3.4);display:none;align-items:stretch;height:calc(var(--u)*8);background:#2c2c34;border:1px solid #3a3a48;color:#6a7480;opacity:.5;padding:0;cursor:pointer;font-family:var(--fh);z-index:4;transition:opacity .18s,color .18s,border-color .18s,box-shadow .18s}
+#jukeGauge .jgIco{display:block;width:calc(var(--u)*4);height:calc(var(--u)*7);margin:calc(var(--u)*0.5) calc(var(--u)*1.6);shape-rendering:crispEdges}
+#jukeGauge .jgIco rect{fill:currentColor}
+#jukeGauge .jgSep{width:1px;align-self:stretch;background:#3a3a48}
+#jukeSec{min-width:calc(var(--u)*6);text-align:right;padding:0 calc(var(--u)*1.6);font-size:calc(var(--u)*3);line-height:calc(var(--u)*8);letter-spacing:1px;font-variant-numeric:tabular-nums;font-family:var(--fm)}
+#jukeGauge:hover{opacity:1}
+#jukeGauge.hot{opacity:1;color:#ffd24a;border-color:#ffd24a;box-shadow:0 0 0 1px #ffd24a inset}
+#jukeGauge.ok{opacity:1;color:#d8e4ea;border-color:#d8e4ea;box-shadow:0 0 0 1px #d8e4ea inset}
+@media (pointer:coarse){#jukeGauge{height:calc(var(--u)*10)}#jukeSec{line-height:calc(var(--u)*10);font-size:calc(var(--u)*3.6)}}
 #powBox{position:absolute;left:calc(var(--u)*3);bottom:calc(var(--u)*3);font-size:calc(var(--u)*1.9);line-height:1.9}
 #powBox b{color:#fff}
 #staBox{position:absolute;left:calc(var(--u)*3);bottom:calc(var(--u)*10.5);font-size:calc(var(--u)*1.9);line-height:1.9}
@@ -45,43 +48,62 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
 #camHud.on{display:block}
 #camTitle{position:absolute;top:calc(var(--u)*3);left:calc(var(--u)*3.4);font-size:calc(var(--u)*2.2)}
 #camSub{position:absolute;top:calc(var(--u)*7);left:calc(var(--u)*3.4);font-size:calc(var(--u)*1.8);color:#8a9a6a;font-family:var(--fh)}
-#rec{position:absolute;top:calc(var(--u)*3);right:calc(var(--u)*3.4);font-size:calc(var(--u)*2);color:#d24a4a}
-#rec i{display:inline-block;width:calc(var(--u)*1.6);height:calc(var(--u)*1.6);background:#d24a4a;margin-right:calc(var(--u)*1.4);animation:bl 1s steps(2) infinite}
-#map{position:absolute;right:calc(var(--u)*2);bottom:calc(var(--u)*2);width:calc(var(--u)*40);height:calc(var(--u)*30);background:rgba(8,16,24,.82);border:1px solid rgba(110,150,180,.4);transform:scale(.5);transform-origin:right bottom}   /* 用户指令：恢复 0.5 幅面 */
-#map .mb{position:absolute;border:1px solid #6a9ac2;background:rgba(16,32,44,.75);color:#b8c8d4;font-size:calc(var(--u)*1.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'Fusion Pixel','Courier New',monospace}
+#rec{position:absolute;top:calc(var(--u)*3);right:calc(var(--u)*15);font-size:calc(var(--u)*2);color:#cdd0c6;font-family:var(--fm);letter-spacing:1px}
+#rec i{display:inline-block;width:calc(var(--u)*2);height:calc(var(--u)*2);background:#e04848;margin-right:calc(var(--u)*1.4);vertical-align:-8%}
+#map{position:absolute;right:calc(var(--u)*2);bottom:calc(var(--u)*2);width:calc(var(--u)*22);height:calc(var(--u)*16);background:#000;border:1px solid #d8d8dc}   /* A-84 原生幅面 + 用户指令：黑底白线 */
+#map .mb{position:absolute;border:1px solid #d8d8dc;background:rgba(255,255,255,.06);color:#e8e8e8;font-size:calc(var(--u)*1.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--fm)}
 @media (pointer:coarse){#map .mb{font-size:calc(var(--u)*2.1)}}   /* 移动端命中区字号放大 */
-#map .mb.on{background:#d8e4ea;color:#0a141c}
-#map .mb.alert{border-color:#e04848;box-shadow:0 0 0 1px #e04848 inset;animation:bl .5s steps(2) infinite}
-#map .you{position:absolute;color:#7d95a4;font-size:calc(var(--u)*1.3);display:flex;align-items:center;justify-content:center;font-family:var(--fh)}
+#map .mb.on{background:#e8e8e8;color:#000}
+#map .mb.alert{border-color:#fff;background:rgba(255,255,255,.28);color:#fff}   /* 单色提亮：告警=更亮的白，不用彩色、不闪烁 */
+#map .you{position:absolute;border:1px solid #d8d8dc;color:#c9c9cf;font-size:calc(var(--u)*1.3);display:flex;align-items:center;justify-content:center;font-family:var(--fh);background:rgba(255,255,255,.04)}   /* 训练员室=矩形（不可点，与房间块同边但更淡） */
 #blackHud{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:calc(var(--u)*9);color:#5a5a66}
 #blackHud.on{display:flex}
-#dbg{position:absolute;top:calc(var(--u)*12);left:calc(var(--u)*3);font:calc(var(--u)*1.7)/1.7 'Fusion Pixel','Courier New',monospace;color:#7de07d;background:rgba(0,0,0,.6);padding:calc(var(--u)*1.2);white-space:pre;display:none;text-shadow:none}
+#dbg{position:absolute;top:calc(var(--u)*12);left:calc(var(--u)*3);font:calc(var(--u)*1.7)/1.7 var(--fm);color:#7de07d;background:rgba(0,0,0,.6);padding:calc(var(--u)*1.2);white-space:pre;display:none;text-shadow:none}
 #dbg.on{display:block}
 #edgeFx{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s}
-#edgeFx.red{opacity:1;box-shadow:inset 0 0 calc(var(--u)*10) rgba(200,30,30,.55);animation:bl .5s steps(2) infinite}
-#edgeFx.white{opacity:1;box-shadow:inset 0 0 calc(var(--u)*10) rgba(220,220,200,.5);animation:bl 1.2s steps(2) infinite}
+#edgeFx.red{opacity:1;box-shadow:inset 0 0 calc(var(--u)*10) rgba(200,30,30,.55);animation:br .9s ease-in-out infinite}
+#edgeFx.white{opacity:1;box-shadow:inset 0 0 calc(var(--u)*10) rgba(220,220,200,.5);animation:br 2s ease-in-out infinite}
+@keyframes br{50%{opacity:.5}}   /* A-86 唯一保留的呼吸例外：致命倒计时语义 */
 .ovl{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;color:#d8d8dc;text-align:center;z-index:5}
 .ovl.on{display:flex}
-.mbtn{pointer-events:auto;background:none;border:none;color:#c9c9cf;font-family:var(--fh);font-size:calc(var(--u)*3);padding:calc(var(--u)*1.2) calc(var(--u)*2);cursor:pointer;letter-spacing:2px}
-.mbtn:hover,.mbtn:active{color:#fff;background:rgba(255,255,255,.08)}
-#ovMenu{align-items:flex-start;justify-content:center;padding-left:8%;gap:calc(var(--u)*.6)}
+/* ---- A-85 面板单元：主菜单 / 说明页 / 结算页 / intro 共用 §7.0 令牌，不新增颜色 ---- */
+.gauge{display:flex;flex-wrap:wrap;gap:calc(var(--u)*1);justify-content:center;margin:calc(var(--u)*1.2) 0}
+.gauge .g{background:#2c2c34;border:1px solid #3a3a48;padding:calc(var(--u)*.7) calc(var(--u)*1.4);text-align:left;min-width:calc(var(--u)*9)}
+.gauge .g span{display:block;font-family:var(--fm);font-size:calc(var(--u)*1.5);color:#6a7480;letter-spacing:1px}
+.gauge .g b{display:block;font-family:var(--fm);font-size:calc(var(--u)*2.4);color:#cdd0c6;font-variant-numeric:tabular-nums}
+.hrow{display:grid;grid-template-columns:calc(var(--u)*13) 1fr;gap:calc(var(--u)*1.6);align-items:baseline;padding:calc(var(--u)*.6) 0;border-bottom:1px solid #3a3a48;text-align:left}
+.hk{font-family:var(--fm);font-size:calc(var(--u)*1.7);color:#6a7480;letter-spacing:1px}
+.hv{font-family:var(--fh);font-size:calc(var(--u)*1.9);color:#cdd0c6;line-height:1.8}
+.hrow.hcap .hk,.hrow.hcap .hv{color:#6a7480;font-family:var(--fm);font-size:calc(var(--u)*1.5);letter-spacing:2px}
+.mbtn{pointer-events:auto;background:none;border:none;color:#c9c9cf;font-family:var(--fh);font-size:calc(var(--u)*3);padding:calc(var(--u)*1.2) calc(var(--u)*2);cursor:pointer;letter-spacing:2px;transition:border-color .15s,color .15s}
+.mbtn:hover,.mbtn:active{color:#fff;border-color:#6a7480}
+.mbtn.primary{color:#e8e8e8;font-size:calc(var(--u)*3.6)}   /* 用户指令：标题页与二级界面一律不留背景框，主项只用亮度区分；2026-09-20 用户追加：主项字号抬到 3.6u（审查位越界代改一次） */
+#ovMenu{align-items:flex-start;justify-content:center;padding-left:8%;gap:calc(var(--u)*1)}
 #mTitle{font-size:calc(var(--u)*3.2);line-height:1.7;color:#e8e8e8;text-align:left;margin-bottom:calc(var(--u)*2.6)}
-#mTitle span{display:block;font-family:var(--fh);font-size:calc(var(--u)*1.8);color:#8a8a92;letter-spacing:6px;margin-top:calc(var(--u)*1.6)}
-#mNights{display:grid;grid-template-columns:repeat(4,auto);gap:calc(var(--u)*.4) calc(var(--u)*1.2);margin-bottom:calc(var(--u)*1.2)}
-.nbtn{font-size:calc(var(--u)*2.4);padding:calc(var(--u)*.9) calc(var(--u)*1.8);color:#c9c9cf;letter-spacing:1px}
+#mTitle span{display:block;font-family:var(--fh);font-size:calc(var(--u)*1.8);color:#6a7480;letter-spacing:6px;margin-top:calc(var(--u)*1.6)}
+#ovNights{align-items:flex-start;justify-content:center;padding-left:8%;gap:calc(var(--u)*1.2)}
+#nightsTitle{font-family:var(--fm);font-size:calc(var(--u)*2);color:#6a7480;letter-spacing:3px}
+#mNights{display:grid;grid-template-columns:repeat(4,auto);gap:calc(var(--u)*.8) calc(var(--u)*1.2);margin-bottom:calc(var(--u)*1.2)}
+.nbtn{font-size:calc(var(--u)*2.4);padding:calc(var(--u)*.9) calc(var(--u)*1.8);color:#cdd0c6;letter-spacing:1px}
 .nbtn.lock{opacity:.32;pointer-events:none}
 #mSub{display:flex;gap:calc(var(--u)*1.2);flex-wrap:wrap;align-items:center}
-.mini{font-size:calc(var(--u)*1.9);color:#6a6a72;padding:calc(var(--u)*.7) calc(var(--u)*1.2);letter-spacing:1px}
-.mini:hover,.mini:active{color:#a8a8b0;background:rgba(255,255,255,.05)}
+#nightsSub{display:flex;gap:calc(var(--u)*1.2);align-items:center}
+.mini{font-size:calc(var(--u)*1.9);color:#6a7480;padding:calc(var(--u)*.7) calc(var(--u)*1.2);letter-spacing:1px}
+.mini:hover,.mini:active{color:#cdd0c6;border-color:#6a7480}
 #mFoot{position:absolute;bottom:calc(var(--u)*2.4);left:calc(var(--u)*2.4);font-family:var(--fh);font-size:calc(var(--u)*1.5);color:#5c5c64}
-#ovHow .box,#ovLog .box,#ovArch .box{background:rgba(4,4,8,.92);border:1px solid #2c2c36;padding:calc(var(--u)*4) calc(var(--u)*5);max-width:88%;font-family:var(--fh);font-size:calc(var(--u)*2);line-height:2;text-align:left;max-height:86%;overflow:auto}
-.box h3{font-family:'Fusion Pixel','Courier New',monospace;font-size:calc(var(--u)*2.4);margin-bottom:calc(var(--u)*2.4);color:#c9c9cf}
-.box em{color:#9aa46a;font-style:normal}
+#ovHow .box,#ovLog .box,#ovArch .box{background:#2c2c34;border:1px solid #3a3a48;padding:calc(var(--u)*4) calc(var(--u)*5);max-width:88%;font-family:var(--fh);font-size:calc(var(--u)*2);line-height:2;text-align:left;max-height:86%;overflow:auto}
+.box h3{font-family:var(--fm);font-size:calc(var(--u)*2.4);margin-bottom:calc(var(--u)*2.4);color:#cdd0c6}
 .arow{font-family:var(--fh);font-size:calc(var(--u)*2);line-height:2.1;color:#8a8a92;text-align:left}
 .arow.got{color:#c9c9cf}
-#ovIntro{background:#000}
-#inTime{font-size:calc(var(--u)*4.6);margin-bottom:calc(var(--u)*3)}
-#inNight{font-family:var(--fh);font-size:calc(var(--u)*2.6);color:#9a9aa2;letter-spacing:4px}
+/* A-85 intro：左对齐「开机自检」面板单元，两行读数 + 一条自左向右走完的 1px 进度线（零旁白文字） */
+#ovIntro{background:#000;align-items:flex-start;justify-content:center;padding-left:8%}
+#inPanel{min-width:calc(var(--u)*24)}   /* A-90：intro 属纯信息 ⇒ 无底无框 */
+#inTime{font-family:var(--fm);font-size:calc(var(--u)*2.8);color:#cdd0c6;letter-spacing:2px}
+#inNight{font-family:var(--fm);font-size:calc(var(--u)*2);color:#6a7480;letter-spacing:3px;margin-top:calc(var(--u)*.6)}
+#inProg{position:relative;height:1px;background:#3a3a48;margin-top:calc(var(--u)*1.6)}
+#inProg i{position:absolute;left:0;top:0;bottom:0;width:0;background:#ffd24a;display:block}
+#inProg.run i{animation:rp 3.2s linear forwards}
+@keyframes rp{to{width:100%}}
 #ovDone{background:rgba(0,0,0,.9)}
 #dnTitle{font-size:calc(var(--u)*5);margin-bottom:calc(var(--u)*3);color:#fff}
 #dnSub{font-family:var(--fh);font-size:calc(var(--u)*2.2);line-height:2.2;color:#c9c9c0;margin-bottom:calc(var(--u)*4)}
@@ -95,15 +117,15 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
 /* ---- P2：SYS LOG 归档 / 答录机 / 紧急评估 / 彩蛋 ---- */
 /* SYS 日志条目样式（记录页归档用；游戏内面板已移除） */
 .lgAt{color:#5a7a88;font-size:calc(var(--u)*1.5);margin-top:calc(var(--u)*1)}
-.lgSys{color:#b8d0d8;font-family:'Courier New',monospace;font-size:calc(var(--u)*1.8);line-height:1.8;white-space:pre-wrap}
+.lgSys{color:#b8d0d8;font-family:var(--fm);font-size:calc(var(--u)*1.8);line-height:1.8;white-space:pre-wrap}
 .lgNote{color:#d8b84a;font-family:var(--fh);font-size:calc(var(--u)*1.8);line-height:1.8;white-space:pre-wrap}
 /* 录音机（v1.8 重构）：右下角「电话残留」同款字幕（固定 0.75 缩放），一次 1-2 行滑窗，播中红点闪烁 */
 #answBox{position:absolute;top:calc(var(--u)*2);left:calc(var(--u)*2);transform:scale(.75);transform-origin:left top;max-width:84%;width:max-content;background:rgba(0,0,0,.72);border-left:2px solid #6a6f60;padding:calc(var(--u)*1.2) calc(var(--u)*2.4);text-align:left;font-family:var(--fh);font-size:calc(var(--u)*2.2);color:#cdd0c6;opacity:0;transition:opacity .5s;pointer-events:none}
 #answBox.on{opacity:1;pointer-events:none}
-#answDot{position:absolute;top:calc(var(--u)*1.5);right:calc(var(--u)*1.6);width:calc(var(--u)*1.4);height:calc(var(--u)*1.4);background:#c84848;border-radius:50%;animation:bl 1.2s steps(2) infinite}
+#answDot{position:absolute;top:calc(var(--u)*1.5);right:calc(var(--u)*1.6);width:calc(var(--u)*2);height:calc(var(--u)*2);background:#ffd24a}
 #answBody{line-height:2;white-space:pre-wrap;min-width:calc(var(--u)*40)}
 #answBody div{opacity:.06;transition:opacity 1s}
-#reevalTag{position:absolute;top:calc(var(--u)*13.5);left:50%;transform:translateX(-50%);font-family:'Courier New',monospace;font-size:calc(var(--u)*2.1);letter-spacing:3px;color:#ff6060;display:none;animation:gl .34s steps(2) infinite}
+#reevalTag{position:absolute;top:calc(var(--u)*13.5);left:50%;transform:translateX(-50%);font-family:var(--fm);font-size:calc(var(--u)*2.1);letter-spacing:3px;color:#ff6060;display:none;animation:gl .34s steps(2) infinite}
 #reevalTag.on{display:block}
 @keyframes gl{0%{transform:translateX(-50%) translate(0,0)}25%{transform:translateX(-50%) translate(-1px,1px)}50%{transform:translateX(-50%) translate(1px,-1px)}75%{transform:translateX(-50%) translate(-1px,-1px)}100%{transform:translateX(-50%) translate(1px,1px)}}
 #eggFx{position:absolute;right:5%;bottom:22%;font-family:var(--fh);font-size:calc(var(--u)*2.2);color:#e0d8c8;opacity:0;transition:opacity 2.4s;text-shadow:1px 1px 0 #000;pointer-events:none}
@@ -130,7 +152,7 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
   <div id="alertDot"></div>
   <div id="staBox">耐力 <b id="staPct">100%</b></div>
   <div id="powBox">电力 <b id="powPct">100%</b><br>用量 <span id="usage"><i></i><i></i><i></i><i></i></span></div>
-  <div id="camHud"><div id="camTitle">CAM1 · 大厅</div><div id="camSub"></div><div id="jukeWrap" class="pe"><span id="jukeSec"></span><button id="jukeBtn" title="续发条" aria-label="续发条"><svg viewBox="0 0 10 10" width="16" height="16" style="image-rendering:pixelated"><path d="M5 1L2 6h3l-1 3 4-5H5l1-3z" fill="#ffd24a"/></svg></button></div><div id="rec"><i></i>REC</div><div id="map"></div></div>
+  <div id="camHud"><div id="camTitle">CAM1 · 大厅</div><div id="camSub"></div><button id="jukeGauge" class="pe" title="续电" aria-label="续电"><svg class="jgIco" viewBox="0 0 8 8" width="16" height="16" shape-rendering="crispEdges"><rect x="4" y="0" width="3" height="1"/><rect x="3" y="1" width="3" height="1"/><rect x="2" y="2" width="5" height="1"/><rect x="4" y="3" width="3" height="1"/><rect x="3" y="4" width="3" height="1"/><rect x="2" y="5" width="3" height="1"/><rect x="1" y="6" width="2" height="1"/></svg><i class="jgSep"></i><span id="jukeSec">00</span></button><div id="rec"><i></i>REC</div><div id="map"></div></div>
   <div id="blackHud">10</div>
   <div id="dbg"></div>
   <div id="camStrip" class="pe">▲ 打开监控</div>
@@ -142,25 +164,25 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
 </div>
 <div class="ovl on" id="ovMenu">
   <div id="mTitle">UMA-NIGHT<span id="mSubtitle">七 夜 · 值 班 记 录</span></div>
-  <div id="mNights"></div>
+  <button class="mbtn primary" id="mPlay">继续游戏</button>
   <div id="mSub">
     <button class="mbtn" id="mLog">记录</button>
     <button class="mbtn" id="mArch">档案</button>
     <button class="mbtn" id="mHow">操作说明</button>
-    <button class="mbtn mini" id="mUnlock" style="display:none" title="测试用：解锁全部七夜；Shift+点击=重置进度">解锁全部</button>
   </div>
   <div id="mFoot">值班记录实时保存 · 灯请保持常亮</div>
 </div>
+<div class="ovl" id="ovNights">
+  <div id="nightsTitle">选择夜班</div>
+  <div id="mNights"></div>
+  <div id="nightsSub">
+    <button class="mbtn" id="nightsBack">返回</button>
+    <button class="mbtn mini" id="mUnlock" title="解锁全部七夜；Shift+点击=清空值班进度">解锁全部</button>
+  </div>
+</div>
 <div class="ovl" id="ovHow"><div class="box">
-  <h3>操作说明</h3>
-  <em>视角</em>：A/D 或 ←/→ 转头，也可拖动/手指滑动画面平移；C 或底部白条开关监控。<br>
-  <em>监控切画面</em>：右下角地图点击房间块直接选择摄像头（也可左右箭头）；地图固定为半幅大小，贴右下角不挡主视野。<br>
-  <em>SYS LOG</em>：系统日志在事件发生时以提示音提示，全部条目自动归档到 主菜单·记录 页阅读；<em>答录机</em>：00:00 自动留言（左上角字幕式，一次 1-2 行），仅 R 键中断（点击不跳过）；<em>白板近看</em>：点击办公室白板本体放大／F 键近看。<br>
-  <em>门控（双钮）</em>：门边两个按钮——<em>锁钮</em>点击切换门锁（锁定期间 0.5%/s，再点解锁）；<em>灯钮</em>点击亮 1 秒（只显示剪影，不暂停任何东西）。键盘 Q/E 切换左右门锁、Z/X 点亮左右灯。门边是监控死角，危险抵门后必须立即锁门。<br>
-  <em>进程稳定度</em>（HUD 标签为「耐力」）：<span id="howSta">监控对准所在房间约 1 秒可冻结它（盯视 −2%/s）；开监控 +1%/s、收监控 +2%/s、切台 −0.5%。<br>&lt;20% 盯视失效且切台冷却翻倍，&lt;10% 开不了监控；归零僵直 5 秒后回到 30%（锁门期间门锁维持）。</span><br>
-  <em>点歌机</em>：00:00 自动开播；打开监控查看大厅（CAM1），点击右上角闪电按钮或画面中的点唱机即可续电（耗电）。电量不足 5 秒时镜头切片花屏告警，停机将触发冲刺袭击，当晚无法再恢复。<br>
-  <em>白板</em>：深夜会亮起，与接入方对弈——点击办公室白板本体放大／F 键近看；落子需收起监控，开监控或近看白板时倒计时流速减半（仁慈阀）。对局结果各有其意义。<br>
-  <em>电力</em>：待机、监控、门锁、灯光、切换都耗电，用量格实时显示；归零进入黑暗倒计时，撑到 06:00 仍算幸存。
+  <h3 id="howTitle">操作说明</h3>
+  <div id="howTable"></div>
   <div class="btnrow" style="margin-top:12px"><button class="mbtn" id="howBack">返回</button></div>
 </div></div>
 <div class="ovl" id="ovLog"><div class="box">
@@ -173,8 +195,8 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
   <div id="archList"></div>
   <div class="btnrow" style="margin-top:12px"><button class="mbtn" id="archBack">返回</button></div>
 </div></div>
-<div class="ovl" id="ovIntro"><div id="inTime">12:00 AM</div><div id="inNight">第 — 夜</div><div id="inRetry"></div></div>
-<div class="ovl" id="ovDone"><div id="dnTitle">6:00 AM</div><div id="dnSub"></div>
+<div class="ovl" id="ovIntro"><div id="inPanel"><div id="inTime">CLOCK 00:00</div><div id="inNight">NIGHT 1</div><div id="inProg"><i></i></div></div><div id="inRetry"></div></div>
+<div class="ovl" id="ovDone"><div id="dnTitle">6:00 AM</div><div id="dnGauges" class="gauge"></div><div id="dnSub"></div>
   <div class="btnrow"><button class="mbtn" id="dnRetry">再来一夜</button><button class="mbtn" id="dnMenu">主菜单</button></div></div>
 <div class="ovl" id="ovOver"><div id="goT">GAME OVER</div><div id="goLine"></div><div id="goTag"></div><div id="goS"></div>
   <div class="btnrow"><button class="mbtn" id="goRetry">再来一夜</button><button class="mbtn" id="goMenu">主菜单</button></div></div>
@@ -190,7 +212,7 @@ body{display:flex;align-items:center;justify-content:center;font-family:'Fusion 
 <script>
 'use strict';
 /* ============================================================
-   UMA-NIGHT 七夜完整版 · 主壳与引擎（角色A）
+   UMA-NIGHT 七夜 · 主壳与引擎（角色A）
    演进自 night3-t1.html（T1 文件冻结保留，不再演进）
    代码复用：T1 的音频引擎/渲染辅助/美术逻辑/机制函数
    数据来源（契约 v1，全部容错）：
@@ -206,7 +228,7 @@ const pick=a=>a[(Math.random()*a.length)|0],rnd=n=>(Math.random()*n)|0;
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const $=id=>document.getElementById(id);
 const stage=$('stage'),hud=$('hud');
-const OV={menu:$('ovMenu'),how:$('ovHow'),log:$('ovLog'),arch:$('ovArch'),intro:$('ovIntro'),done:$('ovDone'),over:$('ovOver')};
+const OV={menu:$('ovMenu'),nights:$('ovNights'),how:$('ovHow'),log:$('ovLog'),arch:$('ovArch'),intro:$('ovIntro'),done:$('ovDone'),over:$('ovOver')};
 let scene='load';
 function showScene(n){scene=n;for(const k in OV)OV[k].classList.toggle('on',k===n);hud.classList.toggle('on',n==='game');stage.style.cursor=n==='game'?'grab':'default'}
 function fit(){const s=Math.min(innerWidth/W,innerHeight/H)*.996;stage.style.width=W*s+'px';stage.style.height=H*s+'px';document.documentElement.style.setProperty('--u',(W*s/100)+'px')}
@@ -223,12 +245,15 @@ function parseClock(str,hl){if(typeof str==='number')return str;
  return Math.round((hl||60)*((+p[0]||0)+(+p[1]||0)/60))}
 /* 内置最后兜底：data/ 整个目录丢失时仍可玩（夜3 参数） */
 const EMERGENCY={id:3,hourLen:60,
- power:{start:100,safeHalf:60,drain:{base:.05,cam:.10,lock:.5,light:.1,switch:.15,renew:.5,afk:.5}},
+ power:{start:100,safeHalf:60,drain:{base:.05,cam:.10,lock:.5,light:.1,switch:.15,renew:0,afk:.5}},
  slots:{A:{ai:6,at:'01:00',path:['hall','corrB','doorR'],sprintOnJukeDead:true},
         B:{ai:4,at:'02:00',path:['shop','gym','corrB','doorR'],bell:{every:[20,32],roll:2}},
         C:{ai:6,at:'02:00',fast:true,skipChance:.2,path:['lib','pool','corrA','doorL']}},
  board:{mode:'game',at:'03:00',playerTimer:8,oppInterval:6.5,grace:1.5,firstStone:'random',blockChance:.5,winPolicy:'reeval',message:'……是你',autoReply:'是。',ghostOpacity:.06},
- juke:{start:'01:00',warn:3,tracks:[{name:'残响安可',len:120},{name:'星尘回廊',len:75},{name:'金属梦境',len:75},{name:'雨后的起跑线',len:75}]},
+ juke:{start:'00:00',warn:3,battery:{cap:30,renew:10},staCost:10,tracks:[{name:'残响安可',len:120},{name:'星尘回廊',len:75},{name:'金属梦境',len:75},{name:'雨后的起跑线',len:75}]},
+ /* A-94 兜底样例：只在 data/ 整目录丢失时生效（正常夜次由 nights.js 供 openCorrupt，夜1-6 无此字段=零变化）。
+    纯噪点+数字，不含任何叙述词。 */
+ diary:{openCorrupt:['▓▒█ ▒▒█▓ 07 ▒█ 12 ▓▒▒ █▓▒','▒▓ 0110 1110 ▓▒█ ▒▓▒ ▓ 41 ▒█▓','█▒▓▒ ▓▒ 00:00 ▒█▓▒ ▓▒▒ █▓▒ ▒']},
  call:[],hints:{}};
 function resolveNight(id){
  var sm=SAMPLE.nights||{};
@@ -242,13 +267,15 @@ function getMeta(){return deepMerge(SAMPLE.meta||{},window.META||{})}
 function buildRT(){var p=N.power||{},b=N.board||{},j=N.juke||{};
  var oppX=b.oppInterval!=null?b.oppInterval:4;
  return{
-   drain:Object.assign({base:.05,cam:.10,lock:.5,light:.1,switch:.15,renew:.5},p.drain||{}),
+   drain:Object.assign({base:.05,cam:.10,lock:.5,light:.1,switch:.15,renew:0},p.drain||{})   /* D39→D40 闭案：点击续电不耗电力，兜底=0 */,
    safeHalf:p.safeHalf!=null?p.safeHalf:60,
    sta:{stare:2,recOpen:1,recClosed:2,sw:.5,low:20,crit:10,lockT:5,back:30},
    stareRamp:1,
    edge:Object.assign({t:3,knock:1,backCd:10,giveUp:3,retreatCd:25},N.edge||{}),
-   juke:{start:parseClock(j.start,N.hourLen),warn:j.warn!=null?j.warn:(CUR===7?3:5),tracks:j.tracks||[],finale:!!j.finale,
-         battery:j.battery||{cap:30,renew:30}},   /* A-39/A-47 发条单轨化，缺省提供兜底 */
+   juke:Object.assign({},j,{start:parseClock(j.start,N.hourLen),warn:j.warn!=null?j.warn:(CUR===7?3:5),
+         tracks:j.tracks||[],finale:!!j.finale,
+         battery:j.battery||{cap:30,renew:10},
+         staCost:j.staCost!=null?j.staCost:10}),   /* A-39/A-47 发条单轨化；A-88：续电扣耐力（D39 终值 10） */
    board:Object.assign({},b,{mode:b.mode||'game',at:parseClock(b.at,N.hourLen),limit:b.playerTimer||8,opp:oppX,
           grace:b.grace!=null?b.grace:1.5,firstStone:b.firstStone||'random',
           block:b.blockChance!=null?b.blockChance:.5,       /* blockChance：抢占玩家即胜点的概率（A7 陪练 AI） */
@@ -265,11 +292,15 @@ function buildRT(){var p=N.power||{},b=N.board||{},j=N.juke||{};
    hints:N.hints||{}}}
 function jukeWarn(){var w=CFG&&CFG.juke&&CFG.juke.warn;return w!=null?w:(CUR===7?3:5)}
 /* ============ 存档（契约 §3.4） ============ */
+/* A-87：SAVE_KEY 自发布起冻结，结构变更一律走 schemaVer 迁移链——
+   每次改存档结构：SAVE_VER+1，并在 loadSave 的迁移段按 ver 顺序追加一级分支。 */
 const SAVE_KEY='umanight_save_v1';
-function defSave(){return{unlockedNight:1,diaryHeard:[],archFlags:{A:0,B:0,C:0,D:0,final:0},winCount:0,everWon:false,clearedTrue:false,
+const SAVE_VER=1;
+function defSave(){return{schemaVer:SAVE_VER,unlockedNight:1,diaryHeard:[],archFlags:{A:0,B:0,C:0,D:0,final:0},winCount:0,everWon:false,clearedTrue:false,
  ghosts:[],eggAt:0,deaths:0,sysArch:{}}}   /* ghosts/eggAt/deaths/sysArch 为引擎内部字段（A14 残影层 / A15 彩蛋 / 备选死亡计数 / SYS 日志归档），B 不消费 */
 function loadSave(){try{var raw=localStorage.getItem(SAVE_KEY);if(!raw)return defSave();
   var d=JSON.parse(raw),s=defSave();
+  var ver=(d&&typeof d==='object'&&+d.schemaVer)||0;      /* 缺字段=代际 v0（上线前无版本号档） */
   if(d&&typeof d==='object'){
    if(d.unlockedNight>=1&&d.unlockedNight<=7)s.unlockedNight=d.unlockedNight|0;
    if(Array.isArray(d.diaryHeard))s.diaryHeard=d.diaryHeard.filter(function(x){return typeof x==='string'});
@@ -279,9 +310,13 @@ function loadSave(){try{var raw=localStorage.getItem(SAVE_KEY);if(!raw)return de
    s.winCount=d.winCount|0;s.everWon=!!d.everWon;s.clearedTrue=!!d.clearedTrue;
    if(Array.isArray(d.ghosts))s.ghosts=d.ghosts.filter(function(g){return g&&(typeof g.msg==='string'||typeof g.t==='string')}).map(function(g){return{n:g.n||0,msg:g.msg||g.t||'',t:g.t||g.msg||'',reply:g.reply||null,o:g.o!=null?g.o:.06}}).slice(-14);
    s.eggAt=d.eggAt|0;s.deaths=d.deaths|0}
+  while(ver<SAVE_VER){                                     /* 迁移链：逐级升版，v0→v1 即上面的字段清洗 */
+   ver++;s._migrated=1}
+  s.schemaVer=SAVE_VER;
   return s}catch(e){return defSave()}}
 function writeSave(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE))}catch(e){}}
 let SAVE=loadSave();
+if(SAVE._migrated){delete SAVE._migrated;writeSave()}      /* A-87：迁移结果立即回写，避免每次读档重迁 */
 /* ============ 引擎常量（非夜数据） ============ */
 const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const JUKEMEL=[[69,.5],[72,.5],[71,.25],[69,.25],[67,.5],[69,1],[64,.5],[67,.5],[69,1],[0,.5],[65,.5],[69,.5],[71,1],[67,1]];
@@ -289,22 +324,31 @@ const JOFF={slot_A:0,slot_B:0,slot_C:0,slot_D:0,shadow:0};
 const RN={hall:'大厅',gym:'健身房',shop:'商店',lib:'图书馆',pool:'游泳馆',gymn:'室内体育馆',plaza:'三女神广场',corrA:'左走廊',corrB:'右走廊'};
 const CAMORDER=['hall','gym','shop','lib','pool','gymn','plaza','corrA','corrB'];
 const CAMNO={hall:'CAM1',gym:'CAM2',shop:'CAM3',lib:'CAM4',pool:'CAM5',gymn:'CAM6',plaza:'CAM7',corrA:'CAM8',corrB:'CAM9'};
-const MAPLAY=[['lib',2,4,26,13],['hall',32,2,38,17],['gym',72,4,26,13],
- ['pool',2,20,26,15],['shop',72,20,26,15],
- ['corrA',30,42,9,18],['corrB',61,42,9,18],
- ['plaza',2,58,26,20],['gymn',34,62,26,20]];   /* A-79：左右同侧地图布局（左门通lib/pool/plaza，右门通gym/shop/hall） */
+/* A-84：22u×16u 原生幅面下的重排——左列 lib/pool/plaza（喂 doorL）、右列 hall/shop/gym（喂 doorR）、
+   中脊 corrA(偏左)/corrB(偏右)+gymn(上)、训练员室单独占底带；每块 ≥18%×16%，相邻气口 ≥4% */
+const MAPLAY=[['lib',1,2,25,20],['pool',1,26,25,20],['plaza',1,50,25,20],
+ ['gymn',30,2,40,20],['corrA',30,26,18,44],['corrB',52,26,18,44],
+ ['hall',74,2,25,20],['shop',74,26,25,20],['gym',74,50,25,20]];
+/* A-82②：各房「远两位」横向拉开到 ≥60 背景像素（scale1.4 立绘宽 ≈38px），
+   必要时以 8-14px 的纵深错位换取横向气口；近两位维持批次6 结论。全部逐张目视背景图给值。 */
 const SLOTPOS={
- hall:[[232,124,1.4],[280,126,1.4],[130,200,2.9],[240,200,2.9]],
- gym:[[62,126,1.4],[110,126,1.4],[140,200,2.9],[240,200,2.9]],
- shop:[[118,136,1.4],[170,136,1.4],[140,200,2.8],[240,200,2.8]],
- lib:[[235,128,1.4],[280,128,1.4],[130,200,2.9],[230,200,2.9]],
- pool:[[290,116,1.4],[330,120,1.4],[130,200,2.9],[230,200,2.9]],
- gymn:[[205,124,1.4],[260,124,1.4],[130,200,2.9],[240,200,2.9]],
+ hall:[[105,140,1.4],[300,132,1.4],[130,200,2.9],[240,200,2.9]],
+ gym:[[62,126,1.4],[130,140,1.4],[140,200,2.9],[240,200,2.9]],
+ shop:[[118,136,1.4],[182,150,1.4],[140,200,2.8],[240,200,2.8]],
+ lib:[[235,128,1.4],[170,140,1.4],[130,200,2.9],[230,200,2.9]],
+ pool:[[270,120,1.4],[330,140,1.4],[130,200,2.9],[230,200,2.9]],
+ gymn:[[200,124,1.4],[268,130,1.4],[130,200,2.9],[240,200,2.9]],
  plaza:[[128,140,1.8],[248,140,1.8],[120,190,2.6],[250,190,2.6]],
- corrA:[[168,126,1.4],[210,126,1.4],[110,196,2.9],[205,196,2.9]],
- corrB:[[175,126,1.4],[215,126,1.4],[180,196,2.9],[275,196,2.9]]
+ corrA:[[145,126,1.4],[215,126,1.4],[110,196,2.9],[205,196,2.9]],
+ corrB:[[168,128,1.4],[232,128,1.4],[180,196,2.9],[275,196,2.9]]
 };
+const YOUPLAY={x:30,y:74,w:40,h:16};                 /* 训练员室：底边中央，画成矩形（用户指令：不要连线叉） */
 const FOOT={slot_A:24,slot_B:21,slot_C:6,slot_D:28};
+const LIGHT_T=1;          /* 灯钮点亮时长（秒，引擎常量；说明页 {light} 同源） */
+const BOARD_MERCY=0.5;    /* A-80 仁慈阀：开监控/近看时白板倒计时流速系数 */
+const CAM9_PRE=1.5;       /* A-88：她的登场预告提前量（秒） */
+const CAM9_FLASH=0.09;    /* A-88：闪屏时长（秒，60-120ms 区间内） */
+const CORRUPT_LINE_T=2.2; /* A-94：乱码每行停显时长（tick 判定与噪声铺底同源） */
 /* A-31/A-57 去 FNAF 化映射：slot→贴图映射常量。
    img=全身立绘主键（三档：原色/_glitch 静息/_glitch_strong 加强）；d=特写键（face_slot_A..D）。 */
 const SLOTDEF={A:{img:'slot_A',d:'slot_A',t0:6},B:{img:'slot_B',d:'slot_B',t0:7},
@@ -362,6 +406,7 @@ AU.thump=v=>{tone(75,42,.12,'sine',v);nz(.07,220,v*.6)};
 AU.knock=side=>{const dest=panDest(side);[0,180,360].forEach(d=>setTimeout(()=>{tone(85,50,.1,'sine',.34,null,null,dest);nz(.08,400,.2,null,null,dest)},d))};
 AU.run=()=>{for(let i=0;i<9;i++)setTimeout(()=>{tone(100,55,.08,'sine',.1+i*.03);nz(.05,300,.08)},i*115)};
 AU.whis=()=>nz(.5,700,.05,'bandpass',8);
+AU.preBreath=()=>nz(.14,900,.03,'bandpass',6);   /* A-88：登场预告极轻气声（≤提示音量 30%） */
 AU.ring=()=>{if(!AU.ctx)return;[0,500].forEach(d=>{tone(640,640,.36,'square',.05,null,AU.ctx.currentTime+d);tone(485,485,.36,'square',.045,null,AU.ctx.currentTime+d)})};
 AU.ringB=()=>{if(!AU.ctx)return;[0,500].forEach(d=>{tone(540,560,.4,'sawtooth',.05,null,AU.ctx.currentTime+d);tone(410,395,.4,'sawtooth',.045,null,AU.ctx.currentTime+d)})};
 AU.ringOnce=()=>{if(!AU.ctx)return;tone(640,640,.36,'square',.05);tone(485,485,.36,'square',.045);   /* A17：响一声无人说话 */
@@ -384,6 +429,22 @@ AU.boardEnd=()=>{if(!AU.ctx)return;[520,660,780].forEach((f,i)=>tone(f,f,.22,'tr
 AU.pushSoft=()=>{tone(520,660,.12,'sine',.06);tone(780,780,.08,'sine',.03,null,AU.ctx.currentTime+.1)};   /* SYS LOG 推送 */
 AU.pen=()=>{tone(340,300,.05,'triangle',.05);nz(.03,1800,.03,'highpass')};   /* 白板笔触（她的落子/留言完成） */
 AU.tape=()=>{if(!AU.ctx)return;tone(320,250,.07,'square',.10);nz(.04,1400,.05,'highpass')};   /* 答录机行浮现「嘟」（用户要求可闻） */
+/* A-94 修订：乱码行的持续静电铺底——带通+高通叠出「嘶」的频感，中段保持电平、尾段 30% 收掉，
+   区别于 nz() 那种一上来就衰减的短音；音量与 AU.tape 同量级（.05/.022）不压过换行短嘟。 */
+AU.tapeNoise=(dur,vol)=>{const C=AU.ctx;if(!C)return;dur=dur||2.2;vol=vol==null?.05:vol;
+ const t=C.currentTime,s=C.createBufferSource(),f1=C.createBiquadFilter(),f2=C.createBiquadFilter(),g=C.createGain();
+ s.buffer=AU.nb;s.loop=!0;s.playbackRate.value=.85;
+ f1.type='bandpass';f1.frequency.value=1500;f1.Q.value=.7;
+ f2.type='highpass';f2.frequency.value=2400;
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.15);
+ g.gain.setValueAtTime(vol,t+dur*.7);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ s.connect(f1);f1.connect(f2);f2.connect(g);g.connect(AU.mg);s.start(t);s.stop(t+dur+.05);
+ const s2=C.createBufferSource(),f3=C.createBiquadFilter(),g2=C.createGain();   /* 低频沙沙层，让噪声听得出是"整段"而非一声 */
+ s2.buffer=AU.nb;s2.loop=!0;s2.playbackRate.value=.4;
+ f3.type='bandpass';f3.frequency.value=520;f3.Q.value=.5;
+ g2.gain.setValueAtTime(.0001,t);g2.gain.exponentialRampToValueAtTime(vol*.45,t+.2);
+ g2.gain.setValueAtTime(vol*.45,t+dur*.7);g2.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ s2.connect(f3);f3.connect(g2);g2.connect(AU.mg);s2.start(t);s2.stop(t+dur+.05)};
 AU.beep2=()=>{if(!AU.ctx)return;var C=AU.ctx;   /* 「嘟嘟」：录音机走带开始/结束（暖方波双响） */
  [0,.17].forEach(function(d){tone(560,560,.07,'square',.10,null,C.currentTime+d)})};
 AU.glitchCut=()=>{if(!AU.ctx)return;nz(.35,900,.30,'bandpass',3);tone(1600,120,.18,'square',.12)};   /* A-64：戛然而止错乱音效 */
@@ -497,8 +558,9 @@ function buildEvents(){S.events=[];
  (N.syslog||[]).forEach(function(e){add(e.at,function(){pushSyslog(e)})});
  (N.cam9||[]).forEach(function(e){
   if(e.type==='silhouette'&&String(e.at).indexOf('post')===0){   /* v1.7 §5：post 后 N 秒窗口内查看 CAM9 可见侧影（一次性） */
-   S.cam9Pending={type:e.type||'silhouette',dur:e.dur||2.5,left:parseAt(e.at).post||60,shown:0};return}
-  add(e.at,function(){S.cam9Ev={type:e.type||'freeze',dur:e.dur||3,t:0}})});
+   S.cam9Pending={type:e.type||'silhouette',dur:e.dur||2.5,left:parseAt(e.at).post||60,shown:0,flashed:0};return}
+  add(e.at,function(){S.cam9Ev={type:e.type||'freeze',dur:e.dur||3,t:0}});
+  add(parseAt(e.at).abs-CAM9_PRE,function(){cam9PreFlash()})});   /* A-88：登场前极快闪屏预告（零后果） */
  (N.dream||[]).forEach(function(e){add(e.at,function(){S.dreamEv={dur:e.dur||2,t:0};
   if(e.stamina)applyStamina({delta:e.stamina,reason:null})})});
  (N.scriptedStamina||[]).forEach(function(e){add(e.at,function(){applyStamina(e)})});
@@ -571,16 +633,30 @@ function startCorruptPlayback(){var a=S.answ,d=CFG.diary;
  a.li=-1;
  $('answBody').innerHTML='';
  $('answBox').classList.add('on');}
+function startOpenCorrupt(){                              /* A-94 修订：夜7 00:00 = 完整链（乱码三行→#001→stopAt 戛然而止） */
+ var a=S.answ, lines=(CFG.diary.openCorrupt||[]).slice(0,3);
+ if(!lines.length)return 0;
+ a.on=1;a.t=0;a.id=null;a.phase='openDelay';a.lines=null;a.li=-1;a.corrupt=null;a.truncate=0;a.openCorrupt=lines;
+ pushDiaryHeard(CFG.wbTrashName);                         /* 归档随演出前移到 00:00（a.id 仍为 null，endDiary 不双写） */
+ var nl=(window.NIGHTS||[]).filter(function(x){return x&&+x.id===1})[0];
+ if(nl&&nl.diary&&nl.diary.text){a.lines=String(nl.diary.text).split('\n');
+  a.perLine=Math.max(2,(nl.diary.duration||55)/Math.max(1,a.lines.length)/ANSW_RATE);
+  a.truncate=1}                                          /* 乱码走完后接夜1 原文，由既有 stopAt 截断收场 */
+ $('answBody').innerHTML='';$('answBox').classList.add('on');
+ if(AU.ctx)AU.ring();                                     /* 真铃起手（维持每夜仪式感，再前几秒砸碎） */
+ return 1}
 function tickAnsw(dt){var a=S.answ;if(!a.on||S.black)return;
+ if(a.phase==='openDelay'){a.t+=dt;if(a.t>=1.2){a.t=0;a.phase='corrupt';a.corrupt=a.openCorrupt;a.ci=0;
+   S.capText=a.corrupt[0];S.capT=2.5;if(AU.ctx){AU.tape();AU.tapeNoise(CORRUPT_LINE_T)}}return}
  if(a.phase==='delay'){a.t+=dt;if(a.t>=1.2){a.t=0;beginDiaryPlayback()}return}
- if(a.phase==='corrupt'){                                /* 乱码三行：每行 2.2s，同时中屏故障字幕 */
+ if(a.phase==='corrupt'){                                /* 乱码：每行 2.2s + 中屏故障字幕 + 该行时长的持续静电噪声铺底 */
   var was=a.ci;
   a.t+=dt;
-  if(a.t>=2.2){a.t=0;a.ci++;
+  if(a.t>=CORRUPT_LINE_T){a.t=0;a.ci++;
    if(a.ci>=a.corrupt.length){a.phase=a.lines?'play':'end';a.li=-1;a.t=0;
     if(a.phase==='play')renderAnswLine(-1);else endDiary();return}
-   S.capText=a.corrupt[a.ci];S.capT=2.5;AU.tape()}
-  else if(was===0&&a.ci===0&&a.t<dt+.01){S.capText=a.corrupt[0];S.capT=2.5;AU.tape()}
+   S.capText=a.corrupt[a.ci];S.capT=2.5;AU.tape();AU.tapeNoise(CORRUPT_LINE_T)}
+  else if(was===0&&a.ci===0&&a.t<dt+.01){S.capText=a.corrupt[0];S.capT=2.5;AU.tape();AU.tapeNoise(CORRUPT_LINE_T)}
   return}
  if(a.phase==='play'){                                   /* 逐行渐显（文本渐显+音效承载，非真人声） */
   a.t+=dt;
@@ -604,12 +680,12 @@ function renderAnswLine(li){var el=$('answBody');
   (function(node,tgt){requestAnimationFrame(function(){node.style.opacity=tgt})})(dv,i<li?.4:1)}}
 function endDiary(){var a=S.answ;if(!a.on)return;
  var wasCut=!!a.cutOff;
- a.on=0;a.phase='';a.cutOff=0;
+ a.on=0;a.phase='';a.cutOff=0;a.openCorrupt=null;
  if(!wasCut&&AU.ctx)AU.beep2();                          /* 走带结束「嘟嘟」——截断路径互斥不响 */
  $('answBox').classList.remove('on');
  pushDiaryHeard(a.id)}
 function interruptDiary(){var a=S.answ;if(!a||!a.on||scene!=='game')return;
- a.on=0;a.phase='';                                      /* 中断无惩罚，未播毕不归档 */
+ a.on=0;a.phase='';a.openCorrupt=null;                    /* 中断无惩罚，未播毕不归档 */
  if(AU.ctx)AU.beep2();                                   /* 中断也收尾「嘟」 */
  $('answBox').classList.remove('on')}
 function pushDiaryHeard(id){if(!id)return;
@@ -652,12 +728,16 @@ function startNight(n,fromDeath){
   answPlayed:0,
   /* P2 状态：事件引擎 / 白板锚点 / 紧急评估 / 答录机 / 演出层 */
   events:[],postAt:null,reeval:0,
-  answ:{on:0,t:0,phase:'',id:null,lines:null,li:-1,perLine:0,corrupt:null},
-  cam9Ev:null,dreamEv:null,capText:null,capT:0,close:0,camFxRooms:{},
+  answ:{on:0,t:0,phase:'',id:null,lines:null,li:-1,perLine:0,corrupt:null,openCorrupt:null},
+  openCorruptPlayed:0,
+  cam9Ev:null,cam9Pending:null,cam9Flash:0,dreamEv:null,capText:null,capT:0,close:0,camFxRooms:{},
   visit:null,visitLitL:0,visitScare:0,
   finaleMel:0};
  buildEvents();
- $('inNight').textContent='第 '+CUR+' 夜';
+ var boot=(META.menu&&META.menu.boot)||{};
+ $('inTime').textContent=(boot.clock||'CLOCK')+' 00:00';
+ $('inNight').textContent=(boot.night||'NIGHT')+' '+CUR;
+ var pb=$('inProg');pb.classList.remove('run');void pb.offsetWidth;pb.classList.add('run');
  $('inRetry').textContent=rc;
  if(rc)setTimeout(function(){$('inRetry').textContent=''},3200);
  setStatic(false);
@@ -740,15 +820,14 @@ function win(){scene='done';hud.classList.remove('on');setStatic(false);
  if(CUR===7&&S.board.state===2&&S.board.result==='draw'&&!j.dead&&truthReady()){startTrueEnding();return}
  if(CUR===7&&S.board.state===2&&S.board.result==='draw'){standardEnding();return}
  AU.chime();
- var st=S.stats,br='未出现';
- if(S.board.state===2&&S.board.result==='draw')br='平局 · 挂起';
- if(S.board.state===2&&S.board.result==='win')br='胜利 · 已评估';
- if(S.board.state===2&&S.board.result==='safe')br='安全解除';
- if(S.board.state===2&&S.board.result==='lose')br='败北';
- var tn=CFG.juke.tracks.length||'-';
- $('dnSub').innerHTML=
-  '♪ 续播 '+st.renewals+'/'+tn+' · 错过 '+st.miss+'<br>⌂ 门锁挡回 '+st.blocks+' 次 · ▣ 白板：'+br+
-  '<br>⚡ 电力余 '+Math.max(0,Math.ceil(S.power))+'% · 耐力余 '+Math.ceil(S.sta)+'%';
+ var st=S.stats,rs=(META&&META.result)||{},bv=rs.boardValues||{};
+ var br=bv.none||'未出现';
+ if(S.board.state===2)br=bv[S.board.result]||br;
+ var tn=CFG.juke.tracks.length||0;
+ $('dnGauges').innerHTML=gcell(rs.renew||'续播',z2(st.renewals)+'/'+z2(tn))+gcell(rs.miss||'错过',z2(st.miss))+
+  gcell(rs.block||'挡回',z2(st.blocks))+gcell(rs.power||'电力',z2(Math.max(0,Math.ceil(S.power)))+'%')+
+  gcell(rs.stamina||'耐力',z2(Math.ceil(S.sta))+'%');
+ $('dnSub').textContent=(rs.board||'白板')+'：'+br;
  setTimeout(function(){if(scene==='done')showScene('done')},1500)}
 function truthReady(){if(TRUTH_TEST)return true;
  var a=SAVE.archFlags;return !!(a.A&&a.B&&a.C&&a.D)}
@@ -757,6 +836,7 @@ function standardEnding(){
  var ln=(META&&META.endings&&META.endings.standard&&META.endings.standard.lines)||[];
  var main=ln[0]||'[挂起] 无法判定 · 维持挂起';
  showScene('done');
+ $('dnGauges').innerHTML='';                          /* A-85：结局走旁白，不叠仪表读数 */
  $('dnTitle').textContent='6:00 AM';
  $('dnSub').innerHTML='<span style="color:#9aa8b2">'+main+'</span><br><span style="color:#5a5a62;font-size:.85em">答录机响了一声。没有人说话。</span>';
  setTimeout(function(){if(scene==='done')AU.ringOnce()},2200);
@@ -823,7 +903,7 @@ function nextFinalLine(){var te=S.te;te.lineI++;
  if(te.lineI>=te.lines.length){te.phase='epi';te.t=0;te.epi=0;return}
  te.phase='fline';te.t=0}
 function startCredits(){var c=$('credits');
- var rows=(META&&META.credits)||['UMA-NIGHT · 七夜完整版','——','机制引擎 · 角色A','叙事与演出 · 角色B','训练日记 · SYS LOG · 胜者舞台','——','谢谢你把它守到最后'];
+ var rows=(META&&META.credits)||['UMA-NIGHT','——','机制引擎 · 角色A','叙事与演出 · 角色B','训练日记 · SYS LOG · 胜者舞台','——','谢谢你把它守到最后'];
  c.innerHTML=rows.map(function(r){return '<div>'+r+'</div>'}).join('');
  c.classList.add('on');
  S.finaleMel=0}                                     /* 名单起谢幕曲收束 → 完全静默 */
@@ -975,18 +1055,23 @@ function tickJuke(dt){var j=S.juke;
   j.track++;
   if(j.track>=CFG.juke.tracks.length)j.track=0;       /* 发条模型：穷尽循环回第一首，不判死 */
   j.left=CFG.juke.tracks[j.track].len}}
+var jukeOkT=null;                                     /* A-83：胶囊 .ok 回落计时器 */
 function renewJuke(){var j=S.juke;
  if(!S||scene!=='game'||!j.started||j.dead)return;
  if(S.black||S.staLock>0)return;
  if(!(S.cams&&S.camRoom==='hall'))return;             /* 批次5 裁决④：必须正在查看大厅监控 */
- j.batt=CFG.juke.battery.renew;
+ var bt=CFG.juke.battery;
+ j.batt=Math.min(bt.cap!=null?bt.cap:30,(j.batt||0)+bt.renew);   /* A-88：续电=+renew 叠加、封顶 cap（不再一次充满） */
  j.warnActive=0;
  if(j.muted){j.muted=0;j.warn=0}                      /* 余量窗内续上=解静音 */
  S.power=Math.max(0,S.power-CFG.drain.renew);
+ S.sta=Math.max(0,S.sta-CFG.juke.staCost);            /* A-88：续电扣耐力，不设下限拦截 */
+ if(S.sta<=0)S.staLock=CFG.sta.lockT;                 /* 归零即入既有僵直链（主循环的 +回充会先把 sta 抬离 0，故在此置位） */
  S.stats.renewals++;
  for(var ka in S.slots){var a=S.slots[ka];
   if(a.sprintOn&&a.sprint){a.sprint=0;a.idx=0;a.t=12}}
- S.jukeFlash=4;
+ var gg=$('jukeGauge');                                /* A-83：续电成功反馈只落在胶囊自身 */
+ if(gg){gg.classList.add('ok');clearTimeout(jukeOkT);jukeOkT=setTimeout(function(){gg.classList.remove('ok')},200)}
  AU.renew()}
 /* ---- 白板：数据驱动（陪练 AI 与判定分级由 P2 A7/A8 实现） ---- */
 function boardWinner(p){return LINES.some(function(l){return l.every(function(i){return S.board.cells[i]===p})})}
@@ -1064,7 +1149,7 @@ function tickBoard(dt){var b=S.board;
  if(b.state!==1)return;
  if(S.black)return;                                 /* 断电：白板倒计时冻结 */
  if(b.turn==='you'){
-  var sp=(S.cams||S.close)?0.5:1.0;                  /* A-80：开监控或近看白板时倒计时流速减半（仁慈阀） */
+  var sp=(S.cams||S.close)?BOARD_MERCY:1.0;           /* A-80：开监控或近看白板时倒计时流速减半（仁慈阀） */
   var before=Math.ceil(b.moveT);b.moveT-=dt*sp;var now=Math.ceil(b.moveT);
   if(now!==before&&now<=3&&now>0)AU.tick();
   if(b.moveT<=0){b.result='timeout';b.state=2;jump('shadow','白板倒计时归零。','WB-TIME',true)}
@@ -1078,6 +1163,10 @@ function updateGame(dt){S.time+=dt;
  var h=Math.floor(S.time/N.hourLen);
  if(h!==S.hour)S.hour=h;
  if(S.hour>=6){win();return}                        /* 06:00 整点结算优先（含续播窗口边缘豁免） */
+   /* A-94：夜7 00:00 = 完整链（乱码→#001→stopAt 戛然而止）。openCorrupt 存在即「乱码已收归开场」的新契约。
+      置位放进实际起播分支：数据为空时不得吞掉 post+8 兜底。 */
+   if(CFG.diary&&CFG.diary.openCorrupt&&CFG.diary.openCorrupt.length&&!S.openCorruptPlayed){
+    if(startOpenCorrupt()){S.openCorruptPlayed=1;S.answPlayed=1}}
    /* 答录机（A9）：autoplayAt 到点真铃自动播放（支持 HH:MM 与 post+N 时基） */
    var apAt=CFG.diary&&CFG.diary.autoplayAt;
    var apReady=false;
@@ -1086,9 +1175,11 @@ function updateGame(dt){S.time+=dt;
     else if(apAt.indexOf('post')<0&&S.time>=parseClock(apAt,N.hourLen)){apReady=true}}
    if(CFG.diary&&!S.answPlayed&&apReady){
     S.answPlayed=1;startDiary()}
-   /* A-64：夜7 乱码时序迁至白板局后留言窗口 */
+   /* A-64：夜7 乱码时序迁至白板局后留言窗口 —— A-94 修订：openCorrupt 存在 ⇒ 该夜 corrupt 重播链让位
+      （数据字段 corrupt/corruptAt 一律不动：记录页正文重建源与 validate/B-26 台账都在引用） */
    var corAt=(CFG.diary&&CFG.diary.corruptAt)||(CUR===7?'post+0':'00:00');
-   if(corAt.indexOf('post')===0&&S.postAt!=null&&!S.corruptTriggered&&CFG.diary&&CFG.diary.corrupt&&CFG.diary.corrupt.length){
+   var openTaken=CFG.diary&&CFG.diary.openCorrupt&&CFG.diary.openCorrupt.length;
+   if(!openTaken&&corAt.indexOf('post')===0&&S.postAt!=null&&!S.corruptTriggered&&CFG.diary&&CFG.diary.corrupt&&CFG.diary.corrupt.length){
     var off=parseFloat(corAt.slice(4))||0;
     if(S.time>=S.postAt+off){
      S.corruptTriggered=1;S.answPlayed=1;
@@ -1098,6 +1189,7 @@ function updateGame(dt){S.time+=dt;
   if(S.cam9Ev){S.cam9Ev.t+=dt;if(S.cam9Ev.t>=S.cam9Ev.dur)S.cam9Ev=null}
   if(S.cam9Pending&&S.postAt!=null){                 /* 残影窗口：仅奖励查看监控的玩家，无音效无红点 */
    var cp=S.cam9Pending;cp.left-=dt;
+   if(!cp.flashed&&cp.left<=CAM9_PRE){cp.flashed=1;cam9PreFlash()}   /* A-88：窗口收口前 1.5s 预告闪屏 */
    if(!cp.shown&&S.cams&&S.camRoom==='corrB'){S.cam9Ev={type:cp.type,dur:cp.dur,t:0};S.cam9Pending=null}
    else if(cp.left<=0)S.cam9Pending=null}
   if(S.dreamEv){S.dreamEv.t+=dt;if(S.dreamEv.t>=S.dreamEv.dur)S.dreamEv=null}
@@ -1210,7 +1302,7 @@ function toggleLock(t){if(!S||S.black||scene!=='game'||S.staLock>0)return;
  if(S['lock'+t]){S['light'+t]=0;AU.door(1)}          /* 上锁：灯灭+锁音（锁定期间 0.5%/s 由电力结算承担） */
  else AU.door(0)}                                    /* 解锁：开门音 */
 function pressLight(t){if(!S||S.black||scene!=='game'||S.staLock>0)return;
- S['light'+t]=1;S['lightT'+t]=1;
+ S['light'+t]=1;S['lightT'+t]=LIGHT_T;
  S.power=Math.max(0,S.power-CFG.drain.light);
  tone(1200,900,.04,'square',.05)}
 /* ============ 办公室伪 3D v2（140° 全景 · 图像拉伸 ×1.2 · 圆柱投影，用户参考范式） ============ */
@@ -1496,6 +1588,17 @@ function renderFxLayers(){
  if(S.cam9Ev&&S.cams&&S.camRoom==='corrB'){
   if(window.NFX&&NFX.cam9)NFX.cam9(cx,S.cam9Ev.type,S.cam9Ev.t,S.cam9Ev.t/S.cam9Ev.dur)}
  if(S.capText&&window.NFX&&NFX.glitchCaption)NFX.glitchCaption(cx,S.capText,4-S.capT)}
+/* A-88「她」的登场预告：零威胁、零后果、不锁输入。
+   只放大她既有的残影形象（NFX.cam9 的 frontal 人形），不引入新立绘、不用 D/玩偶服形象。 */
+function cam9PreFlash(){if(!S)return;S.cam9Flash=CAM9_FLASH;if(AU.ctx)AU.preBreath()}
+function renderPreFlash(){if(!S||!S.cam9Flash)return;
+ S.cam9Flash-=DT;
+ var k=2.6;
+ cx.fillStyle='rgba(8,10,16,.42)';cx.fillRect(0,0,384,216);
+ cx.save();cx.translate(192,108);cx.scale(k,k);cx.translate(-192,-108);
+ if(window.NFX&&NFX.cam9){NFX.cam9(cx,'frontal',.4,1);NFX.cam9(cx,'frontal',.4,1)}   /* 双描叠加提高可见度 */
+ cx.restore();
+ if(S.cam9Flash<=0)S.cam9Flash=0}
 function edgeSlots(side){var r=[];
  for(var k in S.slots){var s=S.slots[k];
   if(s.active&&s.path[s.idx]===side)r.push(s)}return r}
@@ -1572,10 +1675,6 @@ function renderCams(){var rm=S.camRoom;
   if(rm==='hall'&&inJukeAlert){
    sliceGlitch(cx,cv,0,0,384,216,glitchLv(),2+rnd(3));
   }
-  if(rm==='hall'&&S.jukeFlash>0){
-   S.jukeFlash--;
-   cx.strokeStyle='rgba(255,220,120,.55)';cx.lineWidth=2;
-   cx.beginPath();cx.arc(138,82,30,0,Math.PI*2);cx.stroke()}
   if(S.staLowLooking){
    var gv=cx.createRadialGradient(192,108,60,192,108,240);
    gv.addColorStop(0,'rgba(0,0,0,0)');
@@ -1664,19 +1763,19 @@ function updateHud(){if(!S)return;
    var dot=$('alertDot'),j=S.juke;
    var jWarnTh=jukeWarn();
    var jukeAlert=j.started&&!j.dead&&(j.batt<=jWarnTh||j.warn>0);
-   var jw=$('jukeWrap');
-   if(jw){
+   var g=$('jukeGauge');
+   if(g){
     var jShow=S.cams&&S.camRoom==='hall'&&!S.black&&!j.dead;
-    jw.style.display=jShow?'flex':'none';
+    g.style.display=jShow?'flex':'none';
     if(jShow){
      var secVal=Math.ceil(j.batt>0?j.batt:j.warn);
-     $('jukeSec').textContent=secVal;
-     $('jukeSec').style.color=(j.batt<=jWarnTh||j.warn>0)?'#ff5050':'#ffd24a';
+     $('jukeSec').textContent=('0'+secVal).slice(-2);
+     g.classList.toggle('hot',!!jukeAlert);
     }
    }
    var anySprint=false;
    for(var ksp in S.slots){if(S.slots[ksp].sprint){anySprint=true;break}}
-   dot.className=(jukeAlert?'fast on':(anySprint?'on':'pe'));
+   dot.className=anySprint?'crit':(jukeAlert?'on':'');
    document.querySelectorAll('#map .mb').forEach(function(b){
     b.classList.toggle('alert',b.dataset.r==='hall'&&!S.black&&j.started&&!j.dead&&jukeAlert)});
    $('camSub').textContent='';
@@ -1706,17 +1805,17 @@ function updateHud(){if(!S)return;
    else db.classList.remove('on')}
 /* ============ 菜单 ============ */
 function buildMenu(){
- var sub=(META&&META.menu&&META.menu.subtitle)||'七 夜 · 值 班 记 录';
- var foot=(META&&META.menu&&META.menu.foot)||'值班记录实时保存 · 灯请保持常亮';
- var subEl=$('mSubtitle')||($('mTitle')&&$('mTitle').querySelector('span'));if(subEl)subEl.textContent=sub;
- var footEl=$('mFoot');if(footEl)footEl.textContent=foot;
- var showDbg=(location.search.indexOf('debug=1')!==-1||location.search.indexOf('smoke')!==-1);
- $('mUnlock').style.display=showDbg?'':'none';
+ var M=(META&&META.menu)||{};
+ var subEl=$('mSubtitle')||($('mTitle')&&$('mTitle').querySelector('span'));if(subEl)subEl.textContent=M.subtitle||'七 夜 · 值 班 记 录';
+ var footEl=$('mFoot');if(footEl)footEl.textContent=M.foot||'值班记录实时保存 · 灯请保持常亮';
+ var pl=$('mPlay');if(pl)pl.textContent=M.play||'继续游戏';
+ var nt=$('nightsTitle');if(nt)nt.textContent=M.nightsTitle||'选择夜班';
+ if(M.back)['nightsBack','howBack','logBack','archBack'].forEach(function(id){var e=$(id);if(e)e.textContent=M.back});
  var box=$('mNights');box.innerHTML='';
  for(var n=1;n<=7;n++)(function(n){
   var b=document.createElement('button');
   b.className='mbtn nbtn'+(n>SAVE.unlockedNight?' lock':'');
-  b.textContent=n>SAVE.unlockedNight?('夜 '+n+' ·🔒'):('夜 '+n);
+  b.textContent=n>SAVE.unlockedNight?('夜 '+n+' · '+(M.locked||'▨')):('夜 '+n);   /* locked=状态标签，N 由引擎插值（B-45 口径） */
   if(n<=SAVE.unlockedNight)b.addEventListener('click',function(e){e.stopPropagation();startNight(n)});
   box.appendChild(b)})(n)}
 function buildLog(){var el=$('logList');
@@ -1788,15 +1887,28 @@ function bindBtn(id,fn){$(id).addEventListener('click',function(e){e.stopPropaga
 function toMenu(){S=null;hud.classList.remove('on');setStatic(false);
  $('teBox').classList.remove('on');$('teRun').classList.remove('on');$('credits').classList.remove('on');
  buildMenu();showScene('menu')}
+/* A-85 面板读数单元：标签上、数字下、等宽补零（数值一律读 CFG，D9 口径不变） */
+function gcell(k,v){return '<div class="g"><span>'+k+'</span><b>'+v+'</b></div>'}
+function z2(v){v=String(v);return v.length<2?'0'+v:v}
+/* 说明页：整表读 META.howTo.rows（B-41 供句），{占位符} 由引擎按 D9 从 CFG/引擎常量插值 */
+function howVals(){var c=CFG,s=c.sta;
+ return{freeze:c.stareRamp,camOn:'+'+s.recOpen+'%',camOff:'+'+s.recClosed+'%','switch':s.sw+'%',
+  low:s.low,crit:s.crit,stun:s.lockT,rec:s.back,lock:c.drain.lock+'%',light:LIGHT_T,
+  warn:jukeWarn(),mercy:'×'+BOARD_MERCY,base:c.drain.base+'%'}}
+function howFill(str,V){return String(str).replace(/\{(\w+)\}/g,function(m,k){return k in V?V[k]:m})}
 function updateHow(){
- var c=CFG||(function(){N=resolveNight(CUR||3);return buildRT()})();
- var s=c.sta;
- var el=$('howSta');
- if(el&&s)el.innerHTML='监控对准所在房间约 1 秒可冻结它（盯视 −'+s.stare+'%/s）；开监控 +'+s.recOpen+'%/s、收监控 +'+s.recClosed+'%/s、切台 −'+s.sw+'%。<br>'+
-  '&lt;'+s.low+'% 盯视失效且切台冷却翻倍，&lt;'+s.crit+'% 开不了监控；归零僵直 '+s.lockT+' 秒后回到 '+s.back+'%（锁门期间门锁维持）。';
+ if(!CFG){N=resolveNight(CUR||3);CFG=buildRT()}
+ var V=howVals(),col=(META.menu&&META.menu.columns)||{};
+ var rows=(META.howTo&&Array.isArray(META.howTo.rows))?META.howTo.rows:[];
+ var h='<div class="hrow hcap"><span class="hk">'+(col.name||'SYSTEM')+'</span><span class="hv">'+(col.spec||'SPEC')+'</span></div>';
+ rows.forEach(function(r){
+  var sp=Array.isArray(r.spec)?r.spec:[r.spec];
+  h+='<div class="hrow"><span class="hk">'+r.name+'</span><span class="hv">'+
+     sp.map(function(x){return howFill(x,V)}).join('<br>')+'</span></div>'});
+ $('howTable').innerHTML=h;
 }
 bindBtn('mHow',function(){updateHow();showScene('how')});
-/* 测试用全解锁：点击解锁夜1-7；Shift+点击=重置存档（便于门控/结局回归测试） */
+/* 全解锁钮（用户 2026-09-20 裁决常显）：点击=解锁夜1-7；Shift+点击=清空值班进度 */
 $('mUnlock').addEventListener('click',function(e){
  e.stopPropagation();
  if(e.shiftKey){SAVE=defSave();writeSave()}
@@ -1804,6 +1916,8 @@ $('mUnlock').addEventListener('click',function(e){
  buildMenu()});
 bindBtn('mLog',function(){buildLog();showScene('log')});
 bindBtn('mArch',function(){buildArch();showScene('arch')});
+bindBtn('mPlay',function(){showScene('nights')});
+bindBtn('nightsBack',function(){showScene('menu')});
 bindBtn('howBack',function(){showScene('menu')});
 bindBtn('logBack',function(){showScene('menu')});
 bindBtn('archBack',function(){showScene('menu')});
@@ -1811,9 +1925,11 @@ bindBtn('dnRetry',function(){startNight(CUR)});
 bindBtn('dnMenu',toMenu);
 bindBtn('goMenu',toMenu);
 bindBtn('goRetry',function(){startNight(CUR,1)});
-bindBtn('jukeBtn',function(){if(scene==='game'&&S)renewJuke()});
+bindBtn('jukeGauge',function(){if(scene==='game'&&S)renewJuke()});
 /* 用户决策：点击（含面板/空白处）不再跳过答录机——中断仅 R 键 */
 OV.intro.addEventListener('click',enterGame);
+/* A-90：进度条走完自动开始（animationend 与点击两条路径共用 enterGame 的 scene 守卫，天然幂等） */
+$('inProg').addEventListener('animationend',function(){if(scene==='intro')enterGame()});
 function buildMap(){var m=$('map');m.innerHTML='';
  MAPLAY.forEach(function(A){var id=A[0],x=A[1],y=A[2],w=A[3],h=A[4];
   var b=document.createElement('div');
@@ -1823,7 +1939,8 @@ function buildMap(){var m=$('map');m.innerHTML='';
    if(scene==='game'&&S&&!S.black&&S.cams)setRoom(id)});
   m.appendChild(b)});
  var you=document.createElement('div');you.className='you';you.textContent='训练员室';
- you.style.cssText='left:41%;top:44%;width:18%;height:15%';m.appendChild(you)}
+ you.style.cssText='left:'+YOUPLAY.x+'%;top:'+YOUPLAY.y+'%;width:'+YOUPLAY.w+'%;height:'+YOUPLAY.h+'%';
+ m.appendChild(you)}   /* A-84：单独占底带，不与任何块同带；用户指令：矩形表示，无连线 */
 var drag=null;
 stage.addEventListener('pointerdown',function(e){
  if(scene!=='game'||!S)return;
@@ -1831,17 +1948,7 @@ stage.addEventListener('pointerdown',function(e){
  if(S.black)return;
   var r=cv.getBoundingClientRect();
   var px=(e.clientX-r.left)/r.width*W,py=(e.clientY-r.top)/r.height*H;
-  if(S.cams){
-   if(S.camRoom==='hall'&&!S.black&&S.juke&&!S.juke.dead){
-    var ph=CAMORDER.indexOf('hall')*1.7;
-    var swx=Math.sin(frame*.006+ph)*5,swy=Math.cos(frame*.0043+ph)*3;
-    var zm=1.14;
-    var bx=(px-192-swx)/zm+192,by=(py-108-swy)/zm+108;
-    if((bx-138)*(bx-138)+(by-82)*(by-82)<=30*30){
-     renewJuke();return}
-   }
-   return;
-  }
+  if(S.cams){return;}                                  /* A-83：画布内点唱机热点已撤销，续电唯一入口=仪表胶囊 */
   if(S.close){                                       /* 近看：大板落子；板外退出 */
    var cg=closeGrid(),wx=px/SQ,wy=py/SQ;
    if(S.board.state===1&&wx>=cg.ox&&wx<=cg.ox+3*cg.cs&&wy>=cg.oy&&wy<=cg.oy+3*cg.cs){
@@ -1919,6 +2026,7 @@ function loop(t){requestAnimationFrame(loop);
   if(gdt>0)updateGame(gdt);
   if(scene==='game'){
    if(S.cams)renderCams();else renderOffice();
+   renderPreFlash();                                  /* A-88：她的登场预告（办公室与监控两态皆可见） */
    if(S.cams&&S.camRoom==='hall'&&S.juke.started&&!S.juke.dead&&!S.juke.warn&&S.juke.left>0){
     S.juke.melT-=dt;
     if(S.juke.melT<=0){var n=JUKEMEL[S.juke.melI];
@@ -1931,7 +2039,9 @@ function loop(t){requestAnimationFrame(loop);
    if(rc.t>=.5&&rc.t<2.6&&rc.gearT>=.3){rc.gearT=0;if(AU.ctx)AU.gear()}   /* 删除进度冷音色 */
    renderJump();
    if(rc.t>4){showScene('over');
-    paintOver(rc.tag,rc.msg+'<br><span style="color:#8a8a92">电力余 '+Math.max(0,Math.ceil(S.power))+'% · 耐力余 '+Math.ceil(S.sta)+'% · 续播 '+S.stats.renewals+'</span>')}}}
+    var rs=META.result||{};
+    paintOver(rc.tag,rc.msg+'<br><span style="color:#8a8a92">'+(rs.power||'电力')+' '+Math.max(0,Math.ceil(S.power))+'% · '+
+     (rs.stamina||'耐力')+' '+Math.ceil(S.sta)+'% · '+(rs.renew||'续播')+' '+S.stats.renewals+'</span>')}}}
  else if(scene==='trueEnd'&&S){if(S.te)tickTrueEnd(dt);renderTrueEnd()}
  else if(scene==='over')renderOver();
  else if(scene==='done'){cx.fillStyle='#000';cx.fillRect(0,0,384,216);
