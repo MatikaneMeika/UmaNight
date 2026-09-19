@@ -1708,6 +1708,8 @@ loadAssets(function(){META=getMeta();if(!IMG.office)panoOK=0;try{bakeOfficePano(
      if(camq&&CAMORDER.indexOf(camq)>=0){S.camRoom=camq;S.camCd=0;
       $('camTitle').textContent=CAMNO[camq]+' · '+RN[camq];
       document.querySelectorAll('#map .mb').forEach(function(b){b.classList.toggle('on',b.dataset.r===camq)})}}},100);
+   var jumpq=qs.get('jump');
+   if(jumpq)setTimeout(function(){if(scene==='intro')enterGame();jump(jumpq,'无头调试跳杀','DEBUG-JUMP',jumpq==='shadow')},120);
    if(smoke==='2')for(var k in S.slots){S.slots[k].at=99999;S.slots[k].moveAt=99999}
    if(smoke==='4'){for(var k in S.slots){S.slots[k].at=99999;S.slots[k].moveAt=99999}CFG.board.at=99999;CFG.juke.start=99999}  /* 纯净夜：验证 06:00 通关链 */
   var autoDraw=(smoke==='6'||smoke==='7');
