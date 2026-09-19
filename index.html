@@ -286,7 +286,7 @@ let SAVE=loadSave();
 /* ============ 引擎常量（非夜数据） ============ */
 const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const JUKEMEL=[[69,.5],[72,.5],[71,.25],[69,.25],[67,.5],[69,1],[64,.5],[67,.5],[69,1],[0,.5],[65,.5],[69,.5],[71,1],[67,1]];
-const JOFF={freddy:0,chica:0,bonnie:0,foxy:0,golden:0};
+const JOFF={slot_A:0,slot_B:0,slot_C:0,slot_D:0,shadow:0};
 const RN={hall:'大厅',gym:'健身房',shop:'商店',lib:'图书馆',pool:'游泳馆',gymn:'室内体育馆',plaza:'三女神广场',corrA:'走廊A',corrB:'走廊B'};
 const CAMORDER=['hall','gym','shop','lib','pool','gymn','plaza','corrA','corrB'];
 const CAMNO={hall:'CAM1',gym:'CAM2',shop:'CAM3',lib:'CAM4',pool:'CAM5',gymn:'CAM6',plaza:'CAM7',corrA:'CAM8',corrB:'CAM9'};
@@ -298,18 +298,17 @@ const SLOTPOS={hall:[[150,150,2],[240,152,2]],gym:[[180,150,2.2],[262,152,2]],
  shop:[[176,150,2.1],[262,152,2.1]],lib:[[186,150,2.2],[186,150,2.2]],
  pool:[[192,140,2.2],[192,140,2.2]],gymn:[[166,154,2.3],[252,154,2.3]],
  plaza:[[128,150,2.1],[248,150,2.1]],corrA:[[192,150,2.5],[192,150,2.5]],corrB:[[192,150,2.5],[192,150,2.5]]};
-/* A-31 命名债清理：slot→贴图映射常量（v1.9 B-20 定稿）。
-   img=新立绘主键（三档：原色/_glitch 静息/_glitch_strong 加强）；d=旧 FNAF 贴图键，仅作贴图缺失回退与跳杀特写。 */
-const SLOTDEF={A:{img:'slot_A',d:'freddy',t0:6},B:{img:'slot_B',d:'chica',t0:7},
-               C:{img:'slot_C',d:'bonnie',t0:7},D:{img:'slot_D',d:'foxy',t0:7}};
+/* A-31/A-57 去 FNAF 化映射：slot→贴图映射常量。
+   img=全身立绘主键（三档：原色/_glitch 静息/_glitch_strong 加强）；d=特写键（face_slot_A..D）。 */
+const SLOTDEF={A:{img:'slot_A',d:'slot_A',t0:6},B:{img:'slot_B',d:'slot_B',t0:7},
+               C:{img:'slot_C',d:'slot_C',t0:7},D:{img:'slot_D',d:'slot_D',t0:7}};
 /* ============ 资源复用：加载 media/ 提取贴图 ============ */
 const IMG={};
 function loadAssets(done){
  const files={office:'media/scenes/office.png'};
  CAMORDER.forEach((id,i)=>files[id]='media/scenes/cam'+(i+1)+'_'+id+'.png');
  files['hall_on']='media/scenes/cam1_hall_on.png';   /* v1.9b：点歌机亮灯态 */
- ['freddy','bonnie','chica','foxy','golden'].forEach(tp=>{
-  files['char_'+tp]='media/characters/char_'+tp+'_dark.png';
+ ['slot_A','slot_B','slot_C','slot_D','shadow'].forEach(tp=>{  /* A-57：脸部与影子特写 */
   files['face_'+tp]='media/characters/face_'+tp+'_dark.png'});
  ['A','B','C','D'].forEach(sl=>{                       /* v1.9 A-30：新立绘三档 */
   files['slot_'+sl]='media/characters/char_'+sl+'.png';
@@ -397,7 +396,7 @@ function grain(g,n,W2,H2){for(let i=0;i<n;i++){const v=Math.random();
 function vig(g,W2,H2){const r=g.createRadialGradient(W2/2,H2/2,60,W2/2,H2/2,240);
  r.addColorStop(0,'rgba(0,0,0,0)');r.addColorStop(1,'rgba(0,0,0,.62)');g.fillStyle=r;g.fillRect(0,0,W2,H2)}
 /* ============ 贴图化角色绘制（复用 media/char_*_dark.png） ============ */
-function drawChar(g,tp,X,Y,s){const im=IMG['char_'+tp];if(!im)return;
+function drawChar(g,tp,X,Y,s){const im=IMG['slot_'+tp]||IMG['face_'+tp];if(!im)return;
  g.drawImage(im,X-64*s/6,Y-236*s/6,im.width*s/6,im.height*s/6)}
 function drawFaceS(g,tp,X,Y,s){const im=IMG['face_'+tp];if(!im)return;
  g.drawImage(im,X-120*s/6,Y-205*s/6,im.width*s/6,im.height*s/6)}
@@ -930,7 +929,7 @@ function endBoard(result){var b=S.board;
  if(result==='win'){
   if(CFG.board.policy==='instant'){wbRecycle();return}
   startReeval();return}
- if(result==='lose'){jump('golden','白板里的影子赢了。','WB-LOSS',true);return}
+ if(result==='lose'){jump('shadow','白板里的影子赢了。','WB-LOSS',true);return}
  AU.boardEnd()}                                     /* draw：格子消退 → 留言浮现 → 自动回写（phase 由 updateGame 推进） */
 function startReeval(){
  SAVE.winCount++;writeSave();
@@ -940,20 +939,20 @@ function startReeval(){
  pushSyslog({sys:CFG.evalText,caption:true});
  if(AU.ctx)AU.warn()}
 function wbRecycle(){                               /* 夜7：玩家胜 → 白板通道即刻回收（最温柔的通道执行删除） */
- jump('golden','白板通道 · 反应模式超出基线。','WB-INSTANT',true)}
+ jump('shadow','白板通道 · 反应模式超出基线。','WB-INSTANT',true)}
 function tickBoard(dt){var b=S.board;
  if(b.state!==1)return;
  if(S.black)return;                                 /* 断电：白板倒计时冻结 */
  if(b.turn==='you'){
   var before=Math.ceil(b.moveT);b.moveT-=dt;var now=Math.ceil(b.moveT);
   if(now!==before&&now<=3&&now>0)AU.tick();
-  if(b.moveT<=0){b.result='timeout';b.state=2;jump('golden','白板倒计时归零。','WB-TIME',true)}
+  if(b.moveT<=0){b.result='timeout';b.state=2;jump('shadow','白板倒计时归零。','WB-TIME',true)}
  }else{b.oppT-=dt;
   if(b.oppT<=0)sparringMove()}}
 function tickBlackout(dt){S.blackT-=dt;
  var now=Math.ceil(S.blackT);
  if(now!==S.blackSec){S.blackSec=now;AU.tick()}
- if(S.blackT<=0)jump('freddy','断电。黑暗里的倒计时走完了。','BLACKOUT')}
+ if(S.blackT<=0)jump('slot_A','断电。黑暗里的倒计时走完了。','BLACKOUT')}
 function updateGame(dt){S.time+=dt;
  var h=Math.floor(S.time/N.hourLen);
  if(h!==S.hour)S.hour=h;
@@ -1191,7 +1190,7 @@ function renderOffice(){
  var rVert=(S.vert||0)+(S.shake>0?(Math.random()-.5)*.004*S.shake*4:0);
  if(S.black){cx.fillStyle='#020203';cx.fillRect(0,0,384,216);
   if(panoCv)flatView(panoCv,rPan,.05);
-  if(Math.random()<.05)drawFaceS(cx,'freddy',192,102,2.2);
+  if(Math.random()<.05)drawFaceS(cx,'slot_A',192,102,2.2);
   drawNoise(.04);return}
  if(S.close){renderBoardClose();renderFxLayers();return}   /* F/点白板近看 */
  if(!panoCv)bakeOfficePano();
@@ -1384,7 +1383,7 @@ function renderJump(){var rc=S.recycle;
  cx.fillStyle='#000';cx.fillRect(0,0,384,216);
  if(!rc){drawNoise(.2);return}
  if(rc.t<.5){                                       /* 段1：剪影扑近 */
-  if(rc.wb||rc.tp==='golden'){
+  if(rc.wb||rc.tp==='shadow'){
    R(cx,120,28,156,164,'#140406');
    for(var i=0;i<3;i++)for(var k=0;k<3;k++)R(cx,126+k*46,40+i*46,42,42,'#8a1818');
   }else drawFaceS(cx,rc.tp,192+(Math.random()*18-9),110+(Math.random()*16-8),7.4+rc.t*3);
@@ -1419,11 +1418,11 @@ function paintOver(tag,msg){
  $('goS').innerHTML=msg}
 function renderOver(){cx.fillStyle='#000';cx.fillRect(0,0,384,216);drawNoise(.08);
  if(frame%90===0)goF=6;
- if(goF>0){goF--;drawFaceS(cx,'freddy',300,120,1.6)}}
+ if(goF>0){goF--;drawFaceS(cx,'slot_A',300,120,1.6)}}
 function renderMenu(){cx.fillStyle='#000';cx.fillRect(0,0,384,216);
  mFlashT-=DT;if(mFlashT<=0){mFlashT=2.5+Math.random()*4;menuFlash=.16;
   if(Math.random()<.5&&AU.ctx)AU.whis()}
- if(menuFlash>0){menuFlash-=DT;cx.globalAlpha=.55;drawFaceS(cx,'golden',286,110,2.6);cx.globalAlpha=1}
+ if(menuFlash>0){menuFlash-=DT;cx.globalAlpha=.55;drawFaceS(cx,'shadow',286,110,2.6);cx.globalAlpha=1}
  drawNoise(.05)}
 /* ============ HUD ============ */
 function updateHud(){if(!S)return;
