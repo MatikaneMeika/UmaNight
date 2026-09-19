@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>UMA-NIGHT</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:#000;overflow:hidden;touch-action:none}
+body{display:flex;align-items:center;justify-content:center;font-family:'Fusion Pixel','Courier New',monospace}
+@font-face{font-family:'Fusion Pixel';src:url('fonts/fusion-pixel-12px-sc.woff2') format('woff2');font-display:swap}
+:root{--u:4px;--fh:"Fusion Pixel","PingFang SC","Microsoft YaHei",sans-serif}
+#stage{position:relative;background:#000;cursor:grab}
+#stage.drag{cursor:grabbing}
+#cv{width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+#hud{position:absolute;inset:0;pointer-events:none;color:#d8d8dc;text-shadow:1px 1px 0 #000;display:none}
+#hud.on{display:block}
+.pe{pointer-events:auto}
+#tTime{position:absolute;top:calc(var(--u)*3);right:calc(var(--u)*3.4);font-size:calc(var(--u)*3.6)}
+#tNight{position:absolute;top:calc(var(--u)*8);right:calc(var(--u)*3.4);font-size:calc(var(--u)*1.9);color:#93939d;font-family:var(--fh)}
+#alertDot{position:absolute;top:calc(var(--u)*3);left:50%;transform:translateX(-50%);font-family:var(--fh);font-size:calc(var(--u)*2);color:#e04848;opacity:0;letter-spacing:2px}
+#alertDot.on{opacity:1;animation:bl 1s steps(2) infinite}
+#alertDot.fast{opacity:1;animation:bl .3s steps(2) infinite}
+@keyframes bl{50%{opacity:.15}}
+#powBox{position:absolute;left:calc(var(--u)*3);bottom:calc(var(--u)*3);font-size:calc(var(--u)*1.9);line-height:1.9}
+#powBox b{color:#fff}
+#staBox{position:absolute;left:calc(var(--u)*3);bottom:calc(var(--u)*10.5);font-size:calc(var(--u)*1.9);line-height:1.9}
+.bar{position:relative;width:calc(var(--u)*24);height:calc(var(--u)*2);background:#14141c;border:1px solid #000;display:inline-block;vertical-align:-10%}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:#3f7a3c;width:100%}
+.bar.y i{background:#b99f2e}.bar.r i{background:#a02828}
+#usage{display:inline-flex;gap:2px;vertical-align:middle}
+#usage i{width:calc(var(--u)*2.2);height:calc(var(--u)*2.2);background:#20202a;border:1px solid #000}
+#usage i.on{background:#e8e8ec}
+#camStrip{position:absolute;left:50%;bottom:0;transform:translateX(-50%);padding:calc(var(--u)*1.4) calc(var(--u)*5);border:1px solid rgba(255,255,255,.45);border-bottom:none;background:rgba(0,0,0,.55);color:#e8e8e8;font-size:calc(var(--u)*2);letter-spacing:2px;white-space:nowrap;cursor:pointer}
+#camStrip:active{background:rgba(255,255,255,.15)}
+.arw{position:absolute;top:38%;font-size:calc(var(--u)*7);color:rgba(255,255,255,.4);padding:calc(var(--u)*2);cursor:pointer}
+#arL{left:calc(var(--u)*.6)}#arR{right:calc(var(--u)*.6)}
+#camHud{position:absolute;inset:0;display:none}
+#camHud.on{display:block}
+#camTitle{position:absolute;top:calc(var(--u)*3);left:calc(var(--u)*3.4);font-size:calc(var(--u)*2.2)}
+#camSub{position:absolute;top:calc(var(--u)*7);left:calc(var(--u)*3.4);font-size:calc(var(--u)*1.8);color:#8a9a6a;font-family:var(--fh)}
+#rec{position:absolute;top:calc(var(--u)*3);right:calc(var(--u)*3.4);font-size:calc(var(--u)*2);color:#d24a4a}
+#rec i{display:inline-block;width:calc(var(--u)*1.6);height:calc(var(--u)*1.6);background:#d24a4a;margin-right:calc(var(--u)*1.4);animation:bl 1s steps(2) infinite}
+#map{position:absolute;right:calc(var(--u)*2);bottom:calc(var(--u)*2);width:calc(var(--u)*40);height:calc(var(--u)*30);background:rgba(8,16,24,.82);border:1px solid rgba(110,150,180,.4);transform:scale(.5);transform-origin:right bottom}   /* 用户指令：恢复 0.5 幅面 */
+#map .mb{position:absolute;border:1px solid #6a9ac2;background:rgba(16,32,44,.75);color:#b8c8d4;font-size:calc(var(--u)*1.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'Fusion Pixel','Courier New',monospace}
+@media (pointer:coarse){#map .mb{font-size:calc(var(--u)*2.1)}}   /* 移动端命中区字号放大 */
+#map .mb.on{background:#d8e4ea;color:#0a141c}
+#map .mb.alert{border-color:#e04848;box-shadow:0 0 0 1px #e04848 inset;animation:bl .5s steps(2) infinite}
+#map .you{position:absolute;color:#7d95a4;font-size:calc(var(--u)*1.3);display:flex;align-items:center;justify-content:center;font-family:var(--fh)}
+#jukeHud{position:absolute;left:50%;bottom:calc(var(--u)*9);transform:translateX(-50%);background:rgba(0,0,0,.7);border:1px solid #3a3a48;padding:calc(var(--u)*1.2) calc(var(--u)*2.4);font-family:var(--fh);font-size:calc(var(--u)*2);color:#cdd0c6;white-space:nowrap;display:none;cursor:pointer}
+#jukeHud.on{display:block}
+#jukeHud.warn{color:#ff6060;border-color:#a02828;animation:bl .4s steps(2) infinite}
+#blackHud{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:calc(var(--u)*9);color:#5a5a66}
+#blackHud.on{display:flex}
+#dbg{position:absolute;top:calc(var(--u)*12);left:calc(var(--u)*3);font:calc(var(--u)*1.7)/1.7 'Fusion Pixel','Courier New',monospace;color:#7de07d;background:rgba(0,0,0,.6);padding:calc(var(--u)*1.2);white-space:pre;display:none;text-shadow:none}
+#dbg.on{display:block}
+#edgeFx{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s}
+#edgeFx.red{opacity:1;box-shadow:inset 0 0 calc(var(--u)*10) rgba(200,30,30,.55);animation:bl .5s steps(2) infinite}
+#edgeFx.white{opacity:1;box-shadow:inset 0 0 calc(var(--u)*10) rgba(220,220,200,.5);animation:bl 1.2s steps(2) infinite}
+#hint{position:absolute;top:36%;left:50%;transform:translateX(-50%);width:86%;font-family:var(--fh);font-size:calc(var(--u)*2.3);line-height:2;color:#d8d8d0;background:rgba(0,0,0,.78);border:1px solid #333;padding:calc(var(--u)*2.4);text-align:center;opacity:0;transition:opacity .8s;pointer-events:none}
+#hint.on{opacity:1}
+.ovl{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;color:#d8d8dc;text-align:center;z-index:5}
+.ovl.on{display:flex}
+.mbtn{pointer-events:auto;background:none;border:none;color:#c9c9cf;font-family:var(--fh);font-size:calc(var(--u)*3);padding:calc(var(--u)*1.2) calc(var(--u)*2);cursor:pointer;letter-spacing:2px}
+.mbtn:hover,.mbtn:active{color:#fff;background:rgba(255,255,255,.08)}
+#ovMenu{align-items:flex-start;justify-content:center;padding-left:8%;gap:calc(var(--u)*.6)}
+#mTitle{font-size:calc(var(--u)*3.2);line-height:1.7;color:#e8e8e8;text-align:left;margin-bottom:calc(var(--u)*2.6)}
+#mTitle span{display:block;font-family:var(--fh);font-size:calc(var(--u)*1.8);color:#8a8a92;letter-spacing:6px;margin-top:calc(var(--u)*1.6)}
+#mNights{display:grid;grid-template-columns:repeat(4,auto);gap:calc(var(--u)*.4) calc(var(--u)*1.2);margin-bottom:calc(var(--u)*1.2)}
+.nbtn{font-size:calc(var(--u)*2.4);padding:calc(var(--u)*.9) calc(var(--u)*1.8);color:#c9c9cf;letter-spacing:1px}
+.nbtn.lock{opacity:.32;pointer-events:none}
+#mSub{display:flex;gap:calc(var(--u)*1.2);flex-wrap:wrap;align-items:center}
+.mini{font-size:calc(var(--u)*1.9);color:#6a6a72;padding:calc(var(--u)*.7) calc(var(--u)*1.2);letter-spacing:1px}
+.mini:hover,.mini:active{color:#a8a8b0;background:rgba(255,255,255,.05)}
+#mFoot{position:absolute;bottom:calc(var(--u)*2.4);left:calc(var(--u)*2.4);font-family:var(--fh);font-size:calc(var(--u)*1.5);color:#5c5c64}
+#ovHow .box,#ovLog .box,#ovArch .box{background:rgba(4,4,8,.92);border:1px solid #2c2c36;padding:calc(var(--u)*4) calc(var(--u)*5);max-width:88%;font-family:var(--fh);font-size:calc(var(--u)*2);line-height:2;text-align:left;max-height:86%;overflow:auto}
+.box h3{font-family:'Fusion Pixel','Courier New',monospace;font-size:calc(var(--u)*2.4);margin-bottom:calc(var(--u)*2.4);color:#c9c9cf}
+.box em{color:#9aa46a;font-style:normal}
+.arow{font-family:var(--fh);font-size:calc(var(--u)*2);line-height:2.1;color:#8a8a92;text-align:left}
+.arow.got{color:#c9c9cf}
+#ovIntro{background:#000}
+#inTime{font-size:calc(var(--u)*4.6);margin-bottom:calc(var(--u)*3)}
+#inNight{font-family:var(--fh);font-size:calc(var(--u)*2.6);color:#9a9aa2;letter-spacing:4px}
+#ovDone{background:rgba(0,0,0,.9)}
+#dnTitle{font-size:calc(var(--u)*5);margin-bottom:calc(var(--u)*3);color:#fff}
+#dnSub{font-family:var(--fh);font-size:calc(var(--u)*2.2);line-height:2.2;color:#c9c9c0;margin-bottom:calc(var(--u)*4)}
+#ovOver{background:rgba(0,0,0,.92)}
+#goT{font-size:calc(var(--u)*5.4);letter-spacing:8px;color:#d8d8de;margin-bottom:calc(var(--u)*2.6)}
+#goLine{width:calc(var(--u)*40);height:1px;background:#262c36;margin-bottom:calc(var(--u)*2.4)}
+#goTag{font-family:var(--fh);font-size:calc(var(--u)*1.8);color:#7a8494;letter-spacing:2px;margin-bottom:calc(var(--u)*1.8);min-height:calc(var(--u)*2)}
+#goS{font-family:var(--fh);font-size:calc(var(--u)*1.9);line-height:2.1;color:#8a8a92;margin-bottom:calc(var(--u)*4.5)}
+.btnrow{display:flex;gap:calc(var(--u)*2);flex-wrap:wrap;justify-content:center}
+#errBox{position:fixed;top:0;left:0;right:0;background:#3a0d0d;color:#ffb0b0;font:12px 'Fusion Pixel',monospace;padding:4px 8px;z-index:99;white-space:pre-wrap;display:none}
+/* ---- P2：SYS LOG 归档 / 答录机 / 紧急评估 / 彩蛋 ---- */
+/* SYS 日志条目样式（记录页归档用；游戏内面板已移除） */
+.lgAt{color:#5a7a88;font-size:calc(var(--u)*1.5);margin-top:calc(var(--u)*1)}
+.lgSys{color:#b8d0d8;font-family:'Courier New',monospace;font-size:calc(var(--u)*1.8);line-height:1.8;white-space:pre-wrap}
+.lgNote{color:#d8b84a;font-family:var(--fh);font-size:calc(var(--u)*1.8);line-height:1.8;white-space:pre-wrap}
+/* 录音机（v1.8 重构）：右下角「电话残留」同款字幕（固定 0.75 缩放），一次 1-2 行滑窗，播中红点闪烁 */
+#answBox{position:absolute;top:calc(var(--u)*2);left:calc(var(--u)*2);transform:scale(.75);transform-origin:left top;max-width:84%;width:max-content;background:rgba(0,0,0,.72);border-left:2px solid #6a6f60;padding:calc(var(--u)*1.2) calc(var(--u)*2.4);text-align:left;font-family:var(--fh);font-size:calc(var(--u)*2.2);color:#cdd0c6;opacity:0;transition:opacity .5s;pointer-events:none}
+#answBox.on{opacity:1;pointer-events:none}
+#answDot{position:absolute;top:calc(var(--u)*1.5);right:calc(var(--u)*1.6);width:calc(var(--u)*1.4);height:calc(var(--u)*1.4);background:#c84848;border-radius:50%;animation:bl 1.2s steps(2) infinite}
+#answBody{line-height:2;white-space:pre-wrap;min-width:calc(var(--u)*40)}
+#answBody div{opacity:.06;transition:opacity 1s}
+#answBody .crpt{color:#8a9aa8;font-family:'Courier New',monospace}
+#reevalTag{position:absolute;top:calc(var(--u)*13.5);left:50%;transform:translateX(-50%);font-family:'Courier New',monospace;font-size:calc(var(--u)*2.1);letter-spacing:3px;color:#ff6060;display:none;animation:gl .34s steps(2) infinite}
+#reevalTag.on{display:block}
+@keyframes gl{0%{transform:translateX(-50%) translate(0,0)}25%{transform:translateX(-50%) translate(-1px,1px)}50%{transform:translateX(-50%) translate(1px,-1px)}75%{transform:translateX(-50%) translate(-1px,-1px)}100%{transform:translateX(-50%) translate(1px,1px)}}
+#eggFx{position:absolute;right:5%;bottom:22%;font-family:var(--fh);font-size:calc(var(--u)*2.2);color:#e0d8c8;opacity:0;transition:opacity 2.4s;text-shadow:1px 1px 0 #000;pointer-events:none}
+#eggFx.on{opacity:.85}
+#inRetry{font-family:var(--fh);font-size:calc(var(--u)*1.9);color:#6a6a72;margin-top:calc(var(--u)*2.4);letter-spacing:2px;min-height:calc(var(--u)*2.4)}
+/* ---- P3：真结局 ---- */
+#teBox{position:absolute;left:50%;bottom:calc(var(--u)*14);transform:translateX(-50%);max-width:80%;font-family:var(--fh);font-size:calc(var(--u)*2.3);line-height:2;color:#d8d8dc;background:rgba(0,0,0,.72);border-left:2px solid #7a8a9a;padding:calc(var(--u)*1.4) calc(var(--u)*2.4);text-align:left;opacity:0;transition:opacity .8s;white-space:pre-wrap}
+#teBox.on{opacity:1}
+#teRun{position:absolute;left:50%;top:56%;transform:translateX(-50%);pointer-events:auto;background:rgba(10,10,14,.8);border:1px solid #8a9aa8;color:#e8e8e8;font-family:var(--fh);font-size:calc(var(--u)*3.4);letter-spacing:6px;padding:calc(var(--u)*2) calc(var(--u)*6);cursor:pointer;display:none;overflow:hidden}
+#teRun.on{display:block}
+#teRunBar{position:absolute;left:0;bottom:0;height:calc(var(--u)*.9);width:0;background:#8fb0c8}
+#teSkip{position:absolute;right:calc(var(--u)*2);bottom:calc(var(--u)*2);font-family:var(--fh);font-size:calc(var(--u)*1.5);color:#5a5a62}
+#credits{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:60%;color:#c9c9cf;font-family:var(--fh);font-size:calc(var(--u)*2.2);line-height:2.4;text-align:center;pointer-events:none;animation:roll 14s linear forwards}
+#credits.on{display:flex}
+@keyframes roll{from{transform:translateY(0)}to{transform:translateY(-160%)}}
+</style>
+</head>
+<body>
+<div id="errBox"></div>
+<div id="stage">
+<canvas id="cv" width="320" height="180"></canvas>
+<div id="hud">
+  <div id="tTime">12 AM</div><div id="tNight"></div>
+  <div id="alertDot"></div>
+  <div id="staBox">耐力 <b id="staPct">100%</b></div>
+  <div id="powBox">电力 <b id="powPct">100%</b><br>用量 <span id="usage"><i></i><i></i><i></i><i></i></span></div>
+  <div id="camHud"><div id="camTitle">CAM1 · 大厅</div><div id="camSub"></div><div id="rec"><i></i>REC</div><div id="map"></div></div>
+  <div id="jukeHud" class="pe">♪ —</div>
+  <div id="blackHud">10</div>
+  <div id="dbg"></div>
+  <div id="camStrip" class="pe">▲ 打开监控</div>
+  <div id="arL" class="arw pe">‹</div><div id="arR" class="arw pe">›</div>
+  <div id="hint"></div><div id="edgeFx"></div>
+  <div id="answBox"><i id="answDot"></i><div id="answBody"></div></div>
+  <div id="reevalTag">RE-EVALUATING</div>
+  <div id="eggFx"></div>
+</div>
+<div class="ovl on" id="ovMenu">
+  <div id="mTitle">UMA-NIGHT<span>七 夜 · 完 整 版</span></div>
+  <div id="mNights"></div>
+  <div id="mSub">
+    <button class="mbtn" id="mLog">记录</button>
+    <button class="mbtn" id="mArch">档案</button>
+    <button class="mbtn" id="mHow">操作说明</button>
+    <button class="mbtn mini" id="mUnlock" title="测试用：解锁全部七夜；Shift+点击=重置进度">解锁全部</button>
+  </div>
+  <div id="mFoot">单夜 6-7 分钟 · F1-F8 调试键 · 进度自动保存</div>
+</div>
+<div class="ovl" id="ovHow"><div class="box">
+  <h3>操作说明</h3>
+  <em>视角</em>：A/D 或 ←/→ 转头，也可拖动/手指滑动画面平移；C 或底部白条开关监控。<br>
+  <em>监控切画面</em>：右下角地图点击房间块直接选择摄像头（也可左右箭头）；地图固定为半幅大小，贴右下角不挡主视野。<br>
+  <em>SYS LOG</em>：系统日志在事件发生时以提示音提示，全部条目自动归档到 主菜单·记录 页阅读；<em>答录机</em>：00:00 自动留言（左上角字幕式，一次 1-2 行），仅 R 键中断（点击不跳过）；<em>白板近看</em>：点击办公室白板本体放大／F 键近看。<br>
+  <em>门控（双钮）</em>：门边两个按钮——<em>锁钮</em>点击切换门锁（锁定期间 0.5%/s，再点解锁）；<em>灯钮</em>点击亮 1 秒（只显示剪影，不暂停任何东西）。键盘 Q/E 切换左右门锁、Z/X 点亮左右灯。门边是监控死角，危险抵门后必须立即锁门。<br>
+  <em>进程稳定度</em>（HUD 标签为「耐力」）：<span id="howSta">监控对准所在房间约 1 秒可冻结它（盯视 −2%/s）；开监控 +1%/s、收监控 +2%/s、切台 −0.5%。<br>&lt;20% 盯视失效且切台冷却翻倍，&lt;10% 开不了监控；归零僵直 5 秒后回到 30%（锁门期间门锁维持）。</span><br>
+  <em>点歌机</em>：00:00 自动开播，电量余量在底部♪提示条常显；低电量或没电告警时按【空格】或点击♪提示条续发条（耗电）。停机将触发冲刺袭击，当晚无法再恢复。<br>
+  <em>白板</em>：深夜会亮起，与接入方对弈——点击办公室白板本体放大／F 键近看；落子需收起监控，对局期间全场移动变慢。对局结果各有其意义。<br>
+  <em>电力</em>：待机、监控、门锁、灯光、切换都耗电，用量格实时显示；归零进入黑暗倒计时，撑到 06:00 仍算幸存。<br>
+  <em>失焦</em>：页面挂起超过 1 秒 = 全局冻结 + 电力空转，时间不推进。<br>
+  <em>调试</em>：F1/F2 电力∓10 · F3 稳定度回满 · F4 点歌机逼近归零 · F5 强制白板 · F6 强制C到左门 · F7 快进30秒 · F8 上帝视角
+  <div class="btnrow" style="margin-top:12px"><button class="mbtn" id="howBack">返回</button></div>
+</div></div>
+<div class="ovl" id="ovLog"><div class="box">
+  <h3>记录 · 训练日记</h3>
+  <div id="logList"></div>
+  <div class="btnrow" style="margin-top:12px"><button class="mbtn" id="logBack">返回</button></div>
+</div></div>
+<div class="ovl" id="ovArch"><div class="box">
+  <h3>档案</h3>
+  <div id="archList"></div>
+  <div class="btnrow" style="margin-top:12px"><button class="mbtn" id="archBack">返回</button></div>
+</div></div>
+<div class="ovl" id="ovIntro"><div id="inTime">12:00 AM</div><div id="inNight">第 — 夜</div><div id="inRetry"></div></div>
+<div class="ovl" id="ovDone"><div id="dnTitle">6:00 AM</div><div id="dnSub"></div>
+  <div class="btnrow"><button class="mbtn" id="dnRetry">再来一夜</button><button class="mbtn" id="dnMenu">主菜单</button></div></div>
+<div class="ovl" id="ovOver"><div id="goT">GAME OVER</div><div id="goLine"></div><div id="goTag"></div><div id="goS"></div>
+  <div class="btnrow"><button class="mbtn" id="goRetry">再来一夜</button><button class="mbtn" id="goMenu">主菜单</button></div></div>
+<div id="teBox"></div>
+<button id="teRun"><span id="teRunTxt">跑吧。</span><i id="teRunBar"></i></button>
+<div id="credits"></div>
+</div>
+<script>addEventListener('error',function(e){var d=document.getElementById('errBox');if(!d)return;d.style.display='block';d.textContent='[脚本错误] '+(e.message||e.type)+' @line '+(e.lineno||'?')});</script>
+<script src="data/_sample.js"></script>
+<script src="data/nights.js"></script>
+<script src="data/meta.js"></script>
+<script src="js/nfx.js"></script>
+<script>
+'use strict';
+/* ============================================================
+   UMA-NIGHT 七夜完整版 · 主壳与引擎（角色A）
+   演进自 night3-t1.html（T1 文件冻结保留，不再演进）
+   代码复用：T1 的音频引擎/渲染辅助/美术逻辑/机制函数
+   数据来源（契约 v1，全部容错）：
+     data/_sample.js（兜底样例，必在）→ data/nights.js（按夜 id 覆盖）
+     → data/meta.js（覆盖 META）→ js/nfx.js（叙事演出，可选）
+   ============================================================ */
+const W=320,H=180,OW=640,SQ=5/6;   /* 逻辑坐标 384x216，画布 320x180，统一 ×5/6 */
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+cx.imageSmoothingEnabled=false;
+const R=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x|0,y|0,Math.round(w),Math.round(h))};
+const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c};
+const pick=a=>a[(Math.random()*a.length)|0],rnd=n=>(Math.random()*n)|0;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const $=id=>document.getElementById(id);
+const stage=$('stage'),hud=$('hud');
+const OV={menu:$('ovMenu'),how:$('ovHow'),log:$('ovLog'),arch:$('ovArch'),intro:$('ovIntro'),done:$('ovDone'),over:$('ovOver')};
+let scene='load';
+function showScene(n){scene=n;for(const k in OV)OV[k].classList.toggle('on',k===n);hud.classList.toggle('on',n==='game');stage.style.cursor=n==='game'?'grab':'default'}
+function fit(){const s=Math.min(innerWidth/W,innerHeight/H)*.996;stage.style.width=W*s+'px';stage.style.height=H*s+'px';document.documentElement.style.setProperty('--u',(W*s/100)+'px')}
+addEventListener('resize',fit);fit();
+/* ============ 数据层（契约 v1 §3.1/§3.2，容错读取） ============ */
+const SAMPLE=window.SAMPLE||{nights:{},meta:{}};
+let N=null,META={},CFG=null,CUR=0;      /* N=当夜原始数据 · META=全局元数据 · CFG=运行时配置 · CUR=当前夜 id */
+function deepMerge(base,over){var out=Array.isArray(base)?base.slice():Object.assign({},base);
+ for(var k in over){var v=over[k],b=out[k];
+  out[k]=(v&&typeof v==='object'&&!Array.isArray(v)&&b&&typeof b==='object'&&!Array.isArray(b))?deepMerge(b,v):v}
+ return out}
+function parseClock(str,hl){if(typeof str==='number')return str;
+ if(!str)return 0;var p=String(str).split(':');
+ return Math.round((hl||60)*((+p[0]||0)+(+p[1]||0)/60))}
+/* 内置最后兜底：data/ 整个目录丢失时仍可玩（夜3 参数） */
+const EMERGENCY={id:3,hourLen:60,
+ power:{start:100,safeHalf:60,drain:{base:.05,cam:.10,lock:.5,light:.1,switch:.15,renew:.5,afk:.5}},
+ slots:{A:{ai:6,at:'01:00',path:['hall','corrB','doorR'],sprintOnJukeDead:true},
+        B:{ai:4,at:'02:00',path:['shop','gym','corrB','doorR'],bell:{every:[20,32],roll:2}},
+        C:{ai:6,at:'02:00',fast:true,skipChance:.2,path:['lib','pool','corrA','doorL']}},
+ board:{mode:'game',at:'03:00',playerTimer:8,oppInterval:6.5,grace:1.5,firstStone:'random',blockChance:.5,winPolicy:'reeval',message:'……是你',autoReply:'是。',ghostOpacity:.06},
+ juke:{start:'01:00',warn:3,tracks:[{name:'残响安可',len:120},{name:'星尘回廊',len:75},{name:'金属梦境',len:75},{name:'雨后的起跑线',len:75}]},
+ call:[],hints:{}};
+function resolveNight(id){
+ var sm=SAMPLE.nights||{};
+ var smp=sm[id]!==undefined?sm[id]:null;
+ var bn=null,nl=window.NIGHTS;
+ if(Array.isArray(nl)){for(var i=0;i<nl.length;i++)if(nl[i]&&+nl[i].id===+id){bn=nl[i];break}}
+ else if(nl&&typeof nl==='object'&&+nl.id===+id)bn=nl;
+ if(!smp&&!bn)return EMERGENCY;
+ return bn?deepMerge(smp||{},bn):smp}
+function getMeta(){return deepMerge(SAMPLE.meta||{},window.META||{})}
+function buildRT(){var p=N.power||{},b=N.board||{},j=N.juke||{};
+ var oppX=b.oppInterval!=null?b.oppInterval:4;
+ return{
+  drain:Object.assign({base:.05,cam:.10,lock:.5,light:.1,switch:.15,renew:.5,afk:.5},p.drain||{}),
+  safeHalf:p.safeHalf!=null?p.safeHalf:60,
+  sta:{stare:2,recOpen:1,recClosed:2,sw:.5,low:20,crit:10,lockT:5,back:30},
+  stareRamp:1,
+  edge:{t:3,knock:1,backCd:10},
+  juke:{start:parseClock(j.start,N.hourLen),warn:j.warn!=null?j.warn:(CUR===7?3:5),tracks:j.tracks||[],finale:!!j.finale,
+        battery:j.battery||{cap:30,renew:30}},   /* A-39/A-47 发条单轨化，缺省提供兜底 */
+  board:{mode:b.mode||'game',at:parseClock(b.at,N.hourLen),limit:b.playerTimer||8,opp:oppX,
+         grace:b.grace!=null?b.grace:1.5,firstStone:b.firstStone||'random',
+         block:b.blockChance!=null?b.blockChance:.5,       /* blockChance：抢占玩家即胜点的概率（A7 陪练 AI） */
+         policy:b.winPolicy||'reeval',                     /* reeval（夜3-6 紧急评估）| instant（夜7 即刻回收） */
+         message:b.message||null,autoReply:b.autoReply||null,
+         cornerBias:!!b.cornerBias},                       /* 夜4/5 首个自由落子偏置角落（v1.7 §3.1，B 已双写数据） */
+  evalDelta:2,                                             /* 紧急评估幅度 +2（v1.7 §13.8 倾向，P4 可调） */
+  evalText:(META&&META.evalText)||'[评估] 反应模式超出基线',
+  stopAt:(META&&META.diaryStopAt)||'站在训练场门口，声音很轻。',
+  wbTrashName:(META&&META.wbTrashName)||'[损坏] ▓▓1095▓▓',
+  diary:N.diary||null,
+  blackT:10,camCd:1,slowX:2,               /* 白板对局期间全场移动 ×2 慢（引擎常量） */
+  hints:N.hints||{}}}
+/* ============ 存档（契约 §3.4） ============ */
+const SAVE_KEY='umanight_save_v1';
+function defSave(){return{unlockedNight:1,diaryHeard:[],archFlags:{A:0,B:0,C:0,D:0,final:0},winCount:0,everWon:false,clearedTrue:false,
+ ghosts:[],eggAt:0,deaths:0,sysArch:{}}}   /* ghosts/eggAt/deaths/sysArch 为引擎内部字段（A14 残影层 / A15 彩蛋 / 备选死亡计数 / SYS 日志归档），B 不消费 */
+function loadSave(){try{var raw=localStorage.getItem(SAVE_KEY);if(!raw)return defSave();
+  var d=JSON.parse(raw),s=defSave();
+  if(d&&typeof d==='object'){
+   if(d.unlockedNight>=1&&d.unlockedNight<=7)s.unlockedNight=d.unlockedNight|0;
+   if(Array.isArray(d.diaryHeard))s.diaryHeard=d.diaryHeard.filter(function(x){return typeof x==='string'});
+   if(d.archFlags&&typeof d.archFlags==='object')for(var k in s.archFlags)if(d.archFlags[k])s.archFlags[k]=1;
+   if(d.sysArch&&typeof d.sysArch==='object')for(var nk in d.sysArch)if(Array.isArray(d.sysArch[nk]))
+    s.sysArch[nk]=d.sysArch[nk].filter(function(e){return e&&typeof e.sys==='string'}).map(function(e){return{t:String(e.t||''),sys:e.sys,note:typeof e.note==='string'?e.note:null}});
+   s.winCount=d.winCount|0;s.everWon=!!d.everWon;s.clearedTrue=!!d.clearedTrue;
+   if(Array.isArray(d.ghosts))s.ghosts=d.ghosts.filter(function(g){return g&&typeof g.t==='string'}).slice(-10);
+   s.eggAt=d.eggAt|0;s.deaths=d.deaths|0}
+  return s}catch(e){return defSave()}}
+function writeSave(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE))}catch(e){}}
+let SAVE=loadSave();
+/* ============ 引擎常量（非夜数据） ============ */
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const JUKEMEL=[[69,.5],[72,.5],[71,.25],[69,.25],[67,.5],[69,1],[64,.5],[67,.5],[69,1],[0,.5],[65,.5],[69,.5],[71,1],[67,1]];
+const JOFF={freddy:0,chica:0,bonnie:0,foxy:0,golden:0};
+const RN={hall:'大厅',gym:'健身房',shop:'商店',lib:'图书馆',pool:'游泳馆',gymn:'室内体育馆',plaza:'三女神广场',corrA:'走廊A',corrB:'走廊B'};
+const CAMORDER=['hall','gym','shop','lib','pool','gymn','plaza','corrA','corrB'];
+const CAMNO={hall:'CAM1',gym:'CAM2',shop:'CAM3',lib:'CAM4',pool:'CAM5',gymn:'CAM6',plaza:'CAM7',corrA:'CAM8',corrB:'CAM9'};
+const MAPLAY=[['gym',2,4,26,13],['hall',30,2,40,17],['lib',72,4,26,13],
+ ['shop',2,20,26,15],['pool',72,20,26,15],
+ ['corrA',30,42,9,18],['corrB',61,42,9,18],
+ ['gymn',4,60,26,20],['plaza',34,58,32,24]];   /* 用户指令：地图快捷切换样式恢复旧拟真布局 */
+const SLOTPOS={hall:[[150,150,2],[240,152,2]],gym:[[180,150,2.2],[262,152,2]],
+ shop:[[176,150,2.1],[262,152,2.1]],lib:[[186,150,2.2],[186,150,2.2]],
+ pool:[[192,140,2.2],[192,140,2.2]],gymn:[[166,154,2.3],[252,154,2.3]],
+ plaza:[[128,150,2.1],[248,150,2.1]],corrA:[[192,150,2.5],[192,150,2.5]],corrB:[[192,150,2.5],[192,150,2.5]]};
+/* A-31 命名债清理：slot→贴图映射常量（v1.9 B-20 定稿）。
+   img=新立绘主键（三档：原色/_glitch 静息/_glitch_strong 加强）；d=旧 FNAF 贴图键，仅作贴图缺失回退与跳杀特写。 */
+const SLOTDEF={A:{img:'slot_A',d:'freddy',t0:6},B:{img:'slot_B',d:'chica',t0:7},
+               C:{img:'slot_C',d:'bonnie',t0:7},D:{img:'slot_D',d:'foxy',t0:7}};
+/* ============ 资源复用：加载 media/ 提取贴图 ============ */
+const IMG={};
+function loadAssets(done){
+ const files={office:'media/scenes/office.png'};
+ CAMORDER.forEach((id,i)=>files[id]='media/scenes/cam'+(i+1)+'_'+id+'.png');
+ files['hall_on']='media/scenes/cam1_hall_on.png';   /* v1.9b：点歌机亮灯态 */
+ ['freddy','bonnie','chica','foxy','golden'].forEach(tp=>{
+  files['char_'+tp]='media/characters/char_'+tp+'_dark.png';
+  files['face_'+tp]='media/characters/face_'+tp+'_dark.png'});
+ ['A','B','C','D'].forEach(sl=>{                       /* v1.9 A-30：新立绘三档 */
+  files['slot_'+sl]='media/characters/char_'+sl+'.png';
+  files['slot_'+sl+'_glitch']='media/characters/char_'+sl+'_glitch.png';
+  files['slot_'+sl+'_glitch_strong']='media/characters/char_'+sl+'_glitch_strong.png'});
+ const keys=Object.keys(files);let n=0;
+ keys.forEach(k=>{const im=new Image();
+  im.onload=()=>{IMG[k]=im;if(++n===keys.length)done()};
+  im.onerror=()=>{const d=document.createElement('div');
+   d.style.cssText='color:#e05050;font:14px "Fusion Pixel",monospace;padding:20px';
+   d.textContent='贴图加载失败：'+files[k]+'（请从 game/ 目录打开本文件）';
+   document.body.appendChild(d)};
+  im.src=files[k]})}
+/* ============ 音频（复用 T1 引擎） ============ */
+const AU={ctx:null};
+function aInit(){if(AU.ctx)return;const C=new(window.AudioContext||window.webkitAudioContext)();AU.ctx=C;
+ AU.mg=C.createGain();AU.mg.gain.value=.8;AU.mg.connect(C.destination);
+ const nb=C.createBuffer(1,C.sampleRate,C.sampleRate),d=nb.getChannelData(0);
+ for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;AU.nb=nb;
+ AU.st=C.createBufferSource();AU.st.buffer=nb;AU.st.loop=true;AU.st.loopEnd=.5;
+ AU.sf=C.createBiquadFilter();AU.sf.type='highpass';AU.sf.frequency.value=1200;
+ AU.sg=C.createGain();AU.sg.gain.value=0;AU.st.connect(AU.sf);AU.sf.connect(AU.sg);AU.sg.connect(AU.mg);AU.st.start()}
+function tone(f0,f1,dur,type,vol,fl,when){const C=AU.ctx;if(!C)return;const t=when||C.currentTime;
+ const o=C.createOscillator(),g=C.createGain();o.type=type||'sine';
+ o.frequency.setValueAtTime(f0,t);if(f1)o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ let n=o;if(fl){const f=C.createBiquadFilter();f.type='lowpass';f.frequency.value=fl;o.connect(f);n=f}
+ n.connect(g);g.connect(AU.mg);o.start(t);o.stop(t+dur+.05)}
+function nz(dur,freq,vol,type,q){const C=AU.ctx;if(!C)return;const t=C.currentTime;
+ const s=C.createBufferSource();s.buffer=AU.nb;const f=C.createBiquadFilter();f.type=type||'lowpass';f.frequency.value=freq;f.Q.value=q||1;
+ const g=C.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ s.connect(f);f.connect(g);g.connect(AU.mg);s.start(t);s.stop(t+dur+.05)}
+AU.blip=()=>{tone(1500,900,.06,'square',.05);nz(.05,3000,.04,'highpass')};
+AU.camOn=()=>{nz(.2,1500,.2,'highpass');tone(700,300,.1,'square',.04)};
+AU.door=p=>{tone(p?90:60,38,.14,'sine',.4);nz(.12,320,.22)};
+AU.thump=v=>{tone(75,42,.12,'sine',v);nz(.07,220,v*.6)};
+AU.knock=()=>{[0,180,360].forEach(d=>setTimeout(()=>{tone(85,50,.1,'sine',.34);nz(.08,400,.2)},d))};
+AU.run=()=>{for(let i=0;i<9;i++)setTimeout(()=>{tone(100,55,.08,'sine',.1+i*.03);nz(.05,300,.08)},i*115)};
+AU.whis=()=>nz(.5,700,.05,'bandpass',8);
+AU.ring=()=>{if(!AU.ctx)return;[0,500].forEach(d=>{tone(640,640,.36,'square',.05,null,AU.ctx.currentTime+d);tone(485,485,.36,'square',.045,null,AU.ctx.currentTime+d)})};
+AU.ringB=()=>{if(!AU.ctx)return;[0,500].forEach(d=>{tone(540,560,.4,'sawtooth',.05,null,AU.ctx.currentTime+d);tone(410,395,.4,'sawtooth',.045,null,AU.ctx.currentTime+d)})};
+AU.ringOnce=()=>{if(!AU.ctx)return;tone(640,640,.36,'square',.05);tone(485,485,.36,'square',.045);   /* A17：响一声无人说话 */
+ setTimeout(()=>{if(AU.ctx)nz(.08,600,.03,'bandpass',6)},900)};                                        /* 断线轻咔 */
+AU.ringC=()=>{if(!AU.ctx)return;[0,650].forEach(d=>{tone(880,880,.3,'sine',.08,null,AU.ctx.currentTime+d);tone(1320,1312,.3,'sine',.05,null,AU.ctx.currentTime+d)})};   /* A23 通讯铃（第三种铃音，全游戏一次） */
+AU.pow=()=>{tone(130,28,.9,'sawtooth',.2,300);nz(.4,400,.12)};
+AU.scream=()=>{nz(1,1400,.5,'bandpass',2);tone(760,240,1,'sawtooth',.34);tone(772,250,1,'sawtooth',.3);tone(90,60,.9,'square',.22)};
+AU.note=(m,d,v)=>{tone(440*Math.pow(2,(m-69)/12),0,d*.92,'square',v||.055);tone(440*Math.pow(2,(m-69)/12)*2,0,d*.8,'sine',(v||.055)*.5)};
+AU.chime=()=>{const C=AU.ctx;if(!C)return;[[660,0],[550,.5],[660,1],[550,1.5],[440,2.2]].forEach(([f,d])=>{tone(f,f*.985,1.3,'sine',.14,null,C.currentTime+d);tone(f*2,f*1.98,1,'sine',.05,null,C.currentTime+d)});
+ [0,.28,.56,.84,1.12,1.4,1.68,1.96].forEach((d,i)=>tone(440*Math.pow(2,(72+[0,2,4,7,9,12,14,16][i]-69)/12),0,.22,'triangle',.09,null,C.currentTime+2.6+d))};
+AU.warn=()=>{tone(1200,1100,.09,'square',.12);tone(950,900,.09,'square',.08)};
+AU.renew=()=>{if(!AU.ctx)return;tone(660,880,.12,'square',.1);tone(880,1320,.16,'sine',.08,null,AU.ctx.currentTime+.1)};
+AU.tick=()=>tone(900,860,.04,'square',.07);
+AU.place=h=>{tone(h?520:340,h?480:300,.06,'square',.1);nz(.04,2400,.06,'highpass')};
+AU.gear=()=>{[0,70].forEach(d=>setTimeout(()=>{tone(1100,900,.04,'square',.07);nz(.03,3200,.06,'highpass')},d))};
+AU.moan=()=>tone(120,86,.5,'sawtooth',.05,240);
+AU.boardOn=()=>{tone(300,620,.5,'triangle',.12);nz(.3,900,.06,'bandpass',6)};
+AU.boardEnd=()=>{if(!AU.ctx)return;[520,660,780].forEach((f,i)=>tone(f,f,.22,'triangle',.09,null,AU.ctx.currentTime+i*.12))};
+/* P2 暖音色（音频二分法：暖=信息/她，冷=系统/威胁） */
+AU.pushSoft=()=>{tone(520,660,.12,'sine',.06);tone(780,780,.08,'sine',.03,null,AU.ctx.currentTime+.1)};   /* SYS LOG 推送 */
+AU.pen=()=>{tone(340,300,.05,'triangle',.05);nz(.03,1800,.03,'highpass')};   /* 白板笔触（她的落子/留言完成） */
+AU.tape=()=>{if(!AU.ctx)return;tone(320,250,.07,'square',.10);nz(.04,1400,.05,'highpass')};   /* 答录机行浮现「嘟」（用户要求可闻） */
+AU.beep2=()=>{if(!AU.ctx)return;var C=AU.ctx;   /* 「嘟嘟」：录音机走带开始/结束（暖方波双响） */
+ [0,.17].forEach(function(d){tone(560,560,.07,'square',.10,null,C.currentTime+d)})};
+function setStatic(on){if(AU.sg)AU.sg.gain.linearRampToValueAtTime(on?.045:0,AU.ctx.currentTime+.06)}
+addEventListener('pointerdown',()=>{aInit();if(AU.ctx.state==='suspended')AU.ctx.resume()},{capture:true});
+/* 失焦：>1 秒硬冻结 + 电力空转，时间不推进 */
+let hidAt=0;
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden)hidAt=performance.now();
+ else if(hidAt){const dur=(performance.now()-hidAt)/1000;hidAt=0;
+   if(S&&scene==='game'&&!S.black&&CFG&&dur>1){
+    S.power=Math.max(0,S.power-(dur-1)*CFG.drain.afk);
+    if(S.power<=0)triggerBlackout()}}});
+/* ============ 噪声/扫描线（复用） ============ */
+const nCv=mk(128,72),nCx=nCv.getContext('2d'),nId=nCx.createImageData(128,72);
+let nSeed=12345;
+function upNoise(){const u32=new Uint32Array(nId.data.buffer);
+ for(let i=0;i<u32.length;i++){nSeed=(nSeed*1103515245+12345)&0x7fffffff;const v=(nSeed>>16)&255;u32[i]=0xff000000|(v<<16)|(v<<8)|v}
+ nCx.putImageData(nId,0,0)}
+const SCAN=mk(W,H);{const g=SCAN.getContext('2d');g.fillStyle='rgba(0,0,0,.16)';for(let y=0;y<H;y+=3)g.fillRect(0,y,W,1)}
+const drawNoise=a=>{if(a<=0)return;cx.globalAlpha=Math.min(1,a);cx.drawImage(nCv,0,0,384,216);cx.globalAlpha=1};
+function grain(g,n,W2,H2){for(let i=0;i<n;i++){const v=Math.random();
+ g.fillStyle=v<.5?`rgba(0,0,0,${.04+Math.random()*.08})`:`rgba(255,255,255,${.02+Math.random()*.05})`;
+ g.fillRect(rnd(W2),rnd(H2),1,1)}}
+function vig(g,W2,H2){const r=g.createRadialGradient(W2/2,H2/2,60,W2/2,H2/2,240);
+ r.addColorStop(0,'rgba(0,0,0,0)');r.addColorStop(1,'rgba(0,0,0,.62)');g.fillStyle=r;g.fillRect(0,0,W2,H2)}
+/* ============ 贴图化角色绘制（复用 media/char_*_dark.png） ============ */
+function drawChar(g,tp,X,Y,s){const im=IMG['char_'+tp];if(!im)return;
+ g.drawImage(im,X-64*s/6,Y-236*s/6,im.width*s/6,im.height*s/6)}
+function drawFaceS(g,tp,X,Y,s){const im=IMG['face_'+tp];if(!im)return;
+ g.drawImage(im,X-120*s/6,Y-205*s/6,im.width*s/6,im.height*s/6)}
+/* ============ v1.9 槽位立绘（A-28/A-30）============ */
+function glitchLv(){return CUR>=5?2:1}                 /* A-28 逐夜花屏强度：1-4 夜常规，5-7 夜加强 */
+function slotImg(k){var def=SLOTDEF[k];return def?IMG[def.img]||null:null}
+function drawSlot(g,k,X,Y,s){                          /* 槽位立绘：原色图 + 渲染时抖动/闪动/平滑撕裂（非烘焙非马赛克） */
+ var im=slotImg(k);
+ if(!im){drawChar(g,SLOTDEF[k]&&SLOTDEF[k].d,X,Y,s);return}   /* 贴图缺失回退旧绘制 */
+ var hh=s*30,ww=hh*im.width/im.height;
+ var lv=glitchLv();
+ var jx=0,jy=0;
+ if(Math.random()<.14*lv){jx=rnd(2*lv+1)-lv;jy=rnd(2)-1}      /* 位置抖动 */
+ var dx=X-ww/2+jx,dy=Y-hh+jy;
+ g.globalAlpha=Math.random()<.16*lv?(.68+Math.random()*.24):1; /* 闪动 */
+ g.drawImage(im,dx,dy,ww,hh);
+ g.globalAlpha=1;
+ if(Math.random()<.09*lv){                            /* 偶发平滑撕裂：整条水平切片平移（非马赛克） */
+  var ty=dy+rnd(Math.max(1,hh-6)),th2=3+rnd(6);
+  var syy=(ty-dy)/hh*im.height,shh=th2/hh*im.height;
+  var off=(rnd(7)-3)*(lv*.7+.4);
+  g.drawImage(im,0,syy,im.width,shh,dx+off,ty,ww,th2)}
+ if(Math.random()<.07*lv){g.fillStyle='rgba(205,222,250,.07)';
+  g.fillRect(dx,dy,ww,hh)}                            /* 冷色闪罩 */
+ /* A-32：头部区域彩色故障（眼/嘴高度带）——低概率横切条带+错位+红/青色散 */
+ if(Math.random()<.11*lv){
+  var bands=1+rnd(lv===2?3:2),hf=hh/3;
+  for(var bi=0;bi<bands;bi++){
+   var by2=dy+rnd(Math.max(1,hf|0)),bh2=2+rnd(4);
+   var off=(rnd(2*lv+2)-lv-1)*(1+.4*lv);              /* ±1..4px 错位 */
+   var syr=(by2-dy)/hh*im.height,shr=bh2/hh*im.height;
+   g.drawImage(im,0,syr,im.width,shr,dx+off,by2,ww,bh2);      /* 条带重绘错位 */
+   g.fillStyle='rgba(255,64,64,'+(.14+.06*lv)+')';            /* 红/青单边色散 */
+   g.fillRect(dx+off+1.5,by2,ww,bh2);
+   g.fillStyle='rgba(64,224,255,'+(.12+.05*lv)+')';
+   g.fillRect(dx-off-1.5,by2,ww,bh2)}}}
+/* ============ A-27 CAM7 常驻纯雪花通道（v1.9 S1）============
+   camStatic 房间：整屏纯雪花、抑制场景本体与槽位贴图；三女神轮廓依稀可辨。
+   数据缺省时引擎按 S1 设定兜底 plaza 常驻（B-19 数据到位后覆盖）。
+   D 穿 plaza 的威胁照常结算（逻辑层不在此渲染路径）。 */
+function camStaticOn(rm){var cs=N&&N.camStatic;if(cs)return cs.indexOf(rm)>=0;return rm==='plaza'}
+function renderCamStatic(){
+ cx.fillStyle='#0a0d12';cx.fillRect(0,0,384,216);
+ var lv=glitchLv();
+ cx.globalAlpha=.05+.03*lv+(Math.random()<.06+.05*lv?.04:0);   /* 轮廓忽明忽暗（雪花中偶现） */
+ for(var i=0;i<3;i++){var gx=112+i*62,gw=24;
+  R(cx,gx-gw/2,98,gw,70,'#39424e');R(cx,gx-6,86,12,12,'#39424e');R(cx,gx-gw/2-4,168,gw+8,4,'#2b333e')}
+ cx.globalAlpha=1;
+ for(var j=0;j<14+10*lv;j++){cx.fillStyle='rgba(255,255,255,'+(.10+Math.random()*.4)+')';
+  cx.fillRect(rnd(384),rnd(216),1+rnd(2),1)}
+ cx.drawImage(SCAN,0,0,384,216);
+ cx.fillStyle='rgba(255,255,255,.03)';cx.fillRect(0,(frame*1.3)%216,384,2);
+ drawNoise(.34+.14*lv)}
+/* ============ 曲名辅助 ============ */
+function songName(i){var tr=CFG&&CFG.juke.tracks;return tr&&tr.length?String(tr[i%tr.length].name||'—').slice(0,7):'—'}
+function fmtClock(t){var hl=(N&&N.hourLen)||60,h=Math.floor(t/hl),m=Math.floor((t%hl)/hl*60);
+ return h+':'+String(m).padStart(2,'0')}
+/* ============ 游戏状态 ============ */
+let S=null,frame=0,menuFlash=0,mFlashT=3,goF=0,DT=0,lastT=0,hudT=0,SCALE=1,retryI=-1,TRUTH_TEST=0;
+/* ============ 脚本事件引擎（A11）：abs 'H:MM' / 相对 'post' 'post+N' ============ */
+function parseAt(at){
+ if(typeof at==='number')return{abs:at};
+ var m=String(at).match(/^post\+(\d+(?:\.\d+)?)$/);
+ if(m)return{post:+m[1]};
+ if(String(at).trim()==='post')return{post:0};
+ return{abs:parseClock(at,N.hourLen)}}
+function buildEvents(){S.events=[];
+ var add=function(at,fn){S.events.push({at:parseAt(at),fn:fn,fired:0})};
+ (N.syslog||[]).forEach(function(e){add(e.at,function(){pushSyslog(e)})});
+ (N.cam9||[]).forEach(function(e){
+  if(e.type==='silhouette'&&String(e.at).indexOf('post')===0){   /* v1.7 §5：post 后 N 秒窗口内查看 CAM9 可见侧影（一次性） */
+   S.cam9Pending={type:e.type||'silhouette',dur:e.dur||2.5,left:parseAt(e.at).post||60,shown:0};return}
+  add(e.at,function(){S.cam9Ev={type:e.type||'freeze',dur:e.dur||3,t:0}})});
+ (N.dream||[]).forEach(function(e){add(e.at,function(){S.dreamEv={dur:e.dur||2,t:0};
+  if(e.stamina)applyStamina({delta:e.stamina,reason:null})})});
+ (N.scriptedStamina||[]).forEach(function(e){add(e.at,function(){applyStamina(e)})});
+ (N.camFx||[]).forEach(function(r){S.camFxRooms[r]=1})}     /* 全夜相机特效（夜7 CAM7 雪花），非时刻事件 */
+function tickEvents(){
+ for(var i=0;i<S.events.length;i++){var e=S.events[i];
+  if(e.fired)continue;
+  var t=e.at.abs!=null?e.at.abs:(S.postAt!=null?S.postAt+e.at.post:null);
+  if(t==null)continue;
+  if(S.time>=t){e.fired=1;e.fn()}}}
+function applyStamina(e){S.sta=clamp(S.sta+e.delta,0,100);
+ S.camPulse=Math.max(S.camPulse,.85);
+ if(e.delta<0&&AU.ctx)AU.warn()}
+/* ============ SYS LOG（A10 改版）：推送音 + 故障字幕 + 归档进主菜单记录页（游戏内面板已移除） ============ */
+function pushSyslog(item){
+ var e={sys:item.sys||'',note:item.note||null,at:fmtClock(S.time),caption:!!item.caption};
+ if(AU.ctx)AU.pushSoft();
+ /* A-41：caption 数据字段保留；局内中屏字幕停显，全文只进记录页 */
+ /* 落盘归档：按夜 id 存入 SAVE.sysArch，记录页可读 */
+ if(!SAVE.sysArch[CUR])SAVE.sysArch[CUR]=[];
+ SAVE.sysArch[CUR].push({t:e.at,sys:e.sys,note:e.note});
+ writeSave()}
+/* ============ 答录机（A9）：00:00 真铃自动播放 · 仅 R 键中断 · 播毕归档 ============
+   ANSW_RATE=1.5：播放较素材时长加快 0.5 倍（用户决策 2026-09-19）；点击不构成跳过（防误触）。 */
+const ANSW_RATE=1.5;
+function startDiary(){var d=CFG.diary;if(!d||!d.id)return;
+ var a=S.answ;
+ a.on=1;a.t=0;a.id=d.id;a.phase='delay';a.lines=null;a.li=-1;a.corrupt=null;
+ $('answBody').innerHTML='';
+ $('answBox').classList.add('on');
+ if(AU.ctx)AU.ring()}                                    /* 真铃（仅此时刻） */
+function beginDiaryPlayback(){var a=S.answ,d=CFG.diary;
+ if(AU.ctx)AU.beep2();                                   /* 走带开始「嘟嘟」 */
+ if(d.corrupt&&d.corrupt.length){                        /* 夜7 脚本中断：乱码三行 → #001 截断播放 */
+  a.phase='corrupt';a.corrupt=d.corrupt.slice();a.ci=0;a.t=0;
+  pushDiaryHeard(CFG.wbTrashName);
+  var nl=(window.NIGHTS||[]).filter(function(x){return x&&+x.id===1})[0];
+  if(nl&&nl.diary&&nl.diary.text){a.lines=String(nl.diary.text).split('\n');
+   a.perLine=Math.max(2,(nl.diary.duration||55)/Math.max(1,a.lines.length)/ANSW_RATE);
+   a.truncate=1}                                        /* 仅夜7 补放 #001 启用 stopAt 截断——夜1 本尊播放不受影响 */
+  a.li=-1;return}
+ a.phase='play';
+ a.lines=String(d.text||'').split('\n');
+ a.li=-1;a.t=0;
+ a.perLine=Math.max(1,(d.duration||55)/Math.max(1,a.lines.length)/ANSW_RATE);
+ renderAnswLine(-1)}
+function tickAnsw(dt){var a=S.answ;if(!a.on||S.black)return;
+ if(a.phase==='delay'){a.t+=dt;if(a.t>=1.2){a.t=0;beginDiaryPlayback()}return}
+ if(a.phase==='corrupt'){                                /* 乱码三行：每行 2.2s，同时中屏故障字幕 */
+  var was=a.ci;
+  a.t+=dt;
+  if(a.t>=2.2){a.t=0;a.ci++;
+   if(a.ci>=a.corrupt.length){a.phase=a.lines?'play':'end';a.li=-1;a.t=0;
+    if(a.phase==='play')renderAnswLine(-1);else endDiary();return}
+   S.capText=a.corrupt[a.ci];S.capT=2.5;AU.tape()}
+  else if(was===0&&a.ci===0&&a.t<dt+.01){S.capText=a.corrupt[0];S.capT=2.5;AU.tape()}
+  return}
+ if(a.phase==='play'){                                   /* 逐行渐显（文本渐显+音效承载，非真人声） */
+  a.t+=dt;
+  var li=Math.min(a.lines.length-1,Math.floor(a.t/a.perLine));
+  if(li!==a.li){a.li=li;renderAnswLine(li);AU.tape();
+   var line=a.lines[li];
+   if(a.truncate&&CFG.stopAt&&line.indexOf(CFG.stopAt)>=0){  /* 播至指定句自停——仅夜7 补放路径（a.truncate） */
+    a.phase='end';setTimeout(endDiary,1400);return}}
+  if(a.t>=a.perLine*a.lines.length){a.phase='end';endDiary()}}}
+function renderAnswLine(li){var el=$('answBody');
+ if(li<0){el.innerHTML='';return}
+ var a=S.answ;
+ /* v1.8 滑窗：一次只显示 1-2 行——当前行全亮，上一行 40% 垫底，更早的不保留 */
+ el.innerHTML='';
+ for(var i=Math.max(0,li-1);i<=li;i++){
+  var dv=document.createElement('div');
+  if(a.corrupt&&a.phase==='corrupt')dv.className='crpt';
+  dv.textContent=a.lines[i]!==undefined?a.lines[i]:'';
+  el.appendChild(dv);
+  (function(node,tgt){requestAnimationFrame(function(){node.style.opacity=tgt})})(dv,i<li?.4:1)}}
+function endDiary(){var a=S.answ;if(!a.on)return;
+ a.on=0;a.phase='';
+ if(AU.ctx)AU.beep2();                                   /* 走带结束「嘟嘟」 */
+ $('answBox').classList.remove('on');
+ pushDiaryHeard(a.id)}
+function interruptDiary(){var a=S.answ;if(!a||!a.on||scene!=='game')return;
+ a.on=0;a.phase='';                                      /* 中断无惩罚，未播毕不归档 */
+ if(AU.ctx)AU.beep2();                                   /* 中断也收尾「嘟」 */
+ $('answBox').classList.remove('on')}
+function pushDiaryHeard(id){if(!id)return;
+ if(SAVE.diaryHeard.indexOf(id)<0)SAVE.diaryHeard.push(id);
+ writeSave()}
+/* ============ 白板：陪练 AI（A7）+ 判定分级（A8） ============ */
+function mkSlots(){var out={};
+ for(var k in N.slots){
+  var sd=N.slots[k],def=SLOTDEF[k]||SLOTDEF.A;
+  var mat=parseClock(sd.at,N.hourLen);
+  var o={nm:k,d:def.d,ai:sd.ai||0,at:mat,moveAt:mat,moved:0,path:(sd.path||[]).slice(),idx:0,t:def.t0,doorT:0,knock:0,stareT:0,active:1,sprint:0};
+  if(sd.sprintOnJukeDead)o.sprintOn=1;
+  if(sd.fast)o.fast=1;
+  if(sd.skipChance!=null)o.skip=sd.skipChance;
+  if(sd.bell){var e0=(sd.bell.every&&sd.bell.every[0])||20,e1=(sd.bell.every&&sd.bell.every[1])||32;
+   o.bellEvery=e0;o.bell=e0+rnd(Math.max(1,e1-e0));o.roll=sd.bell.roll||2;o.rollT=0}
+  out[k]=o}
+ return out}
+function startNight(n,fromDeath){
+ CUR=n||CUR||3;
+ N=resolveNight(CUR);META=getMeta();CFG=buildRT();
+ /* 重试包裹（A13）：死亡后重开显示轮换文案（META.retry.copy）；
+    夜1-5 走 copySoft 中性文案（不出戏：不出现「聚合/残留数据」等系统词） */
+ var rc='';
+ if(fromDeath&&META&&META.retry){
+  var arr=(CUR<=5&&Array.isArray(META.retry.copySoft)&&META.retry.copySoft.length)?META.retry.copySoft
+          :(Array.isArray(META.retry.copy)?META.retry.copy:[]);
+  if(arr.length){retryI=(retryI+1)%arr.length;rc=arr[retryI]}}
+ S={time:0,hour:0,introT:3.2,
+  power:(N.power&&N.power.start)||100,sta:100,staLock:0,
+  pan:0,panT:0,vert:0,vertT:0,holdDir:0,
+  lockL:0,lockR:0,lightL:0,lightTL:0,lightR:0,lightTR:0,doorAL:0,doorAR:0,moanT:0,shake:0,
+  cams:false,camRoom:'hall',camPulse:1,camCd:0,
+  juke:{started:0,track:0,left:CFG.juke.tracks.length?CFG.juke.tracks[0].len:0,warn:0,dead:0,melT:0,melI:0},
+  slots:mkSlots(),
+  board:{state:0,cells:[0,0,0,0,0,0,0,0,0],turn:'you',moveT:0,oppT:0,result:'',phase:0,msgT:0},
+  black:0,blackT:0,blackSec:0,
+  god:0,deathTag:'',
+  stats:{renewals:0,miss:0,blocks:0},
+  answPlayed:0,
+  /* P2 状态：事件引擎 / 白板锚点 / 紧急评估 / 答录机 / 演出层 */
+  events:[],postAt:null,reeval:0,
+  answ:{on:0,t:0,phase:'',id:null,lines:null,li:-1,perLine:0,corrupt:null},
+  cam9Ev:null,dreamEv:null,capText:null,capT:0,close:0,camFxRooms:{},
+  finaleMel:0};
+ buildEvents();
+ $('inNight').textContent='第 '+CUR+' 夜';
+ $('inRetry').textContent=rc;
+ if(rc)setTimeout(function(){$('inRetry').textContent=''},3200);
+ setStatic(false);
+ $('camHud').classList.remove('on');
+ $('camStrip').textContent='▲ 打开监控';
+ $('arL').style.display=$('arR').style.display='none';
+ document.querySelectorAll('#map .mb').forEach(function(b){b.classList.remove('on','alert')});
+ $('camTitle').textContent='CAM1 · 大厅';
+ $('edgeFx').className='';$('jukeHud').className='pe';$('dbg').classList.remove('on');
+ $('answBox').classList.remove('on');$('answBody').innerHTML='';
+ $('reevalTag').classList.remove('on');
+ $('eggFx').classList.remove('on');
+ showScene('intro')}
+function enterGame(){if(scene!=='intro'||!S)return;
+ S.introT=0;showScene('game');
+ var h=$('hint');
+ h.innerHTML=CFG.hints.open||'A/D 转头 · C 监控<br>撑到 6:00';
+ h.classList.add('on');setTimeout(function(){h.classList.remove('on')},9000);
+ checkEgg()}   /* 紧急评估次日彩蛋（A15） */
+function checkEgg(){if(!SAVE.winCount||SAVE.winCount<=SAVE.eggAt)return;
+ var eg=META&&META.easterEggs;
+ var txt=SAVE.winCount===1?eg&&eg.firstWinNextDay:eg&&eg.secondWinNextDay;
+ if(txt){var el=$('eggFx');el.textContent=txt;el.classList.add('on');
+  setTimeout(function(){el.classList.remove('on')},6200)}
+ SAVE.eggAt=SAVE.winCount;writeSave()}
+/* ============ 机制 ============ */
+/* 回收演出统一口径（A13，v1.7 §7）：剪影扑近 0.5s → 系统接管「异常进程定位 TRAINER-00 · 开始回收」
+   + 删除进度条约 2s → 黑屏 →「本夜评估未通过」。wb=true 为白板通道执行删除（夜7 胜/超时）。 */
+function jump(tp,msg,tag,wb){S.recycle={t:0,gearT:0,tp:tp,msg:msg,tag:tag||'?',wb:!!wb};
+ SAVE.deaths++;writeSave();
+ scene='jump';
+ hud.classList.remove('on');setStatic(false);
+ if(AU.ctx)AU.scream()}
+function win(){scene='done';hud.classList.remove('on');setStatic(false);
+ SAVE.everWon=true;
+ if(CUR<7)SAVE.unlockedNight=Math.max(SAVE.unlockedNight,CUR+1);
+ /* 残影层（A14）：当夜留言按 ghostOpacity 归档，跨夜叠加 */
+ if(CFG.board.message&&CFG.board.mode!=='none'){
+  SAVE.ghosts.push({n:CUR,t:String(CFG.board.message),o:CFG.board.ghostOpacity!=null?CFG.board.ghostOpacity:.06});
+  if(SAVE.ghosts.length>10)SAVE.ghosts=SAVE.ghosts.slice(-10)}
+ writeSave();
+ /* 谢幕曲续播（A12 finale）：夜7 末曲在播 → 旋律延续进终局 */
+ var j=S.juke;
+ if(CFG.juke.finale&&j.started&&!j.dead&&j.left>0)S.finaleMel=1;
+ /* 夜7 平局 → 结局判定（A17/A18）：档案 A-D 齐+点歌机未中断=真结局，否则标准结局 */
+ if(CUR===7&&S.board.state===2&&S.board.result==='draw'&&!j.dead&&truthReady()){startTrueEnding();return}
+ if(CUR===7&&S.board.state===2&&S.board.result==='draw'){standardEnding();return}
+ AU.chime();
+ var st=S.stats,br='未出现';
+ if(S.board.state===2&&S.board.result==='draw')br='平局 · 挂起';
+ if(S.board.state===2&&S.board.result==='win')br='胜利 · 已评估';
+ if(S.board.state===2&&S.board.result==='safe')br='安全解除';
+ if(S.board.state===2&&S.board.result==='lose')br='败北';
+ var tn=CFG.juke.tracks.length||'-';
+ $('dnSub').innerHTML=
+  '♪ 续播 '+st.renewals+'/'+tn+' · 错过 '+st.miss+'<br>⌂ 门锁挡回 '+st.blocks+' 次 · ▣ 白板：'+br+
+  '<br>⚡ 电力余 '+Math.max(0,Math.ceil(S.power))+'% · 耐力余 '+Math.ceil(S.sta)+'%';
+ setTimeout(function(){if(scene==='done')showScene('done')},1500)}
+function truthReady(){if(TRUTH_TEST)return true;
+ var a=SAVE.archFlags;return !!(a.A&&a.B&&a.C&&a.D)}
+/* 标准结局（A17，v1.7 §8a）：[挂起] → 答录机响一声无人说话断线 → 「第 1096 夜」 → 回主菜单 */
+function standardEnding(){
+ var ln=(META&&META.endings&&META.endings.standard&&META.endings.standard.lines)||[];
+ var main=ln[0]||'[挂起] 无法判定 · 维持挂起';
+ showScene('done');
+ $('dnTitle').textContent='6:00 AM';
+ $('dnSub').innerHTML='<span style="color:#9aa8b2">'+main+'</span><br><span style="color:#5a5a62;font-size:.85em">答录机响了一声。没有人说话。</span>';
+ setTimeout(function(){if(scene==='done')AU.ringOnce()},2200);
+ setTimeout(function(){if(scene==='done'){$('dnTitle').textContent='第 1096 夜';
+  $('dnSub').innerHTML='<span style="color:#6a6a72">灯还亮着。夜还长。</span>'}},5200);
+ setTimeout(function(){if(scene==='done')toMenu()},9200)}
+/* ============ 真结局（A18，v1.7 §8b） ============
+   谢幕曲中灯光转待机色 → 通讯铃 → 对白逐行 → 「跑吧。」长按 1.5s
+   → HUD 元件依次熄灭（监控→门锁→红点→白板，白板保留「你」字残影 40%）
+   → 黑屏 BUG CLEARED → threeLines 按序浮现 → NFX.epilogue 四镜
+   → 最终档案解锁 + 制作名单（谢幕曲收束后完全静默） */
+function startTrueEnding(){
+ var tr=(META&&META.endings&&META.endings.truth)||{};
+ S.te={phase:'comm',t:0,lineI:-1,epi:0,rang:0,
+  dialogue:tr.dialogue||[],lines:tr.threeLines||[],
+  holdSec:tr.holdSec||1.5,btn:tr.button||'跑吧。'};
+ S.finaleMel=S.finaleMel||1;                        /* 谢幕曲持续 */
+ hud.classList.remove('on');setStatic(false);
+$('teRun').firstChild.textContent=S.te.btn;
+ scene='trueEnd';
+ for(const k in OV)OV[k].classList.remove('on');
+ hud.classList.remove('on');stage.style.cursor='default'}
+function lineText(l){if(typeof l==='string')return l;return l?((l.who?l.who+'：':'')+(l.text||'')):''}
+function nextLine(){var te=S.te;te.lineI++;
+ if(te.lineI>=te.dialogue.length){                  /* 对白毕（可为空）→ 终局交互 */
+  $('teBox').classList.remove('on');
+  te.phase='run';te.t=0;$('teRun').classList.add('on');return}
+ var txt=lineText(te.dialogue[te.lineI]);
+ var el=$('teBox');el.textContent=txt;el.classList.add('on');
+ te.lineDur=clamp(txt.length/9,2.6,6.5);            /* 60-90s 节奏由行数×行长自然形成 */
+ te.phase='line';te.t=0}
+function teProceed(){var te=S.te;if(!te||te.phase!=='run')return;
+ $('teRun').classList.remove('on');
+ te.phase='shut';te.t=0;te.lastOff=-1}
+function tickTrueEnd(dt){var te=S.te;if(!te)return;te.t+=dt;
+ switch(te.phase){
+  case 'comm':
+   if(!te.rang&&te.t>=1.6){te.rang=1;if(AU.ctx)AU.ringC()}
+   if(te.rang&&te.t>=1){te.t=0;nextLine()}
+   break;
+  case 'line':
+   if(te.t>=te.lineDur){te.t=0;$('teBox').classList.remove('on');
+    if(AU.ctx)AU.tape();nextLine()}
+   break;
+  case 'shut':
+   var off=Math.floor(te.t/.9);
+   if(off!==te.lastOff){te.lastOff=off;if(AU.ctx&&off>0&&off<=4)AU.tick()}   /* 每元件熄灭一声冷响 */
+   if(te.t>=4.2){te.phase='bug';te.t=0}
+   break;
+  case 'bug':
+   if(te.t>=3){te.phase='fline';te.t=0;te.lineI=-1;nextFinalLine()}
+   break;
+  case 'fline':
+   if(te.t>=2.8){te.t=0;nextFinalLine()}
+   break;
+  case 'epi':
+   if(te.t>=3.2){te.t=0;te.epi++;
+    if(te.epi>=4){te.phase='credits';te.t=0;startCredits()}}
+   break;
+  case 'credits':
+   if(te.t>=16){te.phase='end';endTrue()}
+   break}}
+function nextFinalLine(){var te=S.te;te.lineI++;
+ if(te.lineI>=te.lines.length){te.phase='epi';te.t=0;te.epi=0;return}
+ te.phase='fline';te.t=0}
+function startCredits(){var c=$('credits');
+ var rows=(META&&META.credits)||['UMA-NIGHT · 七夜完整版','——','机制引擎 · 角色A','叙事与演出 · 角色B','训练日记 · SYS LOG · 胜者舞台','——','谢谢你把它守到最后'];
+ c.innerHTML=rows.map(function(r){return '<div>'+r+'</div>'}).join('');
+ c.classList.add('on');
+ S.finaleMel=0}                                     /* 名单起谢幕曲收束 → 完全静默 */
+function endTrue(){SAVE.clearedTrue=true;SAVE.archFlags.final=1;writeSave();
+ $('credits').classList.remove('on');
+ toMenu()}
+function renderTrueEnd(){var te=S.te;
+ cx.fillStyle='#000';cx.fillRect(0,0,384,216);
+ if(!te){drawNoise(.05);return}
+ if(te.phase==='comm'||te.phase==='line'||te.phase==='run'){
+  if(IMG.office)cx.drawImage(IMG.office,-Math.round(S.pan),0);   /* 待机镜头 */
+  cx.fillStyle='rgba(110,135,170,.15)';cx.fillRect(0,0,384,216);  /* 灯光转待机色 */
+  drawNoise(.04);return}
+ if(te.phase==='shut'){                             /* HUD 元件依次熄灭：监控→门锁→红点→白板 */
+  var names=['监控','门锁','红点','白板'];
+  var off=Math.floor(te.t/.9);
+  for(var i=0;i<4;i++){
+   var x=62+i*87,y=92,alive=i>off;
+   R(cx,x-24,y-18,48,34,alive?'#26262e':'#101016');
+   R(cx,x-22,y-16,44,30,alive?'#2c2c38':'#0a0a10');
+   cx.fillStyle=alive?'#9aa8b2':'#3a3a44';
+   cx.font='8px "Fusion Pixel",monospace';cx.textAlign='center';
+   cx.fillText(names[i],x,y+30);
+   if(i===3&&off>=4){cx.fillStyle='rgba(170,64,64,.4)';   /* 白板保留「你」字残影（约 40%） */
+    cx.font='italic 17px "Fusion Pixel","KaiTi","STKaiti",serif';
+    cx.fillText('你',x,y+7)}
+   cx.textAlign='left'}
+  drawNoise(.05);return}
+ if(te.phase==='bug'){
+  if(te.t>=1){cx.fillStyle='#9ad0a8';cx.font='bold 14px "Courier New",monospace';cx.textAlign='center';
+   cx.fillText('BUG CLEARED',192,110);cx.textAlign='left'}
+  drawNoise(.03);return}
+ if(te.phase==='fline'){                            /* 三行结尾字：最亮→工整→最淡 */
+  var li=te.lineI;
+  if(li>=0&&li<te.lines.length){
+   cx.fillStyle=li===2?'rgba(205,205,212,.35)':(li===0?'rgba(225,226,230,.85)':'rgba(216,218,224,.72)');
+   cx.font=(li===0?'13px':'12px')+' "Fusion Pixel","KaiTi","STKaiti",serif';
+   cx.textAlign='center';
+   cx.fillText(String(te.lines[li]),192,110);cx.textAlign='left'}
+  drawNoise(.02);return}
+ if(te.phase==='epi'){                              /* 尾声 2D · 终端视角四镜（B 的 NFX） */
+  if(window.NFX&&NFX.epilogue)NFX.epilogue(cx,['disconnect','board','turn','close'][te.epi]||'close',te.t);
+  return}
+ cx.fillStyle='#000';cx.fillRect(0,0,384,216);      /* credits/end：黑底，名单为 DOM */
+ if(te.phase==='credits')drawNoise(.03)}
+function moveInterval(s){var iv=5*(1-s.ai/40);
+ if(s.fast)iv*=.75;
+ if(S.board.state===1)iv*=CFG.slowX;      /* 白板对局：全场 ×2 慢 */
+ if(s.sprint)iv*=.5;                      /* 冲刺：间隔减半 */
+ return iv}
+function lockedFor(s){return s.path[s.path.length-1]==='doorR'?S.lockR:S.lockL}
+function watched(s){
+ if(!S.cams||S.camRoom!==s.path[s.idx])return false;
+ var loc=s.path[s.idx];
+ if(loc==='doorL'||loc==='doorR')return false;      /* 门边是监控死角 */
+ if(S.sta<CFG.sta.low)return false;                 /* <20% 盯视无效 */
+ return true}
+function stareEffective(s){return watched(s)&&s.stareT>=CFG.stareRamp}
+function tickSlot(s,dt){
+ if(watched(s)){s.stareT=Math.min(2,s.stareT+dt)}
+ else s.stareT=0;
+ if(!s.moved){
+  if(S.time>=s.moveAt){s.moved=1;if(s.sprintOn)AU.gear();else AU.thump(.12)}
+  else return}
+ /* 变调铃：响铃=2 秒后掷骰 */
+ if(s.bell){
+  if(s.rollT>0){if(!stareEffective(s)){s.rollT-=dt;
+   if(s.rollT<=0){if(rnd(20)<s.ai)tryMove(s)}}}
+  else{s.bell-=dt;if(s.bell<=0){s.bell=(s.bellEvery||20)+rnd(12);s.rollT=s.roll||2;AU.ringB()}}}
+ var loc=s.path[s.idx];
+ if(stareEffective(s))return;
+ if(loc==='doorL'||loc==='doorR'){
+  if(lockedFor(s)){s.knock+=dt;
+   if(s.knock>=CFG.edge.knock){
+    AU.knock();S.shake=.25;s.knock=0;
+    s.idx=Math.max(0,s.idx-(s.sprint?2:1));
+    s.t=CFG.edge.backCd+rnd(6);S.stats.blocks++;
+    if(navigator.vibrate)navigator.vibrate(40)}}
+  else{s.doorT-=dt;
+   if(s.doorT<=0){var tag=s.path[s.path.length-1]==='doorR'?'R-DOOR':'L-DOOR';
+    if(s.sprintOn&&S.juke.dead)tag='JUKE→'+s.nm;
+    jump(s.d,loc==='doorL'?'门那边的东西，从左边进来了。':'门那边的东西，从右边进来了。',tag)}}
+  return}
+ if(s.sprintOn&&!s.sprint)return;                   /* 绑定点歌机的槽：播着完全不动 */
+ s.t-=dt;if(s.t>0)return;
+ s.t=moveInterval(s);
+ if(!s.sprint&&rnd(20)>=s.ai)return;
+ tryMove(s)}
+function tryMove(s){
+ var loc=s.path[s.idx];
+ if(loc==='doorL'||loc==='doorR')return;
+ if(s.idx===s.path.length-2){
+  s.idx++;s.doorT=CFG.edge.t;s.knock=0;AU.moan()}
+ else{var step=1;
+  if(s.fast&&Math.random()<(s.skip!=null?s.skip:.2))step=2;   /* 跳区 */
+  s.idx=Math.min(s.path.length-2,s.idx+step);
+  AU.thump(.1)}}
+function triggerBlackout(){if(!S.black){S.power=0;
+ S.cams=false;setStatic(false);
+ $('camHud').classList.remove('on');$('camStrip').textContent='▲ 打开监控';
+ $('arL').style.display=$('arR').style.display='none';
+ S.lockL=0;S.lockR=0;S.lightL=0;S.lightR=0;
+ S.black=1;S.blackT=CFG.blackT;S.blackSec=-1;AU.pow()}}
+function jukeSprintChain(){                          /* A-39：余量窗耗尽→刷新到走廊（沿用原通路） */
+ S.stats.miss++;
+ var spr=false;
+ for(var ka in S.slots){var a=S.slots[ka];
+  if(a.sprintOn){a.sprint=1;a.idx=Math.min(1,a.path.length-2);a.t=moveInterval(a);a.doorT=0;a.knock=0;a.stareT=0;spr=true}}
+ if(spr)AU.run()}                                    /* A-41：冲刺提醒=奔跑音+alertDot 快闪+edgeFx 门缘红 */
+function tickJuke(dt){var j=S.juke;
+ if(!j.started){if(S.time>=CFG.juke.start){j.started=1;AU.gear();
+  j.batt=CFG.juke.battery.cap}return}   /* 起播自动充满 */
+ if(j.dead)return;
+ if(j.muted){                                          /* A-39：没电静音+余量窗（夜1-6=5s·夜7=3s） */
+  var before=Math.ceil(j.warn);
+  j.warn-=dt;var now=Math.ceil(j.warn);
+  if(now!==before&&now>0)AU.warn();
+  if(j.warn<=0){j.warn=0;j.muted=0;j.dead=1;jukeSprintChain()}
+  return}
+ j.batt-=dt;
+ if(j.batt<=0){j.batt=0;j.muted=1;j.warn=CFG.juke.warn||(CUR===7?3:5);AU.warn();return}
+ j.left-=dt;
+ if(j.left<=0){                                        /* 曲终：自主切歌（与电量解耦） */
+  j.track++;
+  if(j.track>=CFG.juke.tracks.length)j.track=0;       /* 发条模型：穷尽循环回第一首，不判死 */
+  j.left=CFG.juke.tracks[j.track].len}}
+function renewJuke(){var j=S.juke;
+ if(!S||scene!=='game'||!j.started||j.dead)return;
+ if(S.black||S.staLock>0)return;                     /* 上发条不限 CAM1，任意位置空格/点♪条均可 */
+ j.batt=CFG.juke.battery.renew;
+ if(j.muted){j.muted=0;j.warn=0}                      /* 余量窗内续上=解静音 */
+ S.power=Math.max(0,S.power-CFG.drain.renew);
+ S.stats.renewals++;
+ for(var ka in S.slots){var a=S.slots[ka];
+  if(a.sprintOn&&a.sprint){a.sprint=0;a.idx=0;a.t=12}}
+ AU.renew()}
+/* ---- 白板：数据驱动（陪练 AI 与判定分级由 P2 A7/A8 实现） ---- */
+function boardWinner(p){return LINES.some(function(l){return l.every(function(i){return S.board.cells[i]===p})})}
+function boardFull(){return S.board.cells.every(function(c){return c!==0})}
+function boardAppear(force){var b=S.board;
+ if(!force&&CFG.board.mode==='none')return;
+ if(CFG.board.mode==='message'){                         /* message 模式（夜2）：无格子，字迹浮现 */
+  b.state=3;b.phase=0;b.msgT=0;AU.pen();               /* A-41：提醒=笔触音（文字停显） */
+  return}
+ if(!force&&CFG.board.mode!=='game')return;
+ b.state=1;b.turn='you';
+ var start=CFG.board.firstStone==='center'?4:pick([4,4,0,2,6,8]);
+ b.cells[start]=2;
+ b.moveT=CFG.board.limit+CFG.board.grace;           /* 宽限后开始计时 */
+ AU.boardOn()}                                        /* A-41：提醒=boardOn 音（文字停显） */
+function placeCell(i){var b=S.board;
+ if(scene!=='game'||!S||b.state!==1||b.turn!=='you'||b.cells[i]!==0)return;
+ if(S.cams){AU.blip();return}                       /* 必须关监控落子 */
+ if(S.black||S.staLock>0){AU.blip();return}
+ b.cells[i]=1;AU.place(1);
+ if(boardWinner(1)){endBoard('win');return}         /* 玩家胜 → 判定分级 */
+ if(boardFull()){endBoard('draw');return}           /* 平局 → 挂起 */
+ b.turn='opp';b.oppT=CFG.board.opp}
+/* 陪练 AI（v1.7 §3.1）：①永不完成己方三连（绝对优先，抢占点同样受此约束）
+   ②玩家即胜点以 blockChance 抢占，未抢占随机落于不构成己方三连的空位
+   ③夜7（block≥1）强制平局：堵后玩家仍存即胜点 → 判平局兜底（她替你把平局下完） */
+function sparringMove(){var b=S.board,empty=[];
+ b.cells.forEach(function(c,i){if(c===0)empty.push(i)});
+ if(!empty.length){endBoard('draw');return}
+ var pwins=[];
+ empty.forEach(function(i){b.cells[i]=1;if(boardWinner(1))pwins.push(i);b.cells[i]=0});
+ var safe=empty.filter(function(i){b.cells[i]=2;var w=boardWinner(2);b.cells[i]=0;return !w});
+ if(!safe.length){endBoard('draw');return}          /* 极罕见兜底：所有空位都会成己方三连 → 判平局 */
+ var choice=null;
+ if(pwins.length){
+  var blockables=pwins.filter(function(i){return safe.indexOf(i)>=0});
+  if(CFG.board.block>=1){
+   var full=blockables.filter(function(p){
+    b.cells[p]=2;var still=false;
+    empty.forEach(function(i){if(i===p||still)return;b.cells[i]=1;if(boardWinner(1))still=true;b.cells[i]=0});
+    b.cells[p]=0;return !still});
+   if(full.length)choice=full[0];
+   else{endBoard('draw');return}
+  }
+  else if(Math.random()<CFG.board.block&&blockables.length)choice=blockables[0];
+ }
+ if(choice==null){
+  if(CFG.board.cornerBias&&!b.aiMoves){              /* 首个自由落子偏置角落（v1.7 §3.1「训练员教她的第一手」演出） */
+   var corners=[0,2,6,8].filter(function(i){return safe.indexOf(i)>=0});
+   if(corners.length)choice=pick(corners)}
+  if(choice==null)choice=pick(safe)}
+ b.aiMoves=(b.aiMoves||0)+1;
+ b.cells[choice]=2;AU.place(0);
+ if(boardWinner(2)){endBoard('draw');return}        /* 防御：safe 过滤下数学不可达，红线双保险 */
+ if(boardFull()){endBoard('draw');return}
+ b.turn='you';b.moveT=CFG.board.limit}
+/* 判定分级（v1.7 §3.2）：win=instant 回收 | reeval 紧急评估；draw=挂起；lose/timeout=标准回收 */
+function endBoard(result){var b=S.board;
+ b.state=2;b.result=result;b.phase=0;b.msgT=0;S.postAt=S.time;
+ if(result==='win'){
+  if(CFG.board.policy==='instant'){wbRecycle();return}
+  startReeval();return}
+ if(result==='lose'){jump('golden','白板里的影子赢了。','WB-LOSS',true);return}
+ AU.boardEnd()}                                     /* draw：格子消退 → 留言浮现 → 自动回写（phase 由 updateGame 推进） */
+function startReeval(){
+ SAVE.winCount++;writeSave();
+ for(var k in S.slots){var s=S.slots[k];if(s.ai>0)s.ai+=CFG.evalDelta}   /* 当夜剩余时间全槽位 ai+2 */
+ S.reeval=1;
+ $('reevalTag').classList.add('on');
+ pushSyslog({sys:CFG.evalText,caption:true});
+ if(AU.ctx)AU.warn()}
+function wbRecycle(){                               /* 夜7：玩家胜 → 白板通道即刻回收（最温柔的通道执行删除） */
+ jump('golden','白板通道 · 反应模式超出基线。','WB-INSTANT',true)}
+function tickBoard(dt){var b=S.board;
+ if(b.state!==1)return;
+ if(S.black)return;                                 /* 断电：白板倒计时冻结 */
+ if(b.turn==='you'){
+  var before=Math.ceil(b.moveT);b.moveT-=dt;var now=Math.ceil(b.moveT);
+  if(now!==before&&now<=3&&now>0)AU.tick();
+  if(b.moveT<=0){b.result='timeout';b.state=2;jump('golden','白板倒计时归零。','WB-TIME',true)}
+ }else{b.oppT-=dt;
+  if(b.oppT<=0)sparringMove()}}
+function tickBlackout(dt){S.blackT-=dt;
+ var now=Math.ceil(S.blackT);
+ if(now!==S.blackSec){S.blackSec=now;AU.tick()}
+ if(S.blackT<=0)jump('freddy','断电。黑暗里的倒计时走完了。','BLACKOUT')}
+function updateGame(dt){S.time+=dt;
+ var h=Math.floor(S.time/N.hourLen);
+ if(h!==S.hour)S.hour=h;
+ if(S.hour>=6){win();return}                        /* 06:00 整点结算优先（含续播窗口边缘豁免） */
+ /* 答录机（A9）：autoplayAt 到点真铃自动播放 */
+ if(CFG.diary&&!S.answPlayed&&S.time>=parseClock(CFG.diary.autoplayAt||'00:00',N.hourLen)){
+  S.answPlayed=1;startDiary()}
+ tickAnsw(dt);
+ tickEvents();                                      /* 脚本事件引擎（A11）：syslog/cam9/dream/stamina */
+ if(S.cam9Ev){S.cam9Ev.t+=dt;if(S.cam9Ev.t>=S.cam9Ev.dur)S.cam9Ev=null}
+ if(S.cam9Pending&&S.postAt!=null){                 /* 残影窗口：仅奖励查看监控的玩家，无音效无红点 */
+  var cp=S.cam9Pending;cp.left-=dt;
+  if(!cp.shown&&S.cams&&S.camRoom==='corrB'){S.cam9Ev={type:cp.type,dur:cp.dur,t:0};S.cam9Pending=null}
+  else if(cp.left<=0)S.cam9Pending=null}
+ if(S.dreamEv){S.dreamEv.t+=dt;if(S.dreamEv.t>=S.dreamEv.dur)S.dreamEv=null}
+ if(S.capT>0){S.capT-=dt;if(S.capT<=0)S.capText=null}
+ /* 白板挂起演出时序（A8）：格子消退 3s → 留言浮现 → 再 3s 自动回写（不受玩家控制） */
+ var bb=S.board;
+ if(bb.state===2&&bb.result==='draw'&&bb.phase<2){bb.msgT+=dt;
+  if(bb.msgT>=3){bb.phase++;bb.msgT=0;if(AU.ctx)AU.pen()}}
+ else if(bb.state===3)bb.msgT+=dt;                  /* message 模式（夜2）字迹渐显 */
+ if(S.introT>0){S.introT-=dt;return}
+ /* 电力：待机（首小时减半）/监控/锁 */
+ var dr=S.cams?CFG.drain.cam:CFG.drain.base;
+ if(S.time<CFG.safeHalf)dr*=.5;
+ if(S.lockL)dr+=CFG.drain.lock;
+ if(S.lockR)dr+=CFG.drain.lock;
+ S.power-=dr*dt;
+ if(S.power<=0&&!S.black)triggerBlackout();
+ if(S.black){tickBlackout(dt);return}
+ /* 稳定度（耐力） */
+ if(S.staLock>0){S.staLock-=dt;
+  if(S.staLock<=0){S.sta=CFG.sta.back;
+   if(AU.ctx)AU.pushSoft()}}
+ else{var stared=false;
+  if(S.cams)for(var k in S.slots){if(stareEffective(S.slots[k])){stared=true;break}}
+  var net=stared?-CFG.sta.stare:(S.cams?CFG.sta.recOpen:CFG.sta.recClosed);
+  S.sta=clamp(S.sta+net*dt,0,100);
+  if(S.sta<=0){S.staLock=CFG.sta.lockT;
+   if(AU.ctx)AU.warn()}}
+ if(S.camCd>0)S.camCd-=dt;
+ if(S.lightL){S.lightTL-=dt;if(S.lightTL<=0)S.lightL=0}
+ if(S.lightR){S.lightTR-=dt;if(S.lightTR<=0)S.lightR=0}
+ tickJuke(dt);
+ for(var k2 in S.slots)tickSlot(S.slots[k2],dt);
+ if(!S.board.state&&S.time>=CFG.board.at&&!S.black)boardAppear();
+ tickBoard(dt);
+ var anyEdge=false;
+ for(var k3 in S.slots){var s2=S.slots[k3],l2=s2.path[s2.idx];
+  if(s2.active&&(l2==='doorL'||l2==='doorR')){anyEdge=true;break}}
+ if(anyEdge){S.moanT-=dt;if(S.moanT<=0){S.moanT=1.1;AU.moan()}}
+ S.doorAL=clamp(S.doorAL+(S.lockL?dt*7:-dt*7),0,1);
+ S.doorAR=clamp(S.doorAR+(S.lockR?dt*7:-dt*7),0,1);
+ if(S.holdDir&&!S.cams)S.panT=clamp(S.panT+S.holdDir*.25*dt,-PAN_LIMIT,PAN_LIMIT);
+ S.pan+=(S.panT-S.pan)*Math.min(1,dt*10.8);
+ S.vert+=(S.vertT-S.vert)*Math.min(1,dt*10.8);
+ S.camPulse=Math.max(0,S.camPulse-dt*3);
+ if(S.shake>0)S.shake-=dt;
+ if(panoCv&&(S.lockL!==pBake.l||S.lightL!==pBake.ll||S.lockR!==pBake.r||S.lightR!==pBake.rl))bakeOfficePano()}
+/* ============ 监控 ============ */
+function setCams(v,silent){if(!S||S.black)return;if(S.cams===v)return;
+ if(S.staLock>0){AU.blip();return}
+ if(v){
+  if(S.sta<CFG.sta.crit){AU.blip();return}          /* <10% 开不了监控 */
+  if(S.camCd>0){AU.blip();return}
+  if(!silent){S.power=Math.max(0,S.power-CFG.drain.switch);S.sta=Math.max(0,S.sta-CFG.sta.sw)}
+  S.camCd=S.sta<CFG.sta.low?CFG.camCd*2:CFG.camCd}  /* <20% 切换冷却 ×2 */
+ else S.camCd=0;
+ S.cams=v;S.camPulse=1;
+ if(v){if(!silent)AU.camOn();setStatic(true)}
+ else{if(!silent)AU.blip();setStatic(false)}
+ $('camHud').classList.toggle('on',v);
+ $('camStrip').textContent=v?'▼ 收起监控':'▲ 打开监控';
+ $('arL').style.display=$('arR').style.display=v?'':'none'}
+function setRoom(id){if(!S||!S.cams)return;
+ if(S.staLock>0)return;
+ if(S.sta<CFG.sta.crit){AU.blip();return}           /* <10% 不能切 */
+ if(S.camCd>0){AU.blip();return}
+ S.camRoom=id;S.camCd=S.sta<CFG.sta.low?CFG.camCd*2:CFG.camCd;
+ S.camPulse=1;S.power=Math.max(0,S.power-CFG.drain.switch);S.sta=Math.max(0,S.sta-CFG.sta.sw);
+ AU.blip();
+ $('camTitle').textContent=CAMNO[id]+' · '+RN[id];
+ document.querySelectorAll('#map .mb').forEach(function(b){b.classList.toggle('on',b.dataset.r===id)})}
+/* ============ 门控：同键判定 按住≥0.25s=锁，轻点=灯 ============ */
+/* A-35：灯/锁分离——点击切换，无按住判定 */
+function toggleLock(t){if(!S||S.black||scene!=='game'||S.staLock>0)return;
+ S['lock'+t]=S['lock'+t]?0:1;
+ if(S['lock'+t]){S['light'+t]=0;AU.door(1)}          /* 上锁：灯灭+锁音（锁定期间 0.5%/s 由电力结算承担） */
+ else AU.door(0)}                                    /* 解锁：开门音 */
+function pressLight(t){if(!S||S.black||scene!=='game'||S.staLock>0)return;
+ S['light'+t]=1;S['lightT'+t]=1;
+ S.power=Math.max(0,S.power-CFG.drain.light);
+ tone(1200,900,.04,'square',.05)}
+/* ============ 办公室伪 3D v2（140° 全景 · 图像拉伸 ×1.2 · 圆柱投影，用户参考范式） ============ */
+const PANO_H_DEG=140,HFOV_DEG=85,VFOV_DEG=60,PAN_LIMIT_DEG=25,VERT_LIMIT_DEG=5;
+const STRETCH_X=1.2,V_EXTRA_DEG=5;
+const PANO_H_RAD=PANO_H_DEG*Math.PI/180;
+const HFOV=HFOV_DEG*Math.PI/180,VFOV=VFOV_DEG*Math.PI/180;
+const PAN_LIMIT=PAN_LIMIT_DEG/PANO_H_DEG,VERT_LIMIT=VERT_LIMIT_DEG/90;
+const tanH=Math.tan(HFOV/2),tanV=Math.tan(VFOV/2);
+const V_SCALE=.5/tanV*((VFOV_DEG+V_EXTRA_DEG*2)/VFOV_DEG);
+const PW=1024,PH=256;
+const FX=PW/384,FY=PH/216,SX=PW/OW,SY=PH/216;
+const colLon=new Float32Array(W),colDepth=new Float32Array(W);
+for(let px_=0;px_<W;px_++){
+ const nx=(px_/(W-1))*2-1,sx=nx*tanH;
+ colLon[px_]=Math.atan(sx)/PANO_H_RAD/STRETCH_X;
+ colDepth[px_]=1/Math.sqrt(sx*sx+1)}
+const rowRy=new Float32Array(H);
+for(let py_=0;py_<H;py_++){rowRy[py_]=(1-(py_/(H-1))*2)*tanV}
+/* OFFICE：全景图像素坐标（1024×256）单一事实来源——渲染/烘焙/判定共用，全部定死 */
+const OFFICE={
+ board:{x:454,y:115,w:96,h:70},                    /* 白板含框（office.png 284-344,97-156 x1.6, y x1.185） */
+ doorL:{doorX:125,doorW:121,yTop:71,yBot:206,silY:206, /* 左门洞（office 78-154 x1.6, y x1.185） */
+        wash:{dx:-16,dy:-71,dw:32,dh:71},
+        lock:{x:269,y:109,w:32,h:37},light:{x:269,y:148,w:32,h:37}},
+ doorR:{doorX:778,doorW:117,yTop:71,yBot:206,silY:206, /* 右门洞（office 486-559 x1.6, y x1.185） */
+        wash:{dx:-16,dy:-71,dw:32,dh:71},
+        lock:{x:722,y:109,w:32,h:37},light:{x:722,y:148,w:32,h:37}},
+ close:{x:88,y:6,w:208,h:180}};
+let panoCv=null,flatCv=null,flatG=null,panoOK=1,pBake={l:0,ll:0,r:0,rl:0};
+function flatAt(x,y){                     /* 设备 → flat：判定的唯一逆映射（含 colDepth） */
+ x=clamp(x|0,0,W-1);y=clamp(y|0,0,H-1);var cd=colDepth[x];
+ return {px:(.5+S.pan+colLon[x])*PW,
+         py:(.5+(S.vert||0)-((1-2*y/(H-1))*tanV)*V_SCALE*cd)*PH}}
+function flatY(fx,fy){                    /* flat → 设备 y：billboard 锚点（屏外 null） */
+ var x=clamp(Math.round(fx/PW*(W-1)),0,W-1),cd=colDepth[x];
+ var ny=(.5+(S.vert||0)-fy/PH)/(tanV*V_SCALE*cd);
+ return (ny<-1||ny>1)?null:(1-ny)/2*(H-1)}
+function flatX(fx){                       /* flat → 设备 x */
+ var d=fx/PW-(.5+S.pan);
+ var lim=colLon[W-1];
+ if(Math.abs(d)>lim)return null;
+ var nx=Math.tan(d*PANO_H_RAD*STRETCH_X)/tanH;
+ return (nx+1)/2*(W-1)}
+function flatToDev(fx,fy){
+ var x=flatX(fx),y=flatY(fx,fy);
+ if(x==null||y==null)return null;
+ return {x:x,y:y}}
+function closeGrid(){
+ var c=OFFICE.close;
+ var bw=c.w-8, bh=c.h-8, cs=34;
+ return {
+  c:c, bx:c.x+4, by:c.y+4, bw:bw, bh:bh, cs:cs,
+  ox:(c.x+4)+(bw-3*cs)/2, oy:(c.y+4)+(bh-3*cs)/2,
+  src:{x:OFFICE.board.x/SX,y:OFFICE.board.y/SY,w:OFFICE.board.w/SX,h:OFFICE.board.h/SY}}}
+function drawBtnFace(g,x,y,w,h,kind,active){          /* 按钮面（全景分辨率 ×2.67） */
+ g.fillStyle='#141821';g.fillRect(x-2,y-2,w+4,h+4);
+ g.fillStyle=kind==='lock'?(active?'#8a2626':'#262a36'):(active?'#c8b878':'#262a36');
+ g.fillRect(x,y,w,h);
+ g.fillStyle=kind==='lock'?'rgba(255,255,255,.3)':'rgba(255,255,255,.12)';
+ g.fillRect(x,y,w,3);
+ if(kind==='lock'){
+  if(active){
+   g.fillStyle='#c8c8d0';g.fillRect(x+w*.3,y+h*.16,w*.4,h*.1);
+   g.fillStyle='#c8c8d0';g.fillRect(x+w*.3,y+h*.16,w*.12,h*.28);
+   g.fillStyle='#c8c8d0';g.fillRect(x+w*.58,y+h*.16,w*.12,h*.28);
+   g.fillStyle='#e8b83a';g.fillRect(x+w*.2,y+h*.4,w*.6,h*.44);
+   g.fillStyle='#f8d878';g.fillRect(x+w*.22,y+h*.42,w*.56,h*.1);
+   g.fillStyle='#5a3a10';g.fillRect(x+w*.44,y+h*.56,w*.12,h*.2)}
+  else{
+   g.fillStyle='#8a867a';g.fillRect(x+w*.3,y+h*.14,w*.4,h*.1);
+   g.fillStyle='#8a867a';g.fillRect(x+w*.3,y+h*.14,w*.12,h*.26);
+   g.fillStyle='#8a867a';g.fillRect(x+w*.58,y+h*.14,w*.12,h*.26);
+   g.fillStyle='#565a52';g.fillRect(x+w*.2,y+h*.38,w*.6,h*.42);
+   g.fillStyle='#15151d';g.fillRect(x+w*.44,y+h*.52,w*.12,h*.2)}}
+ else{
+  if(active){
+   const lg=g.createRadialGradient(x+w/2,y+h*.42,2,x+w/2,y+h*.42,w);
+   lg.addColorStop(0,'rgba(244,216,144,0.5)');lg.addColorStop(1,'rgba(244,216,144,0)');
+   g.fillStyle=lg;g.fillRect(x-w*.6,y-h*.3,w*2.2,h*1.9);
+   g.fillStyle='#fff8d0';g.fillRect(x+w*.28,y+h*.2,w*.44,h*.4);
+   g.fillStyle='#e8d8a0';g.fillRect(x+w*.34,y+h*.6,w*.32,h*.16);
+   g.fillStyle='#15151d';g.fillRect(x+w*.4,y+h*.76,w*.2,h*.1)}
+  else{
+   g.fillStyle='#6a6a58';g.fillRect(x+w*.28,y+h*.2,w*.44,h*.4);
+   g.fillStyle='#565a52';g.fillRect(x+w*.34,y+h*.6,w*.32,h*.16);
+   g.fillStyle='#15151d';g.fillRect(x+w*.4,y+h*.76,w*.2,h*.1)}}}
+function bakeOfficePano(){                            /* 全景=office.png 拉伸+门旁双钮烘焙（OFFICE 定死坐标） */
+ var st={l:(S&&S.lockL)||0,ll:(S&&S.lightL)||0,r:(S&&S.lockR)||0,rl:(S&&S.lightR)||0};
+ if(panoCv&&st.l===pBake.l&&st.ll===pBake.ll&&st.r===pBake.r&&st.rl===pBake.rl)return;
+ pBake=st;
+ panoCv=mk(PW,PH);const g=panoCv.getContext('2d');
+ if(IMG.office)g.drawImage(IMG.office,0,0,PW,PH);
+ else{g.fillStyle='#101018';g.fillRect(0,0,PW,PH)}
+ drawBtnFace(g,OFFICE.doorL.lock.x,OFFICE.doorL.lock.y,OFFICE.doorL.lock.w,OFFICE.doorL.lock.h,'lock',st.l);
+ drawBtnFace(g,OFFICE.doorL.light.x,OFFICE.doorL.light.y,OFFICE.doorL.light.w,OFFICE.doorL.light.h,'light',st.ll);
+ drawBtnFace(g,OFFICE.doorR.lock.x,OFFICE.doorR.lock.y,OFFICE.doorR.lock.w,OFFICE.doorR.lock.h,'lock',st.r);
+ drawBtnFace(g,OFFICE.doorR.light.x,OFFICE.doorR.light.y,OFFICE.doorR.light.w,OFFICE.doorR.light.h,'light',st.rl);
+ if(!flatCv){flatCv=mk(PW,PH);flatG=flatCv.getContext('2d')}}
+function warpFlat(pan,vert,shX,shY){
+ cx.save();cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#030407';cx.fillRect(0,0,W,H);
+ for(var x=0;x<W;x++){
+  var u=.5+pan+colLon[x]; if(u<0||u>=1)continue;
+  var u2=.5+pan+colLon[Math.min(W-1,x+1)]+((x>=W-1)?(colLon[W-1]-colLon[W-2]):0);
+  var half=tanV*V_SCALE*colDepth[x], v0=vert+.5-half, v1=vert+.5+half;   /* vv at y=0 / y=H-1 */
+  var a=Math.max(0,v0), b=Math.min(1,v1); if(a>=b)continue;
+  var sy=a*PH, sh=(b-a)*PH, dy=(a-v0)*(H-1)/(v1-v0)+shY, dh=(b-a)*(H-1)/(v1-v0);
+  cx.drawImage(flatCv,u*PW,sy,(u2-u)*PW,sh,x+shX,dy,1,dh);
+  if(v0<0&&dy>0)cx.drawImage(flatCv,u*PW,0,(u2-u)*PW,1,x+shX,0,1,dy);            /* 上边缘钳位，无黑带 */
+  var botH=H-(dy+dh);
+  if(v1>1&&botH>0)cx.drawImage(flatCv,u*PW,PH-1,(u2-u)*PW,1,x+shX,dy+dh,1,botH); /* 下边缘钳位 */
+ } cx.restore()}
+function flatView(cvSrc,pan,alpha){
+ if(!cvSrc)return;
+ cx.save();
+ cx.globalAlpha=alpha||1;
+ var sx=(.5+pan)*PW-PW/2;
+ cx.drawImage(cvSrc,sx,0,PW,PH,0,0,384,216);
+ cx.restore()}
+function composeFlat(){
+ if(!flatCv){flatCv=mk(PW,PH);flatG=flatCv.getContext('2d')}
+ flatG.clearRect(0,0,PW,PH);
+ if(panoCv)flatG.drawImage(panoCv,0,0);
+ else{flatG.fillStyle='#101018';flatG.fillRect(0,0,PW,PH)}
+ [['doorL',OFFICE.doorL,'L',S.doorAL,S.lightL],['doorR',OFFICE.doorR,'R',S.doorAR,S.lightR]].forEach(function(D){
+  var DR=D[1],da=D[3],lit=D[4];
+  if(da>0){                                          /* 门板关闭动画（全景坐标） */
+   var dh=Math.round((DR.yBot-DR.yTop)*da);
+   R(flatG,DR.doorX,DR.yTop,DR.doorW,dh,'#23232e');
+   for(var yy=DR.yTop;yy<DR.yTop+dh;yy+=8*FY)R(flatG,DR.doorX,yy,DR.doorW,1,'#191922')}
+  if(lit){
+   var f=Math.random()<.12?.4:1;
+   flatG.fillStyle='rgba(214,206,178,'+(.11*f)+')';
+   flatG.fillRect(DR.doorX,DR.yTop,DR.doorW,DR.yBot-DR.yTop);
+   flatG.fillStyle='rgba(214,206,178,'+(.07*f)+')';
+   flatG.fillRect(DR.doorX+DR.wash.dx,DR.yBot+DR.wash.dy,DR.doorW+DR.wash.dw,DR.wash.dh)}});
+ if(S.board.state)drawBoard(flatG);
+}
+/* ============ 渲染（逻辑坐标 384x216，画布 ×5/6） ============ */
+function renderOffice(){
+ var shX=0,shY=0;
+ if(S.shake>0){shX=(Math.random()*4-2)*S.shake;shY=(Math.random()*3-1.5)*S.shake}
+ var rPan=S.pan+(S.shake>0?(Math.random()-.5)*.005*S.shake*4:0);
+ var rVert=(S.vert||0)+(S.shake>0?(Math.random()-.5)*.004*S.shake*4:0);
+ if(S.black){cx.fillStyle='#020203';cx.fillRect(0,0,384,216);
+  if(panoCv)flatView(panoCv,rPan,.05);
+  if(Math.random()<.05)drawFaceS(cx,'freddy',192,102,2.2);
+  drawNoise(.04);return}
+ if(S.close){renderBoardClose();renderFxLayers();return}   /* F/点白板近看 */
+ if(!panoCv)bakeOfficePano();
+ composeFlat();
+ if(panoOK)warpFlat(rPan,rVert,shX,shY);
+ else flatView(flatCv,rPan,1);
+ /* 屏幕空间 billboard（剪影/笑脸/NFX.boardNoise）在 setTransform(SQ) 之后绘制 */
+ [['doorL',OFFICE.doorL,'L',S.doorAL,S.lightL],['doorR',OFFICE.doorR,'R',S.doorAR,S.lightR]].forEach(function(D){
+  var DR=D[1],side=D[2],lit=D[4];
+  var pos=flatToDev(DR.doorX+DR.doorW/2,DR.silY);
+  if(pos!=null){
+   var lx=pos.x/SQ, ly=pos.y/SQ;
+   if(lit){
+    var sl=edgeSlot('door'+side);
+    if(sl)drawSlot(cx,sl.nm,lx,ly,2.6);
+   }else{
+    for(var k in S.slots){var sp_=S.slots[k],l=sp_.path[sp_.idx];
+     if(!sp_.active)continue;
+     if(l==='door'+side&&Math.random()<.05){
+      cx.globalAlpha=.2;
+      drawSlot(cx,sp_.nm,lx,ly,2.6);
+      cx.globalAlpha=1}}
+   }}});
+ if(CFG.board.smiley&&!S.board.state){
+  var smT=CFG.board.at-4;
+  if(S.time>=smT&&S.time<CFG.board.at){
+   var sp2=clamp((S.time-smT)/4,0,1);
+   var sm=flatToDev(OFFICE.board.x+OFFICE.board.w/2,OFFICE.board.y+OFFICE.board.h/2);
+   if(sm!=null){
+    var sx=sm.x/SQ,sy2=sm.y/SQ;
+    if(window.NFX&&NFX.smiley)NFX.smiley(cx,sx,sy2,sp2);
+    if(CUR===7){
+     var sw_=Math.floor(sp2*10);
+     for(var swI=0;swI<sw_;swI++){cx.fillStyle='rgba(226,232,240,'+(.25+Math.random()*.55)+')';
+      cx.fillRect(sx-20+rnd(40),sy2-20+rnd(44),2+rnd(10),1+rnd(2))}}
+    if(sp2>.78&&CFG.board.preFaint){cx.globalAlpha=(sp2-.78)/.22*.6;
+     cx.fillStyle='#8a9098';cx.font='italic 8px "Fusion Pixel","KaiTi",serif';cx.textAlign='center';
+     cx.fillText(String(CFG.board.preFaint),sx,sy2-26);cx.textAlign='left';cx.globalAlpha=1}}}}
+ if(S.board.state===1&&CFG.board.noiseFx&&window.NFX&&NFX.boardNoise)NFX.boardNoise(cx,S.time);
+ renderFxLayers();
+ if(S.staLock>0){cx.fillStyle='rgba(0,0,0,.72)';cx.fillRect(0,0,384,216)}
+ var n=.025;if(S.sta<30)n=.06;if(S.sta<15)n=.12;if(S.staLock>0)n=.4;
+ drawNoise(n)}
+/* 白板近看（A14/A21 基础）：残影层逐夜叠加 + 对局/留言/回写大板 */
+function renderBoardClose(){var b=S.board;
+ cx.fillStyle='#000';cx.fillRect(0,0,384,216);
+ /* 用户指令：近看=直接放大背景图上的白板本体（closeGrid 与远景同源） */
+ var cg=closeGrid(),c=cg.c;
+ if(IMG.office)cx.drawImage(IMG.office,cg.src.x,cg.src.y,cg.src.w,cg.src.h,c.x,c.y,c.w,c.h);
+ var bx=cg.bx,by=cg.by,bw=cg.bw,bh=cg.bh;
+ cx.save();cx.beginPath();cx.rect(bx,by,bw,bh);cx.clip();
+ /* 残影层（A14）：NFX.ghostLayer 优先，缺失时引擎兜底淡字 */
+ cx.translate(bx+8,by+8);
+ var gop=(N.board&&N.board.ghostOpacity)||0;
+ var ghosts=SAVE.ghosts.map(function(g){return g.t});
+ if(window.NFX&&NFX.ghostLayer)NFX.ghostLayer(cx,{ghostOpacity:gop,ghosts:ghosts});
+ else if(gop>0&&ghosts.length){cx.globalAlpha=Math.min(.08,gop);
+  cx.fillStyle='#3a3a44';cx.font='9px "Courier New",monospace';
+  ghosts.forEach(function(t,i){cx.fillText(String(t),2+(i%2)*6,8+i*11)});cx.globalAlpha=1}
+ cx.restore();
+ cx.save();cx.beginPath();cx.rect(bx,by,bw,bh);cx.clip();
+ if(S.board.state===1&&CFG.board.noiseFx&&window.NFX&&NFX.boardNoise)NFX.boardNoise(cx,S.time);
+ if(b.state===1){                                   /* 对局面：大格 */
+  var cs=34,ox=bx+(bw-3*cs)/2,oy=by+(bh-3*cs)/2;
+  cx.strokeStyle='#5a5a64';cx.lineWidth=2;
+  for(var i=1;i<3;i++){cx.beginPath();cx.moveTo(ox+i*cs,oy+4);cx.lineTo(ox+i*cs,oy+3*cs-4);cx.stroke();
+   cx.beginPath();cx.moveTo(ox+4,oy+i*cs);cx.lineTo(ox+3*cs-4,oy+i*cs);cx.stroke()}
+  b.cells.forEach(function(c,i){
+   if(!c)return;var gx=ox+(i%3)*cs,gy=oy+((i/3)|0)*cs;
+   if(c===1){cx.strokeStyle='#2848a8';cx.lineWidth=3;
+    cx.beginPath();cx.moveTo(gx+7,gy+7);cx.lineTo(gx+cs-7,gy+cs-7);cx.stroke();
+    cx.beginPath();cx.moveTo(gx+cs-7,gy+7);cx.lineTo(gx+7,gy+cs-7);cx.stroke()}
+   if(c===2){cx.strokeStyle='#a82828';cx.lineWidth=3;
+    cx.strokeRect(gx+8,gy+8,cs-16,cs-16)}});
+  cx.lineWidth=1;
+  if(b.turn==='you'){cx.fillStyle=b.moveT<=3?'#c02828':'#4a5a3a';
+   cx.font='bold 10px "Fusion Pixel",monospace';cx.textAlign='center';
+   cx.fillText(Math.ceil(Math.max(0,b.moveT)),bx+bw/2,by+bh-6);cx.textAlign='left'}}
+ else if(b.state===3){                              /* message 模式：她的字迹浮现 */
+  cx.globalAlpha=clamp(b.msgT/2,0,1)*.9;
+  cx.fillStyle='#7a4040';cx.font='italic 16px "Fusion Pixel","KaiTi","STKaiti",serif';cx.textAlign='center';
+  cx.fillText(String(CFG.board.message||''),bx+bw/2,by+bh/2);
+  cx.textAlign='left';cx.globalAlpha=1}
+ else if(b.state===2&&b.result==='draw'){           /* 挂起演出：格子消退 → 留言 → 回写 */
+  var cellA=b.phase===0?clamp(1-b.msgT/3,0,1):0;
+  if(cellA>0){var cs2=34,ox2=bx+(bw-3*cs2)/2,oy2=by+(bh-3*cs2)/2;
+   cx.globalAlpha=cellA*.9;
+   b.cells.forEach(function(c,i){
+    if(!c)return;var gx=ox2+(i%3)*cs2,gy=oy2+((i/3)|0)*cs2;
+    if(c===1){R(cx,gx+6,gy+6,cs2-12,4,'#2848a8');R(cx,gx+6,gy+cs2-10,cs2-12,4,'#2848a8');
+     R(cx,gx+6,gy+6,4,cs2-12,'#2848a8');R(cx,gx+cs2-10,gy+6,4,cs2-12,'#2848a8')}
+    if(c===2){R(cx,gx+8,gy+8,cs2-16,4,'#a82828');R(cx,gx+8,gy+cs2-12,cs2-16,4,'#a82828');
+     R(cx,gx+8,gy+8,4,cs2-12,'#a82828');R(cx,gx+cs2-12,gy+8,4,cs2-12,'#a82828')}});
+   cx.globalAlpha=1}
+  if(b.phase>=1){cx.globalAlpha=clamp(b.msgT/1.2,0,1)*.92;
+   cx.fillStyle='#7a4040';cx.font='italic 15px "Fusion Pixel","KaiTi","STKaiti",serif';cx.textAlign='center';
+   cx.fillText(String(CFG.board.message||''),bx+bw/2,by+bh/2-6);
+   if(b.phase>=2){cx.fillStyle='#2848a8';
+    cx.fillText(String(CFG.board.autoReply||''),bx+bw/2,by+bh/2+18)}
+   cx.textAlign='left';cx.globalAlpha=1}}
+ cx.restore();
+ }
+/* 公共演出层（A11）：梦境碎影覆盖 + 中屏故障字幕（非阻塞不吞输入） */
+function renderFxLayers(){
+ if(S.dreamEv){
+  if(window.NFX&&NFX.dream)NFX.dream(cx,S.dreamEv.t);
+  else{cx.fillStyle='rgba(0,0,0,.82)';cx.fillRect(0,0,384,216)}}
+ if(S.cam9Ev&&S.cams&&S.camRoom==='corrB'){
+  if(window.NFX&&NFX.cam9)NFX.cam9(cx,S.cam9Ev.type,S.cam9Ev.t,S.cam9Ev.t/S.cam9Ev.dur)}
+ if(S.capText&&window.NFX&&NFX.glitchCaption)NFX.glitchCaption(cx,S.capText,4-S.capT)}
+function edgeSlot(side){for(var k in S.slots){var s=S.slots[k];
+ if(s.active&&s.path[s.idx]===side)return s}return null}
+function squiggle(g,x,y,w,color,alpha){              /* A-43：波浪笔触（可分笔迹、不辨字） */
+ if(alpha<=0)return;
+ g.strokeStyle=color;g.globalAlpha=alpha;g.lineWidth=1.5;
+ g.beginPath();
+ for(var i=0;i<=w;i+=4){var yy=y+Math.sin(i*.8)*2;(i?g.lineTo:g.moveTo).call(g,x+i,yy)}
+ g.stroke();g.globalAlpha=1;g.lineWidth=1}
+function drawBoard(g){var b=S.board;
+ if(!b.state)return;
+ var br=OFFICE.board,x=br.x,y=br.y,w=br.w,h=br.h,cw=w/3,ch=h/3;
+ R(g,x-3,y-3,w+6,h+6,b.state===1?'#2c2c34':'#26262e');
+ R(g,x-1,y-1,w+2,h+2,'#c8c8cc');
+ if(b.state===3){                                   /* 夜2：字迹浮现=棕红波浪线 */
+  var a3=clamp(b.msgT/2,0,1)*.8;
+  squiggle(g,x+cw*.3,y+ch*.4,w*.5,'#7a4040',a3);
+  squiggle(g,x+cw*.3,y+ch*.7,w*.4,'#7a4040',a3*.7);return}
+ var cellA=1;
+ if(b.state===2&&b.result==='draw')cellA=b.phase===0?clamp(1-b.msgT/3,0,1):0;
+ if(cellA>0&&b.state===1){                          /* 批次3 A-44①：淡井字格线两横两竖（不画双斜线） */
+  g.strokeStyle='rgba(70,74,84,.75)';g.lineWidth=1.5;
+  g.beginPath();
+  for(var i=1;i<3;i++){
+   g.moveTo(x+i*cw,y+4);g.lineTo(x+i*cw,y+h-4);
+   g.moveTo(x+4,y+i*ch);g.lineTo(x+w-4,y+i*ch);
+  }
+  g.stroke();g.lineWidth=1}
+ if(b.state===2&&b.result==='draw'&&b.phase>=1){    /* 挂起：棕红/蓝波浪笔触 */
+  var a2=clamp(b.msgT/1.2,0,1);
+  squiggle(g,x+w*.14,y+h*.3,w*.6,'#7a4040',a2*.85);
+  squiggle(g,x+w*.2,y+h*.55,w*.5,'#7a4040',a2*.65);
+  if(b.phase>=2)squiggle(g,x+w*.26,y+h*.78,w*.4,'#2848a8',a2*.85)}}
+function renderCams(){var rm=S.camRoom;
+ if(camStaticOn(rm)){renderCamStatic();return}          /* A-27：camStatic 房间整屏纯雪花，抑制场景本体 */
+ var bg=rm;                                             /* v1.9b：大厅双态——点歌机在播=亮灯图，其余（未开播/停机/归零警告）=熄灯图 */
+ if(rm==='hall'&&S.juke.started&&!S.juke.dead&&S.juke.left>0)bg='hall_on';
+ /* FNAF 式镜头：放大 1.14 + 极缓慢晃动（每房间相位不同） */
+ var ph=CAMORDER.indexOf(rm)*1.7;
+ var swx=Math.sin(frame*.006+ph)*5,swy=Math.cos(frame*.0043+ph)*3;
+ var zm=1.14;
+ cx.save();
+ cx.translate(192+swx,108+swy);cx.scale(zm,zm);cx.translate(-192,-108);
+ if(IMG[bg])cx.drawImage(IMG[bg],0,0,384,216);
+ var here=[];
+ for(var k in S.slots){var s=S.slots[k];
+  if(s.active&&s.path[s.idx]===rm)here.push(s)}
+ here.forEach(function(s,i){var p=SLOTPOS[rm][i]||SLOTPOS[rm][0];
+  if(s.sprintOn&&s.sprint&&rm==='corrB'){
+   drawSlot(cx,s.nm,200,160,2.3);
+   cx.fillStyle='rgba(255,255,255,.14)';
+   cx.fillRect(150,100,30,1);cx.fillRect(160,120,40,1);cx.fillRect(150,140,26,1);return}
+  drawSlot(cx,s.nm,p[0],p[1],p[2])});
+  /* A-46：CAM1 点歌机常驻计时器与 EQ 条已移除，信息唯一出口=底部 ♪ 条 */
+ if(rm==='hall'&&S.juke.warn>0){
+  cx.fillStyle='rgba(120,10,10,.28)';cx.fillRect(0,0,384,216);
+  cx.fillStyle='#ff5050';cx.font='bold 12px "Fusion Pixel",monospace';
+  cx.fillText('续播 '+Math.ceil(S.juke.warn),170,110);
+  for(var i3=0;i3<10;i3++)cx.fillRect(rnd(384),rnd(216),2,2)}
+ /* 监控开着时：白板角落可见（局面+倒计时）但点不了 */
+ if(S.board.state===1){
+  var bx=344,by=8,cs=11;
+  R(cx,bx-4,by-4,3*cs+8,3*cs+8,'rgba(20,20,28,.9)');
+  R(cx,bx-3,by-3,3*cs+6,3*cs+6,'#c8c8cc');
+  for(var j=1;j<3;j++){R(cx,bx+j*cs-1,by,1,3*cs,'#5a5a64');R(cx,bx,by+j*cs-1,3*cs,1,'#5a5a64')}}
+ cx.restore();
+ cx.drawImage(SCAN,0,0,384,216);
+ cx.fillStyle='rgba(255,255,255,.03)';cx.fillRect(0,(frame*1.3)%216,384,2);
+ var n=.07+S.camPulse*.85;
+ if(S.sta<20)n+=.08;
+ renderFxLayers();                                  /* CAM9 残影 / 故障字幕（corrB 冻结在 NFX.cam9 内叠加） */
+ if(S.camFxRooms&&S.camFxRooms[rm]){                /* 全夜相机特效（夜7 CAM7 雪花）：A 占用总线的副作用 */
+  n+=.18;
+  for(var i4=0;i4<12;i4++){cx.fillStyle='rgba(255,255,255,'+(.15+Math.random()*.45)+')';
+   cx.fillRect(rnd(384),rnd(216),rnd(3)+1,1)}}
+ drawNoise(n)}
+/* 失败文案分级（v1.8）：夜1-5 玩家尚未知晓「系统」真相 → 通用 GAME OVER 演出，
+   禁止出现评估/回收/TRAINER-00 等暴露虚拟属性的文字；夜6-7 剧情揭示后保留回收演出。 */
+function softFail(){return CUR<=5}
+function renderJump(){var rc=S.recycle;
+ cx.fillStyle='#000';cx.fillRect(0,0,384,216);
+ if(!rc){drawNoise(.2);return}
+ if(rc.t<.5){                                       /* 段1：剪影扑近 */
+  if(rc.wb||rc.tp==='golden'){
+   R(cx,120,28,156,164,'#140406');
+   for(var i=0;i<3;i++)for(var k=0;k<3;k++)R(cx,126+k*46,40+i*46,42,42,'#8a1818');
+  }else drawFaceS(cx,rc.tp,192+(Math.random()*18-9),110+(Math.random()*16-8),7.4+rc.t*3);
+  drawNoise(.22);return}
+ if(rc.t<2.6){                                      /* 段2：soft=信号噪点静默；系统夜=接管删除条 */
+  if(softFail()){
+   drawNoise(.18);
+   if((((rc.t*5)|0)%2)===0){cx.fillStyle='rgba(190,194,200,.4)';cx.font='9px "Courier New",monospace';
+    cx.textAlign='center';cx.fillText('· · ·',192,112);cx.textAlign='left'}
+   return}
+  cx.fillStyle='#c8d4dc';cx.font='9px "Courier New",monospace';cx.textAlign='center';
+  cx.fillText('异常进程定位 TRAINER-00 · 开始回收',192,74);
+  cx.textAlign='left';
+  R(cx,112,96,160,10,'#101418');
+  var pr=clamp((rc.t-.5)/2,0,1);
+  R(cx,112,96,160*pr,10,'#b03a3a');
+  R(cx,112,96,160,1,'#3a4a52');R(cx,112,105,160,1,'#3a4a52');
+  cx.fillStyle='#8a9aa8';cx.font='8px "Fusion Pixel",monospace';
+  cx.fillText(Math.floor(pr*100)+'%',262,104);
+  cx.fillStyle='#5a6a72';cx.font='7px "Fusion Pixel",monospace';
+  cx.fillText('残留数据自检中……',140,124);
+  drawNoise(.1);return}
+ var fade=clamp((rc.t-2.6)/1,0,1);                  /* 段3：黑屏推进（结束标题唯一出口=#ovOver 浮层，A-33） */
+ cx.fillStyle='rgba(216,216,220,'+(fade*.35)+')';
+ cx.fillRect(0,0,384,216);
+ drawNoise(.05)}
+/* 结算遮罩统一按 softFail 分级措辞（主循环与无头冒烟共用口径） */
+function paintOver(tag,msg){
+ $('goT').textContent=softFail()?'GAME OVER':'本夜评估未通过';
+ $('goRetry').textContent=softFail()?'再来一夜':'重新聚合';
+ $('goTag').textContent=softFail()?'':'回收标签：'+tag;
+ $('goS').innerHTML=msg}
+function renderOver(){cx.fillStyle='#000';cx.fillRect(0,0,384,216);drawNoise(.08);
+ if(frame%90===0)goF=6;
+ if(goF>0){goF--;drawFaceS(cx,'freddy',300,120,1.6)}}
+function renderMenu(){cx.fillStyle='#000';cx.fillRect(0,0,384,216);
+ mFlashT-=DT;if(mFlashT<=0){mFlashT=2.5+Math.random()*4;menuFlash=.16;
+  if(Math.random()<.5&&AU.ctx)AU.whis()}
+ if(menuFlash>0){menuFlash-=DT;cx.globalAlpha=.55;drawFaceS(cx,'golden',286,110,2.6);cx.globalAlpha=1}
+ drawNoise(.05)}
+/* ============ HUD ============ */
+function updateHud(){if(!S)return;
+ $('tTime').textContent=(S.hour===0?12:S.hour)+' AM';
+ $('tNight').textContent='夜 '+CUR+' · '+fmtClock(S.time);
+ var pp=Math.ceil(Math.max(0,S.power));
+ $('powPct').textContent=pp+'%';
+ $('powPct').style.color=pp<10?'#e05050':pp<30?'#d8c060':'#fff';
+ var sp=Math.ceil(S.sta);
+ $('staPct').textContent=S.staLock>0?'锁定':(sp<10?'低!':sp+'%');
+ $('staPct').style.color=S.staLock>0?'#e0a0a0':(sp<10?'#e05050':'#fff');
+ var usage=1+(S.cams?1:0)+(S.lockL?1:0)+(S.lockR?1:0);
+ var bars=$('usage').children;
+ for(var i=0;i<bars.length;i++)bars[i].className=i<usage?'on':'';
+ $('camStrip').style.display=S.black?'none':'';
+  var dot=$('alertDot'),j=S.juke;
+  dot.className=(j.started&&!j.dead&&(j.warn>0||(!j.muted&&j.batt<8)))?'fast':'';
+  document.querySelectorAll('#map .mb').forEach(function(b){
+   b.classList.toggle('alert',b.dataset.r==='hall'&&!S.black&&j.started&&!j.dead&&(j.warn>0||j.batt<8))});
+  $('camSub').textContent='';
+  if(S.cams){var held=0;
+   for(var k in S.slots){if(stareEffective(S.slots[k]))held++}
+   if(held)$('camSub').textContent='● 遏制中 ×'+held}
+  var jh=$('jukeHud');
+  if(!S.black&&j.started&&!j.dead){                   /* 电量条常显（办公室也能看到发条余量） */
+   if(j.muted){jh.className='on warn pe';
+    jh.textContent='⚠ 没电了！【空格】续上 — '+Math.ceil(j.warn)}
+   else{jh.className='on pe'+(j.batt<8?' warn':'');
+    jh.textContent='♪ '+songName(j.track)+' — 电量 '+Math.ceil(j.batt)+'s（空格续 30s）'}}
+  else jh.className='pe';
+  var bl=$('blackHud');
+  if(S.black){bl.textContent=Math.max(0,Math.ceil(S.blackT));bl.className='on'}
+  else bl.className='';
+  var anySprint=false;
+  for(var ksp in S.slots){if(S.slots[ksp].sprint){anySprint=true;break}}
+  var warnRed=(j.warn>0||anySprint)&&!S.black;   /* A-41：停机冲刺=门缘红提示 */
+  var warnWhite=S.board.state===1&&S.board.turn==='you'&&S.board.moveT<=3.5&&!S.black;
+  $('edgeFx').className=warnRed?'red':(warnWhite?'white':'');
+  var db=$('dbg');
+  if(S.god){db.classList.add('on');
+   var lines='GOD VIEW  '+Math.floor(S.time)+'s';
+   for(var k2 in S.slots){var s3=S.slots[k2],loc=s3.path[s3.idx];
+    lines+='\n'+s3.nm+' '+(s3.moved?(loc.indexOf('door')===0?(loc==='doorL'?'左门!':'右门!'):CAMNO[loc]+' '+RN[loc]):'待机('+(s3.moveAt/N.hourLen)+'h '+CAMNO[loc]+')')+
+     (s3.moved?' doorT:'+Math.max(0,s3.doorT).toFixed(1):'')}
+   lines+='\nJuke '+(j.dead?'已停机':j.warn>0?'窗口 '+j.warn.toFixed(1):(j.started?'电量 '+Math.ceil(j.batt)+'s':'未开播'))+
+    '  Board '+(S.board.state===1?(S.board.turn==='you'?'你的回合 '+Math.max(0,S.board.moveT).toFixed(1):'敌方思考'):(S.board.state===2?S.board.result:S.board.state===3?'message':'not shown'))+
+    '\nREEVAL '+(S.reeval?'进行中':'-')+'  POST '+(S.postAt!=null?fmtClock(S.postAt):'-')+
+    '  事件 '+S.events.filter(function(e){return e.fired}).length+'/'+S.events.length+
+    '  LOG '+((SAVE.sysArch[CUR]||[]).length)+'  答录机 '+(S.answ.on?(S.answ.phase||'播放中'):'-')+
+    (S.cam9Ev?'\nCAM9 '+S.cam9Ev.type+' '+S.cam9Ev.t.toFixed(1)+'s':'')+(S.dreamEv?'\nDREAM '+S.dreamEv.t.toFixed(1)+'s':'')+
+    (S.capText?'\nCAPTION '+S.capText.slice(0,12):'');
+   db.textContent=lines}
+  else db.classList.remove('on')}
+/* ============ 菜单 ============ */
+function buildMenu(){var box=$('mNights');box.innerHTML='';
+ for(var n=1;n<=7;n++)(function(n){
+  var b=document.createElement('button');
+  b.className='mbtn nbtn'+(n>SAVE.unlockedNight?' lock':'');
+  b.textContent=n>SAVE.unlockedNight?('夜 '+n+' ·🔒'):('夜 '+n);
+  if(n<=SAVE.unlockedNight)b.addEventListener('click',function(e){e.stopPropagation();startNight(n)});
+  box.appendChild(b)})(n)}
+function buildLog(){var el=$('logList');
+ var hasDiy=SAVE.diaryHeard.length>0,hasSys=Object.keys(SAVE.sysArch).length>0;
+ if(!hasDiy&&!hasSys){el.innerHTML='<div class="arow">暂无记录。<br>深夜 00:00 的录音机留言会归档在这里，可随时重播；<br>夜里听到的系统声响（SYS 日志）推送后也会收录在下方。</div>';return}
+ var h='';
+ if(hasDiy){h+='<div class="arow" style="margin-bottom:6px">—— 训练日记 · 点击重播 ——</div>';
+  SAVE.diaryHeard.forEach(function(id){h+='<button class="mbtn mini logItem" data-id="'+id+'">▸ '+id+'</button>'})}
+ if(hasSys){h+='<div class="arow" style="margin:10px 0 6px">—— SYS 日志 · 点击阅读 ——</div>';
+  Object.keys(SAVE.sysArch).map(Number).sort(function(a,b){return a-b}).forEach(function(n){
+   h+='<button class="mbtn mini sysItem" data-n="'+n+'">▸ 夜 '+n+'（'+SAVE.sysArch[n].length+' 条）</button>'})}
+ el.innerHTML=h;
+ el.querySelectorAll('.logItem').forEach(function(b){b.addEventListener('click',function(){openDiary(b.dataset.id)})});
+ el.querySelectorAll('.sysItem').forEach(function(b){b.addEventListener('click',function(){openSysArch(+b.dataset.n)})})}
+/* SYS 日志按夜阅读（游戏内面板移除后，记录页是唯一入口） */
+function openSysArch(n){var el=$('logList');var arr=SAVE.sysArch[n]||[];
+ var h='<div class="arow" style="margin-bottom:6px">—— SYS 日志 · 夜 '+n+' ——</div>';
+ arr.forEach(function(e){h+='<div class="lgAt">'+(e.t||'')+'</div><div class="lgSys">'+e.sys+'</div>';
+  if(e.note)h+='<div class="lgNote">'+e.note+'</div>'});
+ if(!arr.length)h+='<div class="arow">该夜没有已归档的 SYS 日志。</div>';
+ h+='<div class="btnrow" style="margin-top:10px"><button class="mbtn mini" id="sysBack">返回列表</button></div>';
+ el.innerHTML=h;
+ if(AU.ctx)AU.pushSoft();
+ $('sysBack').addEventListener('click',buildLog)}
+function openDiary(id){var el=$('logList');
+ var wb=(META&&META.wbTrashName)||'[损坏] ▓▓1095▓▓';
+ var text=null,isCr=false;
+ (window.NIGHTS||[]).forEach(function(n){
+  if(n.diary&&n.diary.id===id)text=n.diary.text;
+  if(n.diary&&id===wb&&n.diary.corrupt){text=Array.isArray(n.diary.corrupt)?n.diary.corrupt.join('\n'):String(n.diary.corrupt);isCr=true}});
+ var back='<div class="btnrow" style="margin-top:10px"><button class="mbtn mini" id="logBack2">返回列表</button></div>';
+ if(text==null){el.innerHTML='<div class="arow">['+id+'] 音频残损，文本缺失。</div>'+back}
+ else{el.innerHTML='<div class="arow got" style="white-space:pre-wrap;line-height:2.2'+(isCr?';font-family:\'Courier New\',monospace;color:#8a9aa8':'')+'">'+text+'</div>'+back;
+  if(AU.ctx)AU.tape()}
+ $('logBack2').addEventListener('click',buildLog)}
+function buildArch(){var el=$('archList');
+ var arch=(META&&META.archives)||{};
+ var fallback={A:'档案 A · 值班记录',B:'档案 B · 玩偶维护单',C:'档案 C · 旧食堂菜单',D:'档案 D · 更衣室日志',final:'最终档案 · 胜者舞台曲目单'};
+ var h='';
+ ['A','B','C','D','final'].forEach(function(k){
+  var info=arch[k]||{};
+  var title=info.title||fallback[k];
+  var got=!!SAVE.archFlags[k];
+  h+='<div class="arow'+(got?' got':'')+'">'+title+' —— '+(got?'已解锁':'未解锁')+'</div>';
+  if(got&&info.text)h+='<div class="arow got" style="opacity:.82;white-space:pre-wrap;line-height:1.9;font-size:.85em;padding-left:6%">'+info.text+'</div>';
+  else if(!got&&info.unlock)h+='<div class="arow" style="opacity:.6;font-size:.8em;padding-left:6%">解锁条件：'+info.unlock+'</div>'});
+ el.innerHTML=h}
+/* ============ 输入 ============ */
+function bindBtn(id,fn){$(id).addEventListener('click',function(e){e.stopPropagation();fn()})}
+function toMenu(){S=null;hud.classList.remove('on');setStatic(false);
+ $('teBox').classList.remove('on');$('teRun').classList.remove('on');$('credits').classList.remove('on');
+ buildMenu();showScene('menu')}
+function updateHow(){
+ var c=CFG||(function(){N=resolveNight(CUR||3);return buildRT()})();
+ var s=c.sta;
+ var el=$('howSta');
+ if(el&&s)el.innerHTML='监控对准所在房间约 1 秒可冻结它（盯视 −'+s.stare+'%/s）；开监控 +'+s.recOpen+'%/s、收监控 +'+s.recClosed+'%/s、切台 −'+s.sw+'%。<br>'+
+  '&lt;'+s.low+'% 盯视失效且切台冷却翻倍，&lt;'+s.crit+'% 开不了监控；归零僵直 '+s.lockT+' 秒后回到 '+s.back+'%（锁门期间门锁维持）。';
+}
+bindBtn('mHow',function(){updateHow();showScene('how')});
+/* 测试用全解锁：点击解锁夜1-7；Shift+点击=重置存档（便于门控/结局回归测试） */
+$('mUnlock').addEventListener('click',function(e){
+ e.stopPropagation();
+ if(e.shiftKey){SAVE=defSave();writeSave()}
+ else{SAVE.unlockedNight=7;writeSave()}
+ buildMenu()});
+bindBtn('mLog',function(){buildLog();showScene('log')});
+bindBtn('mArch',function(){buildArch();showScene('arch')});
+bindBtn('howBack',function(){showScene('menu')});
+bindBtn('logBack',function(){showScene('menu')});
+bindBtn('archBack',function(){showScene('menu')});
+bindBtn('dnRetry',function(){startNight(CUR)});
+bindBtn('dnMenu',toMenu);
+bindBtn('goMenu',toMenu);
+bindBtn('goRetry',function(){startNight(CUR,1)});
+/* 用户决策：点击（含面板/空白处）不再跳过答录机——中断仅 R 键 */
+OV.intro.addEventListener('click',enterGame);
+function buildMap(){var m=$('map');m.innerHTML='';
+ MAPLAY.forEach(function(A){var id=A[0],x=A[1],y=A[2],w=A[3],h=A[4];
+  var b=document.createElement('div');
+  b.className='mb pe';b.dataset.r=id;b.textContent=CAMNO[id].slice(3);
+  b.style.cssText='left:'+x+'%;top:'+y+'%;width:'+w+'%;height:'+h+'%';
+  b.addEventListener('click',function(e){e.stopPropagation();
+   if(scene==='game'&&S&&!S.black&&S.cams)setRoom(id)});
+  m.appendChild(b)});
+ var you=document.createElement('div');you.className='you';you.textContent='训练员室';
+ you.style.cssText='left:41%;top:44%;width:18%;height:15%';m.appendChild(you)}
+var drag=null;
+stage.addEventListener('pointerdown',function(e){
+ if(scene!=='game'||!S)return;
+ if(e.target.closest('.ovl')||e.target.closest('.pe'))return;
+ if(S.black)return;
+ var r=cv.getBoundingClientRect();
+ var px=(e.clientX-r.left)/r.width*W,py=(e.clientY-r.top)/r.height*H;
+  if(S.cams)return;                                  /* 监控态：禁止办公室判定，不通过点画面收起（保留 ESC/C/camStrip） */
+  if(S.close){                                       /* 近看：大板落子；板外退出 */
+   var cg=closeGrid(),wx=px/SQ,wy=py/SQ;
+   if(S.board.state===1&&wx>=cg.ox&&wx<=cg.ox+3*cg.cs&&wy>=cg.oy&&wy<=cg.oy+3*cg.cs){
+    var col=clamp(((wx-cg.ox)/cg.cs)|0,0,2),row=clamp(((wy-cg.oy)/cg.cs)|0,0,2);
+    placeCell(row*3+col)}
+   else S.close=0;
+   return}
+  var fp=flatAt(px,py),
+      hitR=function(r){return fp.px>=r.x&&fp.px<=r.x+r.w&&fp.py>=r.y&&fp.py<=r.y+r.h};   /* 判定=与渲染同一张 OFFICE 表（flatAt 严格互逆） */
+  if(hitR(OFFICE.board)){S.close=1;return}            /* 点白板=近看（开局可开） */
+  if(hitR(OFFICE.doorL.lock)){toggleLock('L');return}
+  if(hitR(OFFICE.doorL.light)){pressLight('L');return}
+  if(hitR(OFFICE.doorR.lock)){toggleLock('R');return}
+  if(hitR(OFFICE.doorR.light)){pressLight('R');return}
+ if(e.pointerType==='mouse'){return}  /* 鼠标=跟随视角（无需拖拽） */
+ drag={sx:e.clientX,sy:e.clientY,sp:S.panT,sv:S.vertT,id:e.pointerId};stage.classList.add('drag')});
+addEventListener('pointermove',function(e){
+ if(S&&scene==='game'&&!S.cams&&!S.close&&!S.black&&e.pointerType==='mouse'&&!drag){
+  var r=cv.getBoundingClientRect();                    /* 鼠标跟随视角（参考范式） */
+  var q={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};
+  S.panT=clamp((q.x-.5)*2*PAN_LIMIT,-PAN_LIMIT,PAN_LIMIT);
+  S.vertT=clamp((q.y-.5)*2*VERT_LIMIT,-VERT_LIMIT,VERT_LIMIT);
+  return}
+ if(!drag||e.pointerId!==drag.id||!S)return;
+ var r=cv.getBoundingClientRect();
+ S.panT=clamp(drag.sp-(e.clientX-drag.sx)*.0009,-PAN_LIMIT,PAN_LIMIT);
+ S.vertT=clamp(drag.sv+(e.clientY-drag.sy)*.0002,-VERT_LIMIT,VERT_LIMIT)});
+function endDrag(e){if(!drag||e.pointerId!==drag.id)return;
+ drag=null;stage.classList.remove('drag')}
+addEventListener('pointerup',endDrag);
+addEventListener('pointercancel',endDrag);
+$('camStrip').addEventListener('click',function(e){if(scene==='game'&&S&&!S.black)setCams(!S.cams)});
+/* 触控/鼠标扩展：点击♪提示条=续发条（等效空格） */
+$('jukeHud').addEventListener('click',function(e){e.stopPropagation();
+ if(scene==='game'&&S)renewJuke()});
+
+$('arL').addEventListener('click',function(e){e.stopPropagation();
+ if(scene==='game'&&S&&S.cams){var i=CAMORDER.indexOf(S.camRoom);
+  setRoom(CAMORDER[(i+CAMORDER.length-1)%CAMORDER.length])}});
+$('arR').addEventListener('click',function(e){e.stopPropagation();
+ if(scene==='game'&&S&&S.cams){var i=CAMORDER.indexOf(S.camRoom);
+  setRoom(CAMORDER[(i+1)%CAMORDER.length])}});
+addEventListener('keydown',function(e){
+ if(e.key==='F1'||e.key==='F2'||e.key==='F3'||e.key==='F4'||e.key==='F5'||e.key==='F6'||e.key==='F7'||e.key==='F8'||e.key==='F9'||e.key==='F10')e.preventDefault();
+ if(scene!=='game'||!S)return;
+ var k=e.key.toLowerCase();
+ if(k==='a'||k==='arrowleft')S.holdDir=-1;
+ else if(k==='d'||k==='arrowright')S.holdDir=1;
+ else if(k==='c')setCams(!S.cams);
+ else if(k==='r')interruptDiary();                  /* 答录机中断无惩罚（A9） */
+ else if(k==='f'){if(!S.cams)S.close=S.close?0:1}   /* 白板近看（A21 基础） */
+ else if(k===' '){e.preventDefault();renewJuke()}
+ else if(k==='escape')setCams(false);
+ else if(k==='q'){if(!e.repeat)toggleLock('L')}
+ else if(k==='e'){if(!e.repeat)toggleLock('R')}
+ else if(k==='z'&&!e.repeat){pressLight('L')}        /* A-35：灯独立键 */
+ else if(k==='x'&&!e.repeat){pressLight('R')}
+ else if(k==='f1'){S.power=clamp(S.power-10,0,100)}
+ else if(k==='f2'){S.power=clamp(S.power+10,0,100)}
+ else if(k==='f3'){S.sta=100;S.staLock=0}
+ else if(k==='f4'){if(S.juke.started&&!S.juke.dead)S.juke.left=Math.min(S.juke.left,5)}
+ else if(k==='f5'){if(!S.board.state)boardAppear(1)}
+ else if(k==='f6'){var c=S.slots.C;if(c){c.active=1;c.idx=c.path.length-1;c.doorT=CFG.edge.t;c.knock=0;AU.moan()}}
+ else if(k==='f7'){for(var i=0;i<30&&scene==='game';i++)updateGame(1)}
+ else if(k==='f8'){S.god=!S.god}
+ else if(k==='f9'){S.time=e.shiftKey?Math.max(0,S.time-30):S.time+30}              /* A22 跳时 ±30s */
+ else if(k==='f10'){if(!S.board.state)boardAppear(1);if(S.board.state===1)endBoard('draw')}   /* A22 直达白板局后（平局） */});
+addEventListener('keyup',function(e){var k=e.key.toLowerCase();
+ if((k==='a'||k==='arrowleft'||k==='d'||k==='arrowright')&&S)S.holdDir=0});
+/* ============ 主循环 ============ */
+function loop(t){requestAnimationFrame(loop);
+ var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;DT=dt;frame++;
+ if(frame%2===0)upNoise();
+ cx.setTransform(SQ,0,0,SQ,0,0);                    /* 逻辑 384x216 → 画布 320x180 */
+ if(scene==='game'&&S){
+  var gdt=dt*SCALE;
+  if(gdt>0)updateGame(gdt);
+  if(scene==='game'){
+   if(S.cams)renderCams();else renderOffice();
+   if(S.cams&&S.camRoom==='hall'&&S.juke.started&&!S.juke.dead&&!S.juke.warn&&S.juke.left>0){
+    S.juke.melT-=dt;
+    if(S.juke.melT<=0){var n=JUKEMEL[S.juke.melI];
+     if(n[0])AU.note(n[0],n[1]*.5,S.juke.left<10?.035:.045);
+     S.juke.melT=n[1]*.5;
+     S.juke.melI=(S.juke.melI+1)%JUKEMEL.length}}}
+  hudT-=dt;if(hudT<=0){hudT=.12;updateHud()}}
+ else if(scene==='jump'&&S){var rc=S.recycle,was=rc?rc.t:0;
+  if(rc){rc.t+=dt;rc.gearT+=dt;
+   if(rc.t>=.5&&rc.t<2.6&&rc.gearT>=.3){rc.gearT=0;if(AU.ctx)AU.gear()}   /* 删除进度冷音色 */
+   renderJump();
+   if(rc.t>4){showScene('over');
+    paintOver(rc.tag,rc.msg+'<br><span style="color:#8a8a92">电力余 '+Math.max(0,Math.ceil(S.power))+'% · 耐力余 '+Math.ceil(S.sta)+'% · 续播 '+S.stats.renewals+'</span>')}}}
+ else if(scene==='trueEnd'&&S){if(S.te)tickTrueEnd(dt);renderTrueEnd()}
+ else if(scene==='over')renderOver();
+ else if(scene==='done'){cx.fillStyle='#000';cx.fillRect(0,0,384,216);
+  if(S&&S.finaleMel){S.juke.melT-=dt;               /* 谢幕曲续播进结算界面（A12 finale） */
+   if(S.juke.melT<=0){var nm=JUKEMEL[S.juke.melI];
+    if(nm[0])AU.note(nm[0],nm[1]*.5,.03);
+    S.juke.melT=nm[1]*.5;
+    S.juke.melI=(S.juke.melI+1)%JUKEMEL.length}}}
+ else if(scene==='menu'||scene==='how'||scene==='log'||scene==='arch'||scene==='load')renderMenu();
+ else{cx.fillStyle='#000';cx.fillRect(0,0,384,216)}}
+/* ============ 启动 ============ */
+loadAssets(function(){META=getMeta();if(!IMG.office)panoOK=0;try{bakeOfficePano()}catch(e){panoOK=0}buildMenu();buildMap();showScene('menu');
+ /* ?night=N 直达该夜（绕过菜单门控，供调试/无头测试）；?at=H:MM 跳时；?pan=x 办公室视角（-0.28..0.28）
+    ?smoke=1/2/3 无头烟雾 · 4 纯净夜通关链 · 6 真结局链（临时旗标，不入档）
+    无头模式 rAF 时间戳不随 virtual-time 前进，故用定时器直接驱动 updateGame */
+ var qs=new URLSearchParams(location.search);
+ var nq=parseInt(qs.get('night'),10)||0;
+ var smoke=qs.get('smoke');
+ var atq=qs.get('at');
+ var hitdbg=qs.get('hitdbg');
+ if(nq>=1&&nq<=7){CUR=nq;startNight(CUR)}
+ if(atq&&S)S.time=Math.max(0,parseClock(atq,N.hourLen));
+ var godq=qs.get('god');if(godq&&S)S.god=1;
+ var scq=qs.get('scene');if(scq&&OV[scq]){if(scq==='how')updateHow();showScene(scq)}
+ var clq=qs.get('close');if(clq&&S)S.close=1;   /* 调试：直达白板近看 */
+ var panq=qs.get('pan');if(panq!==null&&S){S.pan=S.panT=clamp(parseFloat(panq),-PAN_LIMIT,PAN_LIMIT);}
+ if(smoke==='6'||smoke==='7'){
+  if(smoke==='6')TRUTH_TEST=1;                      /* 6=真结局链（临时旗标判定）· 7=标准结局链（旗标不齐） */
+  if(!S)startNight(CUR||7);
+   for(var k6 in S.slots){S.slots[k6].at=99999;S.slots[k6].moveAt=99999}
+   CFG.juke.start=99999}
+  if(smoke){
+   if(!S)startNight(CUR||3);
+   setTimeout(function(){if(scene==='intro')enterGame();
+    if(smoke==='3'){setCams(true,true);
+     var camq=qs.get('cam');                              /* &cam=房间：无头验收指定监控位（如 cam=plaza 验 CAM7 纯雪花） */
+     if(camq&&CAMORDER.indexOf(camq)>=0){S.camRoom=camq;S.camCd=0;
+      $('camTitle').textContent=CAMNO[camq]+' · '+RN[camq];
+      document.querySelectorAll('#map .mb').forEach(function(b){b.classList.toggle('on',b.dataset.r===camq)})}}},100);
+   if(smoke==='2')for(var k in S.slots){S.slots[k].at=99999;S.slots[k].moveAt=99999}
+   if(smoke==='4'){for(var k in S.slots){S.slots[k].at=99999;S.slots[k].moveAt=99999}CFG.board.at=99999;CFG.juke.start=99999}  /* 纯净夜：验证 06:00 通关链 */
+  var autoDraw=(smoke==='6'||smoke==='7');
+  setInterval(function(){
+   if(scene==='game'&&S){
+    if(S.panT!==S.pan)S.pan=S.panT;                     /* 无头：pan 即时到位（rAF 插值不走） */
+   if(autoDraw&&S.board.state===1)endBoard('draw');   /* 白板出现即平局：直入挂起→真结局链（updateGame 自己会在 at 时开板） */
+    updateGame(2);
+    document.title=[scene,CUR,N.board.mode,S.board.state,Math.floor(S.time),'st'+S.time.toFixed(0)].join('|')}
+   else if(scene==='jump'&&S&&S.recycle){S.recycle.t+=2;   /* 回收演出无头推进（rAF 不走虚拟时间） */
+    if(S.recycle.t>4){showScene('over');paintOver(S.recycle.tag,S.recycle.msg)}}
+   else if(scene==='trueEnd'&&S&&S.te){if(S.te.phase==='run')teProceed();tickTrueEnd(2)}},100)}});   /* 真结局演出无头推进（自动长按） */
+/* 「跑吧。」长按 1.5s 确认（A18：同门锁阈值逻辑，鼠标/触屏同路径） */
+(function(){var holdT=0,holdI=null,btn=$('teRun'),bar=$('teRunBar');
+ function reset(){if(holdI){clearInterval(holdI);holdI=null}holdT=0;bar.style.width='0%'}
+ btn.addEventListener('pointerdown',function(e){e.stopPropagation();
+  if(!S||!S.te||S.te.phase!=='run')return;
+  reset();
+  holdI=setInterval(function(){holdT+=.05;
+   bar.style.width=Math.min(100,holdT/S.te.holdSec*100)+'%';
+   if(holdT>=S.te.holdSec){reset();teProceed()}},50)});
+ ['pointerup','pointerleave','pointercancel'].forEach(function(ev){
+  btn.addEventListener(ev,function(){if(S&&S.te&&S.te.phase==='run')reset()})})})();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
