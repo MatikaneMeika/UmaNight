@@ -125,8 +125,16 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 #answDot{position:absolute;top:calc(var(--u)*1.5);right:calc(var(--u)*1.6);width:calc(var(--u)*2);height:calc(var(--u)*2);background:#ffd24a}
 #answBody{line-height:2;white-space:pre-wrap;min-width:calc(var(--u)*40)}
 #answBody div{opacity:.06;transition:opacity 1s}
+#answBody div.rl{color:#ff6a6a}   /* D44 补裁2（审查位直改）：日记规则教学行红字——「日记=说明书」的视觉高亮 */
 #reevalTag{position:absolute;top:calc(var(--u)*13.5);left:50%;transform:translateX(-50%);font-family:var(--fm);font-size:calc(var(--u)*2.1);letter-spacing:3px;color:#ff6060;display:none;animation:gl .34s steps(2) infinite}
 #reevalTag.on{display:block}
+/* A-95：广场监视时长越限——全屏标题浮层（裁决⑧：原话 + 现成 @keyframes gl 抖动，星号位由 JS 在 ＊/▓/█ 间跳动） */
+#watchTitle{position:absolute;inset:0;display:none;background:rgba(0,0,0,.86);z-index:6;pointer-events:none}
+#watchTitle.on{display:block}
+#wtTitle{position:absolute;left:50%;top:42%;transform:translateX(-50%);white-space:nowrap;font-family:var(--fm);font-size:calc(var(--u)*5.4);letter-spacing:4px;color:#e8e8ec;animation:gl .34s steps(2) infinite}
+#wtSub{position:absolute;left:50%;top:56%;transform:translateX(-50%);white-space:nowrap;font-family:var(--fm);font-size:calc(var(--u)*1.9);letter-spacing:2px;color:#7a8494}
+#goT.wtjit{animation:gj .34s steps(2) infinite}
+@keyframes gj{0%{transform:translate(0,0)}25%{transform:translate(-1px,1px)}50%{transform:translate(1px,-1px)}75%{transform:translate(-1px,-1px)}100%{transform:translate(1px,1px)}}   /* 同 gl 的抖动量，但不含 -50% 位移（#goT 由 flex 居中） */
 @keyframes gl{0%{transform:translateX(-50%) translate(0,0)}25%{transform:translateX(-50%) translate(-1px,1px)}50%{transform:translateX(-50%) translate(1px,-1px)}75%{transform:translateX(-50%) translate(-1px,-1px)}100%{transform:translateX(-50%) translate(1px,1px)}}
 #eggFx{position:absolute;right:5%;bottom:22%;font-family:var(--fh);font-size:calc(var(--u)*2.2);color:#e0d8c8;opacity:0;transition:opacity 2.4s;text-shadow:1px 1px 0 #000;pointer-events:none}
 #eggFx.on{opacity:.85}
@@ -160,6 +168,7 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
   <div id="edgeFx"></div>
   <div id="answBox"><i id="answDot"></i><div id="answBody"></div></div>
   <div id="reevalTag">RE-EVALUATING</div>
+  <div id="watchTitle"><div id="wtTitle"></div><div id="wtSub"></div></div>
   <div id="eggFx"></div>
 </div>
 <div class="ovl on" id="ovMenu">
@@ -204,7 +213,7 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 <button id="teRun"><span id="teRunTxt">跑吧。</span><i id="teRunBar"></i></button>
 <div id="credits"></div>
 </div>
-<script>addEventListener('error',function(e){var d=document.getElementById('errBox');if(!d)return;d.style.display='block';d.textContent='[脚本错误] '+(e.message||e.type)+' @line '+(e.lineno||'?')});</script>
+<script>window.__ERRS=[];addEventListener('error',function(e){window.__ERRS.push(e);var f=window.__errPaint;if(f)f();else{var d=document.getElementById('errBox');if(!d)return;d.style.display='block';d.textContent=(e.message||e.type)+' @line '+(e.lineno||'?')}});</script>
 <script src="data/_sample.js"></script>
 <script src="data/nights.js"></script>
 <script src="data/meta.js"></script>
@@ -254,6 +263,10 @@ const EMERGENCY={id:3,hourLen:60,
  /* A-94 兜底样例：只在 data/ 整目录丢失时生效（正常夜次由 nights.js 供 openCorrupt，夜1-6 无此字段=零变化）。
     纯噪点+数字，不含任何叙述词。 */
  diary:{openCorrupt:['▓▒█ ▒▒█▓ 07 ▒█ 12 ▓▒▒ █▓▒','▒▓ 0110 1110 ▓▒█ ▒▓▒ ▓ 41 ▒█▓','█▒▓▒ ▓▒ 00:00 ▒█▓▒ ▓▒▒ █▓▒ ▒']},
+ /* A-95/A-98 契约示例同落 EMERGENCY（仅 data/ 全丢时生效）：正式夜由 nights.js 供值。
+    放 _sample.nights[3] 会经 deepMerge 让夜3 凭空多出拜访与广场跳杀，撞「无该字段=零变化」验收。 */
+ plazaWatch:10,
+ visits:{count:1,at:['02:30'],react:2.5,powerCost:2},
  call:[],hints:{}};
 function resolveNight(id){
  var sm=SAMPLE.nights||{};
@@ -264,6 +277,37 @@ function resolveNight(id){
  if(!smp&&!bn)return EMERGENCY;
  return bn?deepMerge(smp||{},bn):smp}
 function getMeta(){return deepMerge(SAMPLE.meta||{},window.META||{})}
+/* A-101（B-53）：局内文案单一真源=META.texts。T('a.b') 支持点号嵌套键；供值缺失/空串 ⇒ 回落下方 TXT 注册表。
+   文字本体归 B（宪章 A①），A 侧调用点一律走 T()，局内不留裸串；TXT=收编前原串集中一处，便于对照审读。 */
+const TXT={
+ 'blackout':'断电。黑暗里的倒计时走完了。',
+ 'doorIn.L':'门那边的东西，从左边进来了。',
+ 'doorIn.N':'门那边的东西进来了。',
+ 'doorIn.R':'门那边的东西，从右边进来了。',
+ 'err.asset':'素材载入中断 · 请自 game/ 目录重开终端',
+ 'err.script':'[异常] ',
+ 'goHard':'本夜评估未通过',
+ 'goRetryHard':'重新聚合',
+ 'goRetrySoft':'再来一夜',
+ 'goSoft':'GAME OVER',
+ 'goTagLabel':'回收标签：',
+ 'mercy':'减半',
+ 'recycle':'异常进程定位 TRAINER-00 · 开始回收',
+ 'selfCheck':'残留数据自检中……',
+ 'ui.logDiary':'—— 训练日记 · 点击重播 ——',
+ 'ui.logEmpty':'暂无记录。<br>深夜 00:00 的答录机留言会归档在这里，可随时重播；<br>夜里听到的系统声响（SYS 日志）推送后也会收录在下方。',
+ 'ui.logSys':'—— SYS 日志 · 点击阅读 ——',
+ 'wbChannel':'白板通道 · 反应模式超出基线。',
+ 'wbTimeout':'白板倒计时归零。',
+};
+function T(path){var v=(window.META&&META.texts)||null;
+ if(v)for(var p=String(path).split('.'),i=0;i<p.length&&v;i++)v=v[p[i]];
+ if(v!=null&&v!=='')return String(v);
+ return TXT[path]!=null?TXT[path]:''}
+/* A-101：早段 error 钩子只攒事件（那时没有 META），本函数接管渲染 ⇒ 前缀『[异常] 』同样走 texts */
+window.__errPaint=function(){var d=$('errBox'),L=window.__ERRS||[];
+ if(!d||!L.length)return;var e=L[L.length-1];
+ d.style.display='block';d.textContent=T('err.script')+((e.message||e.type)+' @line '+(e.lineno||'?'))};
 function buildRT(){var p=N.power||{},b=N.board||{},j=N.juke||{};
  var oppX=b.oppInterval!=null?b.oppInterval:4;
  return{
@@ -289,6 +333,8 @@ function buildRT(){var p=N.power||{},b=N.board||{},j=N.juke||{};
    wbTrashName:(N.wbTrashName||(META&&META.wbTrashName)||(META&&META.corruptDiaryTitle)||'[损坏] ▓▓1095▓▓'),
    diary:N.diary||null,
    blackT:10,camCd:1,slowX:2,               /* 白板对局期间全场移动 ×2 慢（引擎常量） */
+   plazaWatch:N.plazaWatch!=null?+N.plazaWatch:0,   /* A-95：盯三女神广场的连续停留上限（秒）；缺省 0=不启用，旧档与 _sample 无感 */
+   visits:Object.assign({powerCost:VISIT_POWER_COST},N.visits||{}),   /* A-106：全透传（A-73 口径），缺省 2 由前项兜住——数据缺失绝不回退 5 */
    hints:N.hints||{}}}
 function jukeWarn(){var w=CFG&&CFG.juke&&CFG.juke.warn;return w!=null?w:(CUR===7?3:5)}
 /* ============ 存档（契约 §3.4） ============ */
@@ -321,26 +367,32 @@ if(SAVE._migrated){delete SAVE._migrated;writeSave()}      /* A-87：迁移结�
 const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 const JUKEMEL=[[69,.5],[72,.5],[71,.25],[69,.25],[67,.5],[69,1],[64,.5],[67,.5],[69,1],[0,.5],[65,.5],[69,.5],[71,1],[67,1]];
 const JOFF={slot_A:0,slot_B:0,slot_C:0,slot_D:0,shadow:0};
-const RN={hall:'大厅',gym:'健身房',shop:'商店',lib:'图书馆',pool:'游泳馆',gymn:'室内体育馆',plaza:'三女神广场',corrA:'左走廊',corrB:'右走廊'};
-const CAMORDER=['hall','gym','shop','lib','pool','gymn','plaza','corrA','corrB'];
-const CAMNO={hall:'CAM1',gym:'CAM2',shop:'CAM3',lib:'CAM4',pool:'CAM5',gymn:'CAM6',plaza:'CAM7',corrA:'CAM8',corrB:'CAM9'};
+const RN={hall:'大厅',gym:'健身房',shop:'商店',lib:'图书馆',pool:'游泳馆',gymn:'室内体育馆',plaza:'三女神广场',corrA:'左走廊',corrB:'右走廊',roof:'天台'};
+const CAMORDER=['hall','gym','shop','lib','pool','gymn','plaza','corrA','corrB','roof'];   /* A-96：roof 只能追加末尾——贴图文件名由下标推导，插中间=cam2..cam9 全体指错图 */
+const CAMNO={hall:'CAM1',gym:'CAM2',shop:'CAM3',lib:'CAM4',pool:'CAM5',gymn:'CAM6',plaza:'CAM7',corrA:'CAM8',corrB:'CAM9',roof:'CAM10'};
 /* A-84：22u×16u 原生幅面下的重排——左列 lib/pool/plaza（喂 doorL）、右列 hall/shop/gym（喂 doorR）、
    中脊 corrA(偏左)/corrB(偏右)+gymn(上)、训练员室单独占底带；每块 ≥18%×16%，相邻气口 ≥4% */
-const MAPLAY=[['lib',1,2,25,20],['pool',1,26,25,20],['plaza',1,50,25,20],
+const MAPLAY=[['lib',1,2,25,20],['pool',1,26,25,20],['plaza',1,50,25,20],['roof',1,74,25,16],
  ['gymn',30,2,40,20],['corrA',30,26,18,44],['corrB',52,26,18,44],
- ['hall',74,2,25,20],['shop',74,26,25,20],['gym',74,50,25,20]];
-/* A-82②：各房「远两位」横向拉开到 ≥60 背景像素（scale1.4 立绘宽 ≈38px），
-   必要时以 8-14px 的纵深错位换取横向气口；近两位维持批次6 结论。全部逐张目视背景图给值。 */
+ ['hall',74,2,25,20],['shop',74,26,25,20],['gym',74,50,25,20]];   /* A-96：roof 喂 doorL ⇒ 按 A-79 同侧口径落左半区底带左段（YOUPLAY 占 x30-70，不冲突） */
+/* A-99：SLOTPOS 目视校正值表（10 房，384×216 逻辑坐标，y=脚底线；FOOT 补偿与 1.14× zoom 语义不变）。
+   修掉用户点名的四处硬伤：shop 远位压收银台、lib 站书架桌、gym 站跑步机、gymn 上舞台；
+   corrA/corrB 以纵深错位（y 差 14px）换取横向气口 ≥60 ⇒ 正式关闭 A-82②。
+   zoom 裁切安全区 x 取 24~360、y 取 14~202，含 ±5/±3px 晃动余量；plaza 走 camStatic 不消费本表。
+   实机微调（表值与实机冲突以实机为准）：监控地图面板实测占相机逻辑 x 279.6~353.7 / y 142.1~196.0，
+   表内六位落在其下（立绘被 DOM 面板挡死）⇒ gym/shop/lib/gymn 远右位改到同层自由地板、pool 远右位上移 10 让出板沿、
+   corrB 近右位 275→250（右缘 301→276 出框）；hall 远右位 [305,138] 脚底在板沿之上实测可见，不动。 */
 const SLOTPOS={
- hall:[[105,140,1.4],[300,132,1.4],[130,200,2.9],[240,200,2.9]],
- gym:[[62,126,1.4],[130,140,1.4],[140,200,2.9],[240,200,2.9]],
- shop:[[118,136,1.4],[182,150,1.4],[140,200,2.8],[240,200,2.8]],
- lib:[[235,128,1.4],[170,140,1.4],[130,200,2.9],[230,200,2.9]],
- pool:[[270,120,1.4],[330,140,1.4],[130,200,2.9],[230,200,2.9]],
- gymn:[[200,124,1.4],[268,130,1.4],[130,200,2.9],[240,200,2.9]],
+ hall:[[70,148,1.4],[305,138,1.4],[130,204,2.9],[250,204,2.9]],
+ gym:[[78,158,1.4],[170,172,1.4],[140,200,2.9],[240,200,2.9]],
+ shop:[[215,152,1.4],[128,163,1.4],[140,200,2.8],[240,200,2.8]],
+ lib:[[196,158,1.4],[265,168,1.4],[70,206,2.9],[250,204,2.9]],
+ pool:[[270,128,1.4],[330,132,1.4],[130,200,2.9],[230,200,2.9]],
+ gymn:[[170,150,1.4],[262,150,1.4],[130,200,2.9],[240,200,2.9]],
  plaza:[[128,140,1.8],[248,140,1.8],[120,190,2.6],[250,190,2.6]],
- corrA:[[145,126,1.4],[215,126,1.4],[110,196,2.9],[205,196,2.9]],
- corrB:[[168,128,1.4],[232,128,1.4],[180,196,2.9],[275,196,2.9]]
+ corrA:[[168,132,1.4],[228,146,1.4],[110,196,2.9],[205,196,2.9]],
+ corrB:[[160,130,1.4],[232,144,1.4],[180,196,2.9],[250,196,2.9]],
+ roof:[[150,150,1.4],[225,142,1.4],[135,205,2.9],[245,205,2.9]]   /* A-96：中部-前景大方砖空地；禁左砖塔(x<95)、右空调矮墙(x≈255-360 y<150) */
 };
 const YOUPLAY={x:30,y:74,w:40,h:16};                 /* 训练员室：底边中央，画成矩形（用户指令：不要连线叉） */
 const FOOT={slot_A:24,slot_B:21,slot_C:6,slot_D:28};
@@ -349,6 +401,11 @@ const BOARD_MERCY=0.5;    /* A-80 仁慈阀：开监控/近看时白板倒计时
 const CAM9_PRE=1.5;       /* A-88：她的登场预告提前量（秒） */
 const CAM9_FLASH=0.09;    /* A-88：闪屏时长（秒，60-120ms 区间内） */
 const CORRUPT_LINE_T=2.2; /* A-94：乱码每行停显时长（tick 判定与噪声铺底同源） */
+const WT_STARS=['＊','▓','█'];  /* A-95 裁决⑧：死亡标题星号位的跳动字符集（三字均已在字体子集内） */
+const VISIT_REACT=2.5;          /* A-98：拜访反应窗缺省秒（D37），数据 visits.react 可覆盖 */
+const VISIT_DEFER=6;            /* A-98/D43：占门或对局态时顺延秒数（同刻不叠两只 D、不打断对弈） */
+const VISIT_POWER_COST=2;       /* A-106/D45：拜访花屏抽电（电力百分点）。原硬编码 5 使夜7 三次白吃 15 点=全夜预算 19%；
+                                   数据 visits.powerCost 可覆盖，缺省与兜底一律本值，禁止回退成 5（双真源红线）。 */
 /* A-31/A-57 去 FNAF 化映射：slot→贴图映射常量。
    img=全身立绘主键（三档：原色/_glitch 静息/_glitch_strong 加强）；d=特写键（face_slot_A..D）。 */
 const SLOTDEF={A:{img:'slot_A',d:'slot_A',t0:6},B:{img:'slot_B',d:'slot_B',t0:7},
@@ -372,7 +429,7 @@ function loadAssets(done){
   im.onload=()=>{IMG[k]=im;if(++n===keys.length)done()};
   im.onerror=()=>{const d=document.createElement('div');
    d.style.cssText='color:#e05050;font:14px "Fusion Pixel",monospace;padding:20px';
-   d.textContent='贴图加载失败：'+files[k]+'（请从 game/ 目录打开本文件）';
+   d.textContent=T('err.asset')+' ▸ '+files[k];
    document.body.appendChild(d)};
   im.src=files[k]})}
 /* ============ 音频（复用 T1 引擎） ============ */
@@ -450,7 +507,40 @@ AU.beep2=()=>{if(!AU.ctx)return;var C=AU.ctx;   /* 「嘟嘟」：录音机走�
 AU.glitchCut=()=>{if(!AU.ctx)return;nz(.35,900,.30,'bandpass',3);tone(1600,120,.18,'square',.12)};   /* A-64：戛然而止错乱音效 */
 AU.visitSound=()=>{if(!AU.ctx)return;nz(.2,600,.22,'bandpass',2);tone(300,180,.28,'sawtooth',.10)};   /* A-81：「她来了」逼近音效 */
 function setStatic(on){if(AU.sg)AU.sg.gain.linearRampToValueAtTime(on?.045:0,AU.ctx.currentTime+.06)}
-addEventListener('pointerdown',()=>{aInit();if(AU.ctx.state==='suspended')AU.ctx.resume()},{capture:true});
+addEventListener('pointerdown',()=>{aInit();if(AU.ctx.state==='suspended')AU.ctx.resume();if(window.tickHer)tickHer()},{capture:true});
+/* ============ A-105「她的歌」BGM 通道（用户直令 · D44） ============
+   条件=truthReady()（档案 A-D 齐 ⇒ 用户口径「前六夜要求满足」，存档层现成字段，零新档）。
+   ① 主菜单/选夜/说明/记录：低音量循环，进游戏与结算即停（进出淡入淡出）；未交互前 play() 被浏览器拒 ⇒ 静默，首次 pointerdown 重试起乐。
+   ② 夜7：点歌机音频整体替换=程序化八音盒停合成、本曲自开播点（CFG.juke.start）起播、loop 穷尽续循环，
+      贯穿谢幕曲段/终局演出/制作名单；电量入余量窗（muted）或停机（dead）即静音，与八音盒通道行为等价。
+   电量/曲单计时/停机逻辑/数据字段零动。🔴 第三方角色曲改版：是否随 web 公开发布待用户后裁（下发历史 §21 发布账）。 */
+const HER_SONG='media/audio/bgm_0000.mp3',HER_VOL_MENU=.16,HER_VOL_GAME=.30;
+var herEl=null,herWant=0,herFadeT=null,herTryAt=0;
+function herAudio(){if(herEl||!truthReady())return herEl;
+ try{herEl=new Audio(HER_SONG);herEl.loop=true;herEl.preload='auto';herEl.volume=0}catch(e){herEl=null}
+ return herEl}
+function herFadeTo(to,pauseAtEnd){var a=herEl;if(!a)return;
+ if(herFadeT)clearInterval(herFadeT);
+ var v=a.volume,step=(to>=v?1:-1)*.04;
+ herFadeT=setInterval(function(){var e=herEl;
+  if(!e){clearInterval(herFadeT);herFadeT=null;return}
+  v=Math.max(0,Math.min(to,v+step));e.volume=v;
+  if(v===to){clearInterval(herFadeT);herFadeT=null;if(pauseAtEnd&&herWant<=0)e.pause()}},33)}
+function herSet(v){herWant=v;
+ if(!herEl&&v>0)herAudio();
+ if(!herEl)return;
+ if(v>0){if(herEl.paused){var now=performance.now();
+   if(now<herTryAt)return;herTryAt=now+700;
+   herEl.play().then(function(){herFadeTo(v)}).catch(function(){})}
+  else herFadeTo(v)}
+ else if(!herEl.paused)herFadeTo(0,1)}
+function herTarget(){if(!truthReady())return 0;
+ if(scene==='menu'||scene==='how'||scene==='log'||scene==='arch'||scene==='load')return HER_VOL_MENU;
+ if(scene==='game')return (CUR===7&&S&&S.juke.started&&!S.juke.muted&&!S.juke.dead)?HER_VOL_GAME:0;
+ if((scene==='done'||scene==='trueEnd')&&S&&S.finaleMel)return HER_VOL_GAME;
+ return 0}
+function tickHer(){var t=herTarget();if(t!==herWant)herSet(t)}
+function herSongOn(){return truthReady()&&CUR===7&&!!(S&&S.juke.started)}   /* 八音盒合成停摆判据（仅夜7 且已开播） */
 /* ============ 噪声/扫描线（复用） ============ */
 const nCv=mk(128,72),nCx=nCv.getContext('2d'),nId=nCx.createImageData(128,72);
 let nSeed=12345;
@@ -497,9 +587,10 @@ function sliceGlitch(g,src,x,y,w,h,lv,bandsCount){
  }
 }
 function slotImg(k){var def=SLOTDEF[k];return def?IMG[def.img]||null:null}
- function drawSlot(g,k,X,Y,s){                          /* 槽位立绘：原色图 + 渲染时抖动/闪动/平滑撕裂（非烘焙非马赛克） */
+ function drawSlot(g,k,X,Y,s,alpha){                    /* 槽位立绘：原色图 + 渲染时抖动/闪动/平滑撕裂（非烘焙非马赛克）；alpha=离场半透明（A-97，缺省 1 零变化） */
   var im=slotImg(k);
   if(!im){drawChar(g,SLOTDEF[k]&&SLOTDEF[k].d,X,Y,s);return}   /* 贴图缺失回退旧绘制 */
+  var mA=(alpha==null?1:alpha);
   var hh=s*30,ww=hh*im.width/im.height;
   var ftKey=(SLOTDEF[k]&&SLOTDEF[k].d)||k;
   var ft=(FOOT&&FOOT[ftKey])||0;
@@ -508,7 +599,7 @@ function slotImg(k){var def=SLOTDEF[k];return def?IMG[def.img]||null:null}
   var jx=0,jy=0;
   if(Math.random()<.14*lv){jx=rnd(2*lv+1)-lv;jy=rnd(2)-1}      /* 位置抖动 */
   var dx=X-ww/2+jx,dy=Y-hh+footOff+jy;
- g.globalAlpha=Math.random()<.16*lv?(.68+Math.random()*.24):1; /* 闪动 */
+ g.globalAlpha=mA*(Math.random()<.16*lv?(.68+Math.random()*.24):1); /* 闪动 */
  g.drawImage(im,dx,dy,ww,hh);
  g.globalAlpha=1;
  if(Math.random()<.09*lv){                            /* 偶发平滑撕裂：整条水平切片平移（非马赛克） */
@@ -565,20 +656,16 @@ function buildEvents(){S.events=[];
   if(e.stamina)applyStamina({delta:e.stamina,reason:null})})});
  (N.scriptedStamina||[]).forEach(function(e){add(e.at,function(){applyStamina(e)})});
   (N.camFx||[]).forEach(function(r){S.camFxRooms[r]=1});
-  /* A-81：「她来了」D 单元迫近事件时间表（夜5、6、7） */
-  var vTimes={5:['03:15'],6:['02:40','04:20'],7:['01:50','03:40','04:50']};
-  (vTimes[CUR]||[]).forEach(function(atStr){
-   var evObj={at:{abs:parseClock(atStr,N.hourLen)},fired:0};
-   evObj.fn=function(){
-    var dSlot=S.slots&&S.slots.D;
-    var dLoc=dSlot&&dSlot.path[dSlot.idx];
-    if(dSlot&&dSlot.active&&!dSlot.retreating&&(dLoc==='corrA'||dLoc==='doorL')){
-     evObj.at.abs=S.time+6;evObj.fired=0;return;
-    }
-    triggerVisit();
-   };
-   S.events.push(evObj);
-  })}
+  /* A-98：「她·手偶」(=D 擦除单元) 拜访时刻改读 N.visits（B-39/B-48 供值），删除 vTimes 硬编码——
+     存量矛盾：引擎 夜5 03:15 / 夜7 04:50 与 nights.js 的 02:20·04:40 / 05:10 从来不一致，记录页对不上亲历时刻。
+     顺延两条（D42 裁决 + D43 第1项）：① D 槽正占 corrA/doorL ⇒ 门洞会出两只 D；② 白板对局态或近看 ⇒ 玩家看不见门。 */
+  var vs=N.visits;
+  if(vs&&Array.isArray(vs.at)&&vs.at.length){
+   var vAt=vs.at.slice(0,vs.count||vs.at.length);
+   var react=vs.react!=null?+vs.react:VISIT_REACT;
+   vAt.forEach(function(atStr){
+    S.events.push({at:parseAt(atStr),fired:0,fn:function(){triggerVisit(react)}})})}   /* A-104：顺延判定在 triggerVisit 内（占门/对局/近看 +6s 补判） */
+}
 function tickEvents(){
  for(var i=0;i<S.events.length;i++){var e=S.events[i];
   if(e.fired)continue;
@@ -624,46 +711,55 @@ function beginDiaryPlayback(){var a=S.answ,d=CFG.diary;
  a.perLine=Math.max(1,(d.duration||55)/Math.max(1,a.lines.length)/ANSW_RATE);
  renderAnswLine(-1)}
 function startCorruptPlayback(){var a=S.answ,d=CFG.diary;
- a.on=1;a.phase='corrupt';a.corrupt=(d.corrupt||[]).slice();a.ci=0;a.t=0;
+ a.on=1;a.phase='corrupt';a.corrupt=(d.corrupt||[]).slice();a.ci=0;a.t=0;a.firstPlayed=0;
  pushDiaryHeard(CFG.wbTrashName);
  var nl=(window.NIGHTS||[]).filter(function(x){return x&&+x.id===1})[0];
  if(nl&&nl.diary&&nl.diary.text){a.lines=String(nl.diary.text).split('\n');
   a.perLine=Math.max(2,(nl.diary.duration||55)/Math.max(1,a.lines.length)/ANSW_RATE);
+  a.ruleAt=(nl.diary.ruleAt)||null;                       /* D44 补裁2：夜1 源补放沿用夜1 规则行 */
   a.truncate=1}                                        /* 仅夜7 补放 #001 启用 stopAt 截断——夜1 本尊播放不受影响 */
+ a.stopAtIdx=null;                                      /* A-103：补放/重听路径不套 stopLine（记录页重听仍夜1 全文），锚只认 stopAt */
  a.li=-1;
  $('answBody').innerHTML='';
  $('answBox').classList.add('on');}
 function startOpenCorrupt(){                              /* A-94 修订：夜7 00:00 = 完整链（乱码三行→#001→stopAt 戛然而止） */
  var a=S.answ, lines=(CFG.diary.openCorrupt||[]).slice(0,3);
  if(!lines.length)return 0;
- a.on=1;a.t=0;a.id=null;a.phase='openDelay';a.lines=null;a.li=-1;a.corrupt=null;a.truncate=0;a.openCorrupt=lines;
+ a.on=1;a.t=0;a.id=null;a.phase='openDelay';a.lines=null;a.li=-1;a.corrupt=null;a.truncate=0;a.stopAtIdx=null;a.openCorrupt=lines;
  pushDiaryHeard(CFG.wbTrashName);                         /* 归档随演出前移到 00:00（a.id 仍为 null，endDiary 不双写） */
  var nl=(window.NIGHTS||[]).filter(function(x){return x&&+x.id===1})[0];
  if(nl&&nl.diary&&nl.diary.text){a.lines=String(nl.diary.text).split('\n');
   a.perLine=Math.max(2,(nl.diary.duration||55)/Math.max(1,a.lines.length)/ANSW_RATE);
+  a.ruleAt=(nl.diary.ruleAt)||null;                       /* D44 补裁2：同夜1 源规则行（stopLine 早截，实际不达第3行，接线保一致） */
   a.truncate=1}                                          /* 乱码走完后接夜1 原文，由既有 stopAt 截断收场 */
+ /* A-103（D43 第3项 / B-52）：stopLine 在场 ⇒ 命中 stopAt 的那一行整行替换为 stopLine 全文（夜7 背景的破损玩偶服直接进台词），
+    截断锚改判行号；缺 stopLine 键=旧 stopAt 整句语义，夜1 本尊与记录页重听零影响（此处只改本函数内的行数组，数据源不动）。 */
+ if(a.truncate&&CFG.diary&&CFG.diary.stopLine){
+  var SL=String(CFG.diary.stopLine);
+  for(var qi=0;qi<a.lines.length;qi++)
+   if(a.lines[qi].indexOf(CFG.stopAt)>=0){a.lines[qi]=SL;a.stopAtIdx=qi;break}}
  $('answBody').innerHTML='';$('answBox').classList.add('on');
  if(AU.ctx)AU.ring();                                     /* 真铃起手（维持每夜仪式感，再前几秒砸碎） */
  return 1}
 function tickAnsw(dt){var a=S.answ;if(!a.on||S.black)return;
  if(a.phase==='openDelay'){a.t+=dt;if(a.t>=1.2){a.t=0;a.phase='corrupt';a.corrupt=a.openCorrupt;a.ci=0;
-   S.capText=a.corrupt[0];S.capT=2.5;if(AU.ctx){AU.tape();AU.tapeNoise(CORRUPT_LINE_T)}}return}
+   S.capText=a.corrupt[0];S.capT=2.5;a.firstPlayed=1;if(AU.ctx){AU.tape();AU.tapeNoise(CORRUPT_LINE_T)}}return}
  if(a.phase==='delay'){a.t+=dt;if(a.t>=1.2){a.t=0;beginDiaryPlayback()}return}
  if(a.phase==='corrupt'){                                /* 乱码：每行 2.2s + 中屏故障字幕 + 该行时长的持续静电噪声铺底 */
-  var was=a.ci;
   a.t+=dt;
   if(a.t>=CORRUPT_LINE_T){a.t=0;a.ci++;
    if(a.ci>=a.corrupt.length){a.phase=a.lines?'play':'end';a.li=-1;a.t=0;
     if(a.phase==='play')renderAnswLine(-1);else endDiary();return}
    S.capText=a.corrupt[a.ci];S.capT=2.5;AU.tape();AU.tapeNoise(CORRUPT_LINE_T)}
-  else if(was===0&&a.ci===0&&a.t<dt+.01){S.capText=a.corrupt[0];S.capT=2.5;AU.tape();AU.tapeNoise(CORRUPT_LINE_T)}
+  else if(a.ci===0&&!a.firstPlayed){                     /* 首行只响一次（openDelay 已响过的开场链不再二次触发） */
+   a.firstPlayed=1;S.capText=a.corrupt[0];S.capT=2.5;AU.tape();AU.tapeNoise(CORRUPT_LINE_T)}
   return}
  if(a.phase==='play'){                                   /* 逐行渐显（文本渐显+音效承载，非真人声） */
   a.t+=dt;
   var li=Math.min(a.lines.length-1,Math.floor(a.t/a.perLine));
   if(li!==a.li){a.li=li;renderAnswLine(li);AU.tape();
    var line=a.lines[li];
-   if(a.truncate&&CFG.stopAt&&line.indexOf(CFG.stopAt)>=0){  /* 播至指定句自停——仅夜7 补放路径（a.truncate） */
+   if(a.truncate&&(a.stopAtIdx!=null?li===a.stopAtIdx:(CFG.stopAt&&line.indexOf(CFG.stopAt)>=0))){  /* 播至指定句自停——仅夜7 补放路径（a.truncate）；A-103：stopLine 在场改判行号 */
     a.phase='end';a.cutOff=1;
     if(AU.ctx)AU.glitchCut();                               /* A-64：戛然而止错乱音效 */
     setTimeout(endDiary,1400);return}}
@@ -671,11 +767,13 @@ function tickAnsw(dt){var a=S.answ;if(!a.on||S.black)return;
 function renderAnswLine(li){var el=$('answBody');
  if(li<0){el.innerHTML='';return}
  var a=S.answ;
+ var ru=a.ruleAt||(CFG.diary&&CFG.diary.ruleAt)||[];   /* D44 补裁2：规则行号（1-based） */
  /* v1.8 滑窗：一次只显示 1-2 行——当前行全亮，上一行 40% 垫底，更早的不保留 */
  el.innerHTML='';
  for(var i=Math.max(0,li-1);i<=li;i++){
   var dv=document.createElement('div');
   dv.textContent=a.lines[i]!==undefined?a.lines[i]:'';
+  if(ru.indexOf(i+1)>=0)dv.className='rl';
   el.appendChild(dv);
   (function(node,tgt){requestAnimationFrame(function(){node.style.opacity=tgt})})(dv,i<li?.4:1)}}
 function endDiary(){var a=S.answ;if(!a.on)return;
@@ -718,20 +816,20 @@ function startNight(n,fromDeath){
   power:(N.power&&N.power.start)||100,sta:100,staLock:0,
   pan:0,panT:0,vert:0,vertT:0,holdDir:0,
   lockL:0,lockR:0,lightL:0,lightTL:0,lightR:0,lightTR:0,doorAL:0,doorAR:0,moanT:0,shake:0,
-  cams:false,camRoom:'hall',camPulse:1,camCd:0,
+  cams:false,camRoom:'hall',camPulse:1,camCd:0,camWatchT:0,watchFired:0,   /* A-95：camWatchT=plaza 连续停留秒（切台/关监控/断电/僵直即清零） */
   juke:{started:0,track:0,left:CFG.juke.tracks.length?CFG.juke.tracks[0].len:0,warn:0,dead:0,melT:0,melI:0},
   slots:mkSlots(),
-  board:{state:0,cells:[0,0,0,0,0,0,0,0,0],turn:'you',moveT:0,oppT:0,result:'',phase:0,msgT:0},
+  board:{state:0,cells:[0,0,0,0,0,0,0,0,0],turn:'you',moveT:0,oppT:0,result:'',phase:0,msgT:0,replT:0},
   black:0,blackT:0,blackSec:0,
   god:0,deathTag:'',
   stats:{renewals:0,miss:0,blocks:0},
   answPlayed:0,
   /* P2 状态：事件引擎 / 白板锚点 / 紧急评估 / 答录机 / 演出层 */
   events:[],postAt:null,reeval:0,
-  answ:{on:0,t:0,phase:'',id:null,lines:null,li:-1,perLine:0,corrupt:null,openCorrupt:null},
+  answ:{on:0,t:0,phase:'',id:null,lines:null,li:-1,perLine:0,corrupt:null,openCorrupt:null,firstPlayed:0,stopAtIdx:null},
   openCorruptPlayed:0,
   cam9Ev:null,cam9Pending:null,cam9Flash:0,dreamEv:null,capText:null,capT:0,close:0,camFxRooms:{},
-  visit:null,visitLitL:0,visitScare:0,
+  visit:null,visitLitL:0,visitScare:0,visitPending:null,   /* A-104：visitPending=被对局/近看/占门顺延的补判 {react,t} */
   finaleMel:0};
  buildEvents();
  var boot=(META.menu&&META.menu.boot)||{};
@@ -762,9 +860,16 @@ function checkEgg(){if(!SAVE.winCount||SAVE.winCount<=SAVE.eggAt)return;
  SAVE.eggAt=SAVE.winCount;writeSave()}
 /* ============ 机制 ============ */
 /* A-81：「她来了」D 单元迫近事件（左门灯亮起+剪影，2.5s反应窗口；锁门化解，超时跳脸不致死） */
-function triggerVisit(){
- if(!S||scene!=='game'||S.visit||S.black)return;
- S.visit={t:2.5,maxT:2.5,side:'L'};
+/* A-104（A-98 补丁）：顺延判定收进本函数——① D 正占 corrA/doorL（门洞会出两只 D）② 白板对局中 ③ 近看。
+   三条任一命中 ⇒ 不触发、挂 visitPending 按 +6s 补判（可连续顺延），与 D 槽占门同款步长；
+   放这里而非事件闭包 ⇒ 强制触发/调试路径同样受守卫，不再静默丢弃。 */
+function visitBlocked(){var d=S.slots&&S.slots.D,loc=d&&d.path[d.idx];
+ return (d&&d.active&&!d.retreating&&(loc==='corrA'||loc==='doorL'))||S.board.state===1||!!S.close}
+function triggerVisit(react){
+ if(!S||scene!=='game'||S.black||S.visit)return;
+ var w=react!=null?+react:VISIT_REACT;
+ if(visitBlocked()){S.visitPending={react:w,t:S.time+VISIT_DEFER};return}
+ S.visit={t:w,maxT:w,side:'L'};
  S.visitLitL=1.2;
  if(AU.visitSound)AU.visitSound();
 }
@@ -776,12 +881,13 @@ function visitScare(){
  if(S.cams)setCams(false);
  if(AU.ctx)AU.scream();
  S.sta=Math.max(20,S.sta*0.5);
- S.power=Math.max(0,S.power-5);
+ S.power=Math.max(0,S.power-(CFG&&CFG.visits&&CFG.visits.powerCost!=null?+CFG.visits.powerCost:VISIT_POWER_COST));   /* A-106：抽电契约化 5→2（D45 只改这一处） */
  if(S.power<=0&&!S.black)triggerBlackout();
 }
 /* 回收演出统一口径（A13，v1.7 §7）：剪影扑近 0.5s → 系统接管「异常进程定位 TRAINER-00 · 开始回收」
    + 删除进度条约 2s → 黑屏 →「本夜评估未通过」。wb=true 为白板通道执行删除（夜7 胜/超时）。 */
 function jump(tp,msg,tag,wb){S.recycle={t:0,gearT:0,tp:tp,msg:msg,tag:tag||'?',wb:!!wb};
+ S.camWatchT=0;                                         /* A-95：任何跳杀结算都清广场计时（防同夜二次触发留残值） */
  SAVE.deaths++;writeSave();
  scene='jump';
  hud.classList.remove('on');setStatic(false);
@@ -833,15 +939,19 @@ function truthReady(){if(TRUTH_TEST)return true;
  var a=SAVE.archFlags;return !!(a.A&&a.B&&a.C&&a.D)}
 /* 标准结局（A17，v1.7 §8a）：[挂起] → 答录机响一声无人说话断线 → 「第 1096 夜」 → 回主菜单 */
 function standardEnding(){
- var ln=(META&&META.endings&&META.endings.standard&&META.endings.standard.lines)||[];
- var main=ln[0]||'[挂起] 无法判定 · 维持挂起';
+ /* A-102（B-31① 最终收口）：四行全部改读 META.endings.standard.lines，配对渲染
+    lines[1] 作 lines[0] 的副行同屏、lines[3] 作 lines[2] 的副行同屏；兜底串=现值（l1 含「断线。」，旧硬编码漏了这两字）。 */
+ var ln=((META&&META.endings&&META.endings.standard)||{}).lines||[];
+ var l0=ln[0]||'[挂起] 无法判定 · 维持挂起',
+     l1=ln[1]||'（答录机响了一声。没有人说话。断线。）',
+     l2=ln[2]||'第 1096 夜', l3=ln[3]||'灯还亮着。夜还长。';
  showScene('done');
  $('dnGauges').innerHTML='';                          /* A-85：结局走旁白，不叠仪表读数 */
  $('dnTitle').textContent='6:00 AM';
- $('dnSub').innerHTML='<span style="color:#9aa8b2">'+main+'</span><br><span style="color:#5a5a62;font-size:.85em">答录机响了一声。没有人说话。</span>';
+ $('dnSub').innerHTML='<span style="color:#9aa8b2">'+l0+'</span><br><span style="color:#5a5a62;font-size:.85em">'+l1+'</span>';
  setTimeout(function(){if(scene==='done')AU.ringOnce()},2200);
- setTimeout(function(){if(scene==='done'){$('dnTitle').textContent='第 1096 夜';
-  $('dnSub').innerHTML='<span style="color:#6a6a72">灯还亮着。夜还长。</span>'}},5200);
+ setTimeout(function(){if(scene==='done'){$('dnTitle').textContent=l2;
+  $('dnSub').innerHTML='<span style="color:#6a6a72">'+l3+'</span>'}},5200);
  setTimeout(function(){if(scene==='done')toMenu()},9200)}
 /* ============ 真结局（A18，v1.7 §8b） ============
    谢幕曲中灯光转待机色 → 通讯铃 → 对白逐行 → 「跑吧。」长按 1.5s
@@ -927,7 +1037,7 @@ function renderTrueEnd(){var te=S.te;
    cx.fillStyle=alive?'#9aa8b2':'#3a3a44';
    cx.font='8px "Fusion Pixel",monospace';cx.textAlign='center';
    cx.fillText(names[i],x,y+30);
-   if(i===3&&off>=4){cx.fillStyle='rgba(170,64,64,.4)';   /* 白板保留「你」字残影（约 40%） */
+   if(i===3&&off>=4){cx.fillStyle='rgba(184,52,52,.4)';   /* 白板保留「你」字残影（约 40%）；A-100：她行=红手写，色同 WB_HER 族 */
     cx.font='italic 17px "Fusion Pixel","KaiTi","STKaiti",serif';
     cx.fillText('你',x,y+7)}
    cx.textAlign='left'}
@@ -996,7 +1106,9 @@ function tickSlot(s,dt){
     if(s.doorT<=0){var side=doorSide(s);
      var tag=side==='R'?'R-DOOR':(side==='L'?'L-DOOR':'DOOR');
      if(s.sprintOn&&S.juke.dead)tag='JUKE→'+s.nm;
-     var sideTxt=side==='L'?'门那边的东西，从左边进来了。':(side==='R'?'门那边的东西，从右边进来了。':'门那边的东西进来了。');
+     var sideTxt=side==='L'?T('doorIn.L')
+                :(side==='R'?T('doorIn.R')
+                :T('doorIn.N'));
      jump(s.d,sideTxt,tag)}}
    return}
   s.stayT=(s.stayT||0)+dt;
@@ -1130,11 +1242,11 @@ function sparringMove(){var b=S.board,empty=[];
  b.turn='you';b.moveT=CFG.board.limit}
 /* 判定分级（v1.7 §3.2）：win=instant 回收 | reeval 紧急评估；draw=挂起；lose/timeout=标准回收 */
 function endBoard(result){var b=S.board;
- b.state=2;b.result=result;b.phase=0;b.msgT=0;S.postAt=S.time;
+ b.state=2;b.result=result;b.phase=0;b.msgT=0;b.replT=0;S.postAt=S.time;
  if(result==='win'){
   if(CFG.board.policy==='instant'){wbRecycle();return}
   startReeval();return}
- if(result==='lose'){jump('shadow','白板里的影子赢了。','WB-LOSS',true);return}
+ if(result==='lose'){jump('shadow',T('doorIn.N'),'WB-LOSS',true);return}   /* W-73：删「白板里的影子赢了。」，lose 走通用回收旁白；tag 保留 */
  AU.boardEnd()}                                     /* draw：格子消退 → 留言浮现 → 自动回写（phase 由 updateGame 推进） */
 function startReeval(){
  SAVE.winCount++;writeSave();
@@ -1144,7 +1256,7 @@ function startReeval(){
  pushSyslog({sys:CFG.evalText,caption:true});
  if(AU.ctx)AU.warn()}
 function wbRecycle(){                               /* 夜7：玩家胜 → 白板通道即刻回收（最温柔的通道执行删除） */
- jump('shadow','白板通道 · 反应模式超出基线。','WB-INSTANT',true)}
+ jump('shadow',T('wbChannel'),'WB-INSTANT',true)}
 function tickBoard(dt){var b=S.board;
  if(b.state!==1)return;
  if(S.black)return;                                 /* 断电：白板倒计时冻结 */
@@ -1152,13 +1264,13 @@ function tickBoard(dt){var b=S.board;
   var sp=(S.cams||S.close)?BOARD_MERCY:1.0;           /* A-80：开监控或近看白板时倒计时流速减半（仁慈阀） */
   var before=Math.ceil(b.moveT);b.moveT-=dt*sp;var now=Math.ceil(b.moveT);
   if(now!==before&&now<=3&&now>0)AU.tick();
-  if(b.moveT<=0){b.result='timeout';b.state=2;jump('shadow','白板倒计时归零。','WB-TIME',true)}
+  if(b.moveT<=0){b.result='timeout';b.state=2;jump('shadow',T('wbTimeout'),'WB-TIME',true)}
  }else{b.oppT-=dt;
   if(b.oppT<=0)sparringMove()}}
 function tickBlackout(dt){S.blackT-=dt;
  var now=Math.ceil(S.blackT);
  if(now!==S.blackSec){S.blackSec=now;AU.tick()}
- if(S.blackT<=0)jump('slot_A','断电。黑暗里的倒计时走完了。','BLACKOUT')}
+ if(S.blackT<=0)jump('slot_A',T('blackout'),'BLACKOUT')}
 function updateGame(dt){S.time+=dt;
  var h=Math.floor(S.time/N.hourLen);
  if(h!==S.hour)S.hour=h;
@@ -1184,6 +1296,13 @@ function updateGame(dt){S.time+=dt;
     if(S.time>=S.postAt+off){
      S.corruptTriggered=1;S.answPlayed=1;
      startCorruptPlayback()}}
+  /* A-95：广场连续停留计时（裁决③=连续，切台/关监控/断电/僵直一律清零；不做全夜累计） */
+  if(CFG.plazaWatch){
+   if(S.cams&&S.camRoom==='plaza'&&!S.black&&S.staLock<=0&&!S.watchFired){
+    S.camWatchT+=dt;
+    if(S.camWatchT>=CFG.plazaWatch)triggerCamWatch();
+   }else S.camWatchT=0;
+  }
   tickAnsw(dt);
   tickEvents();                                      /* 脚本事件引擎（A11）：syslog/cam9/dream/stamina */
   if(S.cam9Ev){S.cam9Ev.t+=dt;if(S.cam9Ev.t>=S.cam9Ev.dur)S.cam9Ev=null}
@@ -1197,6 +1316,8 @@ function updateGame(dt){S.time+=dt;
   /* A-81：「她来了」迫近状态更新与判定 */
   if(S.visitLitL>0)S.visitLitL=Math.max(0,S.visitLitL-dt);
   if(S.visitScare>0)S.visitScare=Math.max(0,S.visitScare-dt);
+  if(S.visitPending&&S.time>=S.visitPending.t){          /* A-104：顺延补判（仍受阻则 triggerVisit 自己再挂下一次） */
+   var vp=S.visitPending;S.visitPending=null;triggerVisit(vp.react)}
   if(S.visit){
    if(S.lockL===1){
     if(AU.ctx)AU.pushSoft();
@@ -1219,10 +1340,11 @@ function updateGame(dt){S.time+=dt;
     if(S.staWarnT<=0){S.staWarnT=2.0;if(AU.ctx)AU.warn()}
    }else S.staWarnT=0;
   }else{S.staLowLooking=false;S.staWarnT=0}
-  /* 白板挂起演出时序（A8）：格子消退 3s → 留言浮现 → 再 3s 自动回写（不受玩家控制） */
+  /* 白板挂起演出时序（A8）：格子消退 3s → 留言浮现 → 再 3s 自动回写（不受玩家控制）
+     A-107：msgT 进 phase 1 后整夜累加不清零（两行 alpha 由 clamp 顶满值），回写行的淡入改用 replT 计时——修掉回写落笔那帧留言+回写一起消失 */
   var bb=S.board;
-  if(bb.state===2&&bb.result==='draw'&&bb.phase<2){bb.msgT+=dt;
-   if(bb.msgT>=3){bb.phase++;bb.msgT=0;if(AU.ctx)AU.pen()}}
+  if(bb.state===2&&bb.result==='draw'){bb.msgT+=dt;if(bb.phase>=2)bb.replT+=dt;
+   if(bb.phase<2&&bb.msgT>=3){bb.phase++;if(bb.phase===1)bb.msgT=0;if(AU.ctx)AU.pen()}}
   else if(bb.state===3)bb.msgT+=dt;                  /* message 模式（夜2）字迹渐显 */
   if(S.introT>0){S.introT-=dt;return}
   /* 电力：待机（首小时减半）/监控/锁 (A-68 drainMul) */
@@ -1520,6 +1642,40 @@ function renderOffice(){
  if(S.staLock>0){cx.fillStyle='rgba(0,0,0,.72)';cx.fillRect(0,0,384,216)}
  var n=.025;if(S.sta<30)n=.06;if(S.sta<15)n=.12;if(S.staLock>0)n=.4;
  drawNoise(n)}
+/* A-100（W-58）白板双线视觉语，范围=仅白板：她=红手写（与她棋子 #a82828 同族、略提亮保近看可读），
+   他=系统像素字（冷色族 #c8d4dc，去楷体去斜体）。棋子红/蓝对属不变；SYS LOG 暗黄手写备注不在此列（用户裁「只管白板」）。 */
+const WB_HER='#b83434', WB_HER_T='italic @px "Fusion Pixel","KaiTi","STKaiti",serif',
+      WB_HIM='#c8d4dc', WB_HIM_T='@px "Fusion Pixel",monospace';
+/* 近看像素板排演（夜4 长版留言由此折行）：字号自 15 递减试到能收进 2 行为止，仍超则按 maxLines 截断；远缩略图不走此处 */
+function wbWrap(txt,maxW){                       /* 断行自然度优先：能在标点处断成两行就在标点断，否则逐字贪心并把孤儿末行回拉 */
+ var one=cx.measureText(txt).width;
+ if(one<=maxW)return [txt];
+ var best=null,i,A,B,m;
+ for(i=1;i<txt.length;i++){
+  if('，。、！？；：——'.indexOf(txt[i-1])<0)continue;
+  A=txt.slice(0,i);B=txt.slice(i);
+  if(cx.measureText(A).width>maxW||cx.measureText(B).width>maxW)continue;
+  m=Math.max(cx.measureText(A).width,cx.measureText(B).width);
+  if(!best||m<best.m)best={m:m,lines:[A,B]}}
+ if(best)return best.lines;
+ var lines=[],cur='';
+ for(i=0;i<txt.length;i++){var t2=cur+txt[i];
+  if(cx.measureText(t2).width>maxW&&cur){lines.push(cur);cur=txt[i]}else cur=t2}
+ if(cur)lines.push(cur);
+ if(lines.length>1&&lines[lines.length-1].length<2){var pv=lines[lines.length-2];
+  lines[lines.length-2]=pv.slice(0,pv.length-1);lines[lines.length-1]=pv[pv.length-1]+lines[lines.length-1]}
+ return lines}
+function wbDraw(txt,tpl,color,cx0,cy0,maxW,maxLines){
+ txt=String(txt||'');if(!txt)return 0;
+ var sizes=[15,13,12,11],lines=[],use=sizes[sizes.length-1];
+ for(var i=0;i<sizes.length;i++){var sz=sizes[i];cx.font=tpl.replace('@',sz);
+  lines=wbWrap(txt,maxW);
+  if(lines.length<=2){use=sz;break}}
+ if(lines.length>maxLines)lines=lines.slice(0,maxLines);
+ cx.fillStyle=color;cx.textAlign='center';
+ var lh=use*1.4,y0=cy0-(lines.length-1)*lh/2;
+ for(var k=0;k<lines.length;k++)cx.fillText(lines[k],cx0,y0+k*lh);
+ cx.textAlign='left';return lines.length}
 /* 白板近看（A14/A21 基础）：残影层逐夜叠加 + 对局/留言/回写大板 */
 function renderBoardClose(){var b=S.board;
  cx.fillStyle='#000';cx.fillRect(0,0,384,216);
@@ -1535,7 +1691,7 @@ function renderBoardClose(){var b=S.board;
  var ghosts=SAVE.ghosts.map(function(g){return g.t});
  if(window.NFX&&NFX.ghostLayer)NFX.ghostLayer(cx,{ghostOpacity:gop,ghosts:ghosts});
  else if(gop>0&&ghosts.length){cx.globalAlpha=Math.min(.08,gop);
-  cx.fillStyle='#3a3a44';cx.font='9px "Courier New",monospace';
+  cx.fillStyle=WB_HER;cx.font='italic 9px "Fusion Pixel","KaiTi",serif';   /* A-100：残影层=她行 ⇒ 红手写（NFX.ghostLayer 缺席时的兜底同规则） */
   ghosts.forEach(function(t,i){cx.fillText(String(t),2+(i%2)*6,8+i*11)});cx.globalAlpha=1}
  cx.restore();
  cx.save();cx.beginPath();cx.rect(bx,by,bw,bh);cx.clip();
@@ -1558,9 +1714,8 @@ function renderBoardClose(){var b=S.board;
    cx.fillText(Math.ceil(Math.max(0,b.moveT)),bx+bw/2,by+bh-6);cx.textAlign='left'}}
  else if(b.state===3){                              /* message 模式：她的字迹浮现 */
   cx.globalAlpha=clamp(b.msgT/2,0,1)*.9;
-  cx.fillStyle='#7a4040';cx.font='italic 16px "Fusion Pixel","KaiTi","STKaiti",serif';cx.textAlign='center';
-  cx.fillText(String(CFG.board.message||''),bx+bw/2,by+bh/2);
-  cx.textAlign='left';cx.globalAlpha=1}
+  wbDraw(CFG.board.message,WB_HER_T,WB_HER,bx+bw/2,by+bh/2,bw*.86,3);   /* A-100：她=红手写 */
+  cx.globalAlpha=1}
  else if(b.state===2&&b.result==='draw'){           /* 挂起演出：格子消退 → 留言 → 回写 */
   var cellA=b.phase===0?clamp(1-b.msgT/3,0,1):0;
   if(cellA>0){var cs2=34,ox2=bx+(bw-3*cs2)/2,oy2=by+(bh-3*cs2)/2;
@@ -1573,11 +1728,10 @@ function renderBoardClose(){var b=S.board;
      R(cx,gx+8,gy+8,4,cs2-12,'#a82828');R(cx,gx+cs2-12,gy+8,4,cs2-12,'#a82828')}});
    cx.globalAlpha=1}
   if(b.phase>=1){cx.globalAlpha=clamp(b.msgT/1.2,0,1)*.92;
-   cx.fillStyle='#7a4040';cx.font='italic 15px "Fusion Pixel","KaiTi","STKaiti",serif';cx.textAlign='center';
-   cx.fillText(String(CFG.board.message||''),bx+bw/2,by+bh/2-6);
-   if(b.phase>=2){cx.fillStyle='#2848a8';
-    cx.fillText(String(CFG.board.autoReply||''),bx+bw/2,by+bh/2+18)}
-   cx.textAlign='left';cx.globalAlpha=1}}
+   var nl=wbDraw(CFG.board.message,WB_HER_T,WB_HER,bx+bw/2,by+bh/2-6,bw*.86,3);   /* A-100：她行=红手写 */
+   if(b.phase>=2){cx.globalAlpha=clamp(b.replT/1.2,0,1)*.92;                       /* A-107：回写行淡入用 replT，不再借 msgT */
+    wbDraw(CFG.board.autoReply,WB_HIM_T,WB_HIM,bx+bw/2,by+bh/2-6+nl*22,bw*.86,2)}   /* 他行=系统像素字（夜3『？』单符同一路径） */
+   cx.globalAlpha=1}}
  cx.restore();
  }
 /* 公共演出层（A11）：梦境碎影覆盖 + 中屏故障字幕（非阻塞不吞输入） */
@@ -1615,8 +1769,8 @@ function drawBoard(g){var b=S.board;
   /* A-72 去白底：不叠全透明白块与外暗框，笔迹与格线直接落在背景显示器上 */
   if(b.state===3){                                   /* 夜2：字迹浮现=棕红波浪线 */
    var a3=clamp(b.msgT/2,0,1)*.8;
-   squiggle(g,x+cw*.3,y+ch*.4,w*.5,'#7a4040',a3);
-   squiggle(g,x+cw*.3,y+ch*.7,w*.4,'#7a4040',a3*.7);return}
+   squiggle(g,x+cw*.3,y+ch*.4,w*.5,WB_HER,a3);
+   squiggle(g,x+cw*.3,y+ch*.7,w*.4,WB_HER,a3*.7);return}
   var cellA=1;
   if(b.state===2&&b.result==='draw')cellA=b.phase===0?clamp(1-b.msgT/3,0,1):0;
   if(cellA>0&&b.state===1){                          /* 批次3 A-44①：淡井字格线两横两竖（不画双斜线） */
@@ -1629,9 +1783,9 @@ function drawBoard(g){var b=S.board;
    g.stroke();g.lineWidth=1}
  if(b.state===2&&b.result==='draw'&&b.phase>=1){    /* 挂起：棕红/蓝波浪笔触 */
   var a2=clamp(b.msgT/1.2,0,1);
-  squiggle(g,x+w*.14,y+h*.3,w*.6,'#7a4040',a2*.85);
-  squiggle(g,x+w*.2,y+h*.55,w*.5,'#7a4040',a2*.65);
-  if(b.phase>=2)squiggle(g,x+w*.26,y+h*.78,w*.4,'#2848a8',a2*.85)}}
+  squiggle(g,x+w*.14,y+h*.3,w*.6,WB_HER,a2*.85);
+  squiggle(g,x+w*.2,y+h*.55,w*.5,WB_HER,a2*.65);
+  if(b.phase>=2)squiggle(g,x+w*.26,y+h*.78,w*.4,WB_HIM,clamp(b.replT/1.2,0,1)*.85)}}   /* A-107：他线淡入同用 replT */
 function renderCams(){var rm=S.camRoom;
  if(camStaticOn(rm)){renderCamStatic();return}          /* A-27：camStatic 房间整屏纯雪花，抑制场景本体 */
   var bg=rm;                                             /* v1.9b：大厅双态——点歌机在播=亮灯图，其余（未开播/停机/归零警告）=熄灯图 */
@@ -1646,6 +1800,16 @@ function renderCams(){var rm=S.camRoom;
   var here=[];
   for(var k in S.slots){var s=S.slots[k];
    if(s.active&&!s.retreating&&s.path[s.idx]===rm)here.push(s)}
+  /* A-97：撞门失败满 giveUp 的离场单位在 gymn（七夜零 path 经过的死房）现身——
+     半透明远位剪影，纯视觉；不计入 watched()/stareEffective()（离场态本就冻结），fails/idx/moveAt 结算零动。 */
+  if(rm==='gymn'&&SLOTPOS.gymn){
+   var gUsed={};
+   for(var kg in S.slots){var sg=S.slots[kg];
+    if(!sg.active||!sg.retreating||S.time>=sg.moveAt)continue;
+    var gs=(sg.slotIdx===1&&!gUsed[1])?1:(sg.slotIdx===0&&!gUsed[0])?0:(gUsed[0]?1:0);
+    gUsed[gs]=true;sg.slotIdx=gs;
+    var gp=SLOTPOS.gymn[gs]||SLOTPOS.gymn[0];
+    drawSlot(cx,sg.nm,gp[0],gp[1],gp[2],.55)}}
   /* A-70：4 刷新位动态分配（近位2,3；远位0,1；同房互不重合） */
   var usedSlots={};
   here.forEach(function(s){
@@ -1700,6 +1864,22 @@ function renderCams(){var rm=S.camRoom;
 /* 失败文案分级（v1.8）：夜1-5 玩家尚未知晓「系统」真相 → 通用 GAME OVER 演出，
    禁止出现评估/回收/TRAINER-00 等暴露虚拟属性的文字；夜6-7 剧情揭示后保留回收演出。 */
 function softFail(){return CUR<=5}
+/* ---- A-95：广场监视时长越限（到点序列固定：关监控 → 全屏标题 ~1.2s → D 跳脸） ---- */
+var wtRaw='',wtTimer=null;
+function wtSwap(){if(!wtRaw)return;var s=wtRaw.replace(/\*/g,function(){return pick(WT_STARS)});
+ var a=$('wtTitle');if(a)a.textContent=s;var b=$('goT');if(b&&b.classList.contains('wtjit'))b.textContent=s}
+function triggerCamWatch(){
+ if(!S||S.watchFired)return;
+ S.watchFired=1;S.camWatchT=0;
+ setCams(false,true);                                   /* a) 强制关监控（silent：惩罚由到点本身承担，不再叠切换耗） */
+ var dt2=(META&&META.deathTitle&&META.deathTitle.camWatch)||{};
+ wtRaw=String(dt2.title||'');
+ $('wtSub').textContent=dt2.sub||'';
+ $('watchTitle').classList.add('on');
+ wtSwap();clearTimeout(wtTimer);
+ wtTimer=setInterval(wtSwap,70);
+ setTimeout(function(){clearInterval(wtTimer);wtTimer=null;$('watchTitle').classList.remove('on');
+  jump('slot_D',dt2.sub||'[记录] 监视行为 · 时长越限','CAM-WATCH')},1200)}   /* c) 特写走 face_slot_D（她·手偶=D） */
 function renderJump(){var rc=S.recycle;
  cx.fillStyle='#000';cx.fillRect(0,0,384,216);
  if(!rc){drawNoise(.2);return}
@@ -1717,7 +1897,7 @@ function renderJump(){var rc=S.recycle;
     cx.textAlign='center';cx.fillText('· · ·',192,112);cx.textAlign='left'}
    return}
   cx.fillStyle='#c8d4dc';cx.font='9px "Courier New",monospace';cx.textAlign='center';
-  cx.fillText('异常进程定位 TRAINER-00 · 开始回收',192,74);
+  cx.fillText(T('recycle'),192,74);
   cx.textAlign='left';
   R(cx,112,96,160,10,'#101418');
   var pr=clamp((rc.t-.5)/2,0,1);
@@ -1726,7 +1906,7 @@ function renderJump(){var rc=S.recycle;
   cx.fillStyle='#8a9aa8';cx.font='8px "Fusion Pixel",monospace';
   cx.fillText(Math.floor(pr*100)+'%',262,104);
   cx.fillStyle='#5a6a72';cx.font='7px "Fusion Pixel",monospace';
-  cx.fillText('残留数据自检中……',140,124);
+  cx.fillText(T('selfCheck'),140,124);
   drawNoise(.1);return}
  var fade=clamp((rc.t-2.6)/1,0,1);                  /* 段3：黑屏推进（结束标题唯一出口=#ovOver 浮层，A-33） */
  cx.fillStyle='rgba(216,216,220,'+(fade*.35)+')';
@@ -1734,9 +1914,14 @@ function renderJump(){var rc=S.recycle;
  drawNoise(.05)}
 /* 结算遮罩统一按 softFail 分级措辞（主循环与无头冒烟共用口径） */
 function paintOver(tag,msg){
- $('goT').textContent=softFail()?'GAME OVER':'本夜评估未通过';
- $('goRetry').textContent=softFail()?'再来一夜':'重新聚合';
- $('goTag').textContent=softFail()?'':'回收标签：'+tag;
+ var wt=(tag==='CAM-WATCH'&&META&&META.deathTitle&&META.deathTitle.camWatch)?META.deathTitle.camWatch:null;
+ var gt=$('goT');
+ if(wt){gt.classList.add('wtjit');wtRaw=String(wt.title||'');wtSwap();     /* 标题=原话文本 + 星号位跳动，不走 innerHTML */
+  if(wtTimer)clearInterval(wtTimer);wtTimer=setInterval(wtSwap,70)}
+ else{gt.classList.remove('wtjit');if(wtTimer){clearInterval(wtTimer);wtTimer=null};
+  gt.textContent=softFail()?T('goSoft'):T('goHard')}   /* A-101：goT 组收编 */
+ $('goRetry').textContent=softFail()?T('goRetrySoft'):T('goRetryHard');
+ $('goTag').textContent=softFail()?'':T('goTagLabel')+tag;
  $('goS').innerHTML=msg}
 function renderOver(){cx.fillStyle='#000';cx.fillRect(0,0,384,216);drawNoise(.08);
  if(frame%90===0)goF=6;
@@ -1792,13 +1977,18 @@ function updateHud(){if(!S)return;
    if(S.god){db.classList.add('on');
     var lines='GOD VIEW  '+Math.floor(S.time)+'s';
     for(var k2 in S.slots){var s3=S.slots[k2],loc=s3.path[s3.idx];
-     var stDesc=s3.retreating?('离场(冷却 '+Math.ceil(Math.max(0,s3.moveAt-S.time))+'s)'):(s3.moved?(loc.indexOf('door')===0?(loc==='doorL'?'左门!':'右门!'):CAMNO[loc]+' '+RN[loc]):'待机('+(s3.moveAt/N.hourLen)+'h '+CAMNO[loc]+')');
+     var stDesc=s3.retreating?('离场(gymn·冷却 '+Math.ceil(Math.max(0,s3.moveAt-S.time))+'s)'):(s3.moved?(loc.indexOf('door')===0?(loc==='doorL'?'左门!':'右门!'):CAMNO[loc]+' '+RN[loc]):'待机('+(s3.moveAt/N.hourLen)+'h '+CAMNO[loc]+')');
      lines+='\n'+s3.nm+' '+stDesc+(s3.moved&&!s3.retreating?' doorT:'+Math.max(0,s3.doorT).toFixed(1):'')}
     lines+='\nJuke '+(j.dead?'已停机':j.warn>0?'窗口 '+j.warn.toFixed(1):(j.started?'电量 '+Math.ceil(j.batt)+'s':'未开播'))+
      '  Board '+(S.board.state===1?(S.board.turn==='you'?'你的回合 '+Math.max(0,S.board.moveT).toFixed(1):'敌方思考'):(S.board.state===2?S.board.result:S.board.state===3?'message':'not shown'))+
      '\nREEVAL '+(S.reeval?'进行中':'-')+'  POST '+(S.postAt!=null?fmtClock(S.postAt):'-')+
+     (CFG.plazaWatch?'  广场停留 '+S.camWatchT.toFixed(1)+'/'+CFG.plazaWatch+'s'+(S.watchFired?'(已触发)':''):'')+
      '  事件 '+S.events.filter(function(e){return e.fired}).length+'/'+S.events.length+
      '  LOG '+((SAVE.sysArch[CUR]||[]).length)+'  答录机 '+(S.answ.on?(S.answ.phase||'播放中'):'-')+
+     (CFG.visits&&CFG.visits.at&&CFG.visits.at.length?                 /* A-106：生效值可观测（T-49 取证读数） */
+      '\nVISITS ×'+(CFG.visits.count||CFG.visits.at.length)+' ['+CFG.visits.at.join(' ')+'] react '+
+      (CFG.visits.react!=null?CFG.visits.react:VISIT_REACT)+'s 抽电 '+CFG.visits.powerCost+'%'+
+      (S.visit?' 迫近'+S.visit.t.toFixed(1)+'s':'')+(S.visitPending?' 顺延→'+S.visitPending.t.toFixed(0)+'s':''):'')+
      (S.cam9Ev?'\nCAM9 '+S.cam9Ev.type+' '+S.cam9Ev.t.toFixed(1)+'s':'')+(S.dreamEv?'\nDREAM '+S.dreamEv.t.toFixed(1)+'s':'')+
      (S.capText?'\nCAPTION '+S.capText.slice(0,12):'');
     db.textContent=lines}
@@ -1821,11 +2011,13 @@ function buildMenu(){
 function buildLog(){var el=$('logList');
  var hasDiy=SAVE.diaryHeard.length>0,hasSys=Object.keys(SAVE.sysArch).length>0;
  var hasGhosts=(SAVE.ghosts&&SAVE.ghosts.length>0)||SAVE.clearedTrue;
- if(!hasDiy&&!hasSys&&!hasGhosts){el.innerHTML='<div class="arow">暂无记录。<br>深夜 00:00 的录音机留言会归档在这里，可随时重播；<br>夜里听到的系统声响（SYS 日志）推送后也会收录在下方。</div>';return}
+ var TE=META&&META.texts&&META.texts.ui&&META.texts.ui.logEmpty;
+ if(!hasDiy&&!hasSys&&!hasGhosts){el.innerHTML='<div class="arow">'+
+   (Array.isArray(TE)?TE.join('<br>'):T('ui.logEmpty'))+'</div>';return}
  var h='';
- if(hasDiy){h+='<div class="arow" style="margin-bottom:6px">—— 训练日记 · 点击重播 ——</div>';
+ if(hasDiy){h+='<div class="arow" style="margin-bottom:6px">'+T('ui.logDiary')+'</div>';
   SAVE.diaryHeard.forEach(function(id){h+='<button class="mbtn mini logItem" data-id="'+id+'">▸ '+id+'</button>'})}
- if(hasSys){h+='<div class="arow" style="margin:10px 0 6px">—— SYS 日志 · 点击阅读 ——</div>';
+ if(hasSys){h+='<div class="arow" style="margin:10px 0 6px">'+T('ui.logSys')+'</div>';
   Object.keys(SAVE.sysArch).map(Number).sort(function(a,b){return a-b}).forEach(function(n){
    h+='<button class="mbtn mini sysItem" data-n="'+n+'">▸ 夜 '+n+'（'+SAVE.sysArch[n].length+' 条）</button>'})}
  if(META&&META.boardLog&&hasGhosts){
@@ -1834,13 +2026,13 @@ function buildLog(){var el=$('logList');
   (SAVE.ghosts||[]).forEach(function(g){
    var nightStr=g.n?'第 '+g.n+' 夜：':'';
    var text=g.msg||g.t||'';
-   h+='<div class="arow got" style="font-family:\'Fusion Pixel\',\'KaiTi\',serif;font-style:italic;color:#9b6b6b;padding:4px 0;line-height:1.6">'
+   h+='<div class="arow got" style="font-family:\'Fusion Pixel\',\'KaiTi\',serif;font-style:italic;color:'+WB_HER+';padding:4px 0;line-height:1.6">'   /* A-100：她行=红手写 */
      +(nightStr?nightStr+' ':'')+'「'+text+'」'
-     +(g.reply?'<br><span style="color:#6a80a8;font-style:normal;padding-left:1em">↳ 训练员：'+g.reply+'</span>':'')
+     +(g.reply?'<br><span style="font-family:\'Fusion Pixel\',monospace;color:'+WB_HIM+';font-style:normal;padding-left:1em">↳ 训练员：'+g.reply+'</span>':'')
      +'</div>';
   });
   if(SAVE.clearedTrue&&META.boardLog.trueEndLine){
-   h+='<div class="arow got" style="font-family:\'Fusion Pixel\',\'KaiTi\',serif;font-weight:bold;color:#e8a8a8;margin-top:6px;border-top:1px dashed #5a3838;padding-top:6px">'
+   h+='<div class="arow got" style="font-family:\'Fusion Pixel\',\'KaiTi\',serif;font-weight:bold;color:'+WB_HER+';margin-top:6px;border-top:1px dashed #5a3838;padding-top:6px">'
      +META.boardLog.trueEndLine+'</div>';
   }
  }
@@ -1859,13 +2051,14 @@ function openSysArch(n){var el=$('logList');var arr=SAVE.sysArch[n]||[];
  $('sysBack').addEventListener('click',buildLog)}
 function openDiary(id){var el=$('logList');
  var wb=(META&&META.wbTrashName)||'[损坏] ▓▓1095▓▓';
- var text=null,isCr=false;
+ var text=null,isCr=false,ru=[];
  (window.NIGHTS||[]).forEach(function(n){
-  if(n.diary&&n.diary.id===id)text=n.diary.text;
+  if(n.diary&&n.diary.id===id){text=n.diary.text;ru=n.diary.ruleAt||[]}   /* D44 补裁2：记录页重听同步红规则行 */
   if(n.diary&&id===wb&&n.diary.corrupt){text=Array.isArray(n.diary.corrupt)?n.diary.corrupt.join('\n'):String(n.diary.corrupt);isCr=true}});
  var back='<div class="btnrow" style="margin-top:10px"><button class="mbtn mini" id="logBack2">返回列表</button></div>';
  if(text==null){el.innerHTML='<div class="arow">['+id+'] 音频残损，文本缺失。</div>'+back}
- else{el.innerHTML='<div class="arow got" style="white-space:pre-wrap;line-height:2.2'+(isCr?';font-family:\'Courier New\',monospace;color:#8a9aa8':'')+'">'+text+'</div>'+back;
+ else{var body=String(text).split('\n').map(function(t,i){return ru.indexOf(i+1)>=0?'<span style="color:#ff6a6a">'+t+'</span>':t}).join('\n');
+  el.innerHTML='<div class="arow got" style="white-space:pre-wrap;line-height:2.2'+(isCr?';font-family:\'Courier New\',monospace;color:#8a9aa8':'')+'">'+body+'</div>'+back;
   if(AU.ctx)AU.tape()}
  $('logBack2').addEventListener('click',buildLog)}
 function buildArch(){var el=$('archList');
@@ -1894,7 +2087,7 @@ function z2(v){v=String(v);return v.length<2?'0'+v:v}
 function howVals(){var c=CFG,s=c.sta;
  return{freeze:c.stareRamp,camOn:'+'+s.recOpen+'%',camOff:'+'+s.recClosed+'%','switch':s.sw+'%',
   low:s.low,crit:s.crit,stun:s.lockT,rec:s.back,lock:c.drain.lock+'%',light:LIGHT_T,
-  warn:jukeWarn(),mercy:'×'+BOARD_MERCY,base:c.drain.base+'%'}}
+  warn:jukeWarn(),mercy:T('mercy'),base:c.drain.base+'%'}}
 function howFill(str,V){return String(str).replace(/\{(\w+)\}/g,function(m,k){return k in V?V[k]:m})}
 function updateHow(){
  if(!CFG){N=resolveNight(CUR||3);CFG=buildRT()}
@@ -2021,13 +2214,14 @@ function loop(t){requestAnimationFrame(loop);
  var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;DT=dt;frame++;
  if(frame%2===0)upNoise();
  cx.setTransform(SQ,0,0,SQ,0,0);                    /* 逻辑 384x216 → 画布 320x180 */
+ tickHer();                                         /* A-105：BGM 通道按场景/开播态判定目标音量（含淡入淡出与重试） */
  if(scene==='game'&&S){
   var gdt=dt*SCALE;
   if(gdt>0)updateGame(gdt);
   if(scene==='game'){
    if(S.cams)renderCams();else renderOffice();
    renderPreFlash();                                  /* A-88：她的登场预告（办公室与监控两态皆可见） */
-   if(S.cams&&S.camRoom==='hall'&&S.juke.started&&!S.juke.dead&&!S.juke.warn&&S.juke.left>0){
+   if(S.cams&&S.camRoom==='hall'&&S.juke.started&&!S.juke.dead&&!S.juke.warn&&S.juke.left>0&&!herSongOn()){   /* A-105：夜7 集齐时合成八音盒让位给 mp3 通道 */
     S.juke.melT-=dt;
     if(S.juke.melT<=0){var n=JUKEMEL[S.juke.melI];
      if(n[0])AU.note(n[0],n[1]*.5,S.juke.left<10?.035:.045);
@@ -2045,7 +2239,7 @@ function loop(t){requestAnimationFrame(loop);
  else if(scene==='trueEnd'&&S){if(S.te)tickTrueEnd(dt);renderTrueEnd()}
  else if(scene==='over')renderOver();
  else if(scene==='done'){cx.fillStyle='#000';cx.fillRect(0,0,384,216);
-  if(S&&S.finaleMel){S.juke.melT-=dt;               /* 谢幕曲续播进结算界面（A12 finale） */
+  if(S&&S.finaleMel&&!herSongOn()){S.juke.melT-=dt;  /* 谢幕曲续播进结算界面（A12 finale）；A-105：夜7 集齐时由 mp3 续播 */
    if(S.juke.melT<=0){var nm=JUKEMEL[S.juke.melI];
     if(nm[0])AU.note(nm[0],nm[1]*.5,.03);
     S.juke.melT=nm[1]*.5;
@@ -2085,6 +2279,11 @@ loadAssets(function(){META=getMeta();if(!officeImg())panoOK=0;try{bakeOfficePano
    if(jumpq)setTimeout(function(){if(scene==='intro')enterGame();jump(jumpq,'无头调试跳杀','DEBUG-JUMP',jumpq==='shadow')},120);
    if(smoke==='2')for(var k in S.slots){S.slots[k].at=99999;S.slots[k].moveAt=99999}
    if(smoke==='4'){for(var k in S.slots){S.slots[k].at=99999;S.slots[k].moveAt=99999}CFG.board.at=99999;CFG.juke.start=99999}  /* 纯净夜：验证 06:00 通关链 */
+   if(smoke==='8'){                                     /* A-95：plazaWatch 全链无人值守（驻留→关监控→标题→D 跳脸） */
+    for(var k8 in S.slots){S.slots[k8].at=99999;S.slots[k8].moveAt=99999}
+    CFG.board.at=99999;CFG.juke.start=99999;
+    if(!CFG.plazaWatch)CFG.plazaWatch=3;               /* B-48 数据未落时给测试阈值，落了则用真值 */
+    setTimeout(function(){if(S&&scene==='game'){setCams(true,true);S.camRoom='plaza';S.camCd=0}},400)}
   var autoDraw=(smoke==='6'||smoke==='7');
   setInterval(function(){
    if(scene==='game'&&S){
