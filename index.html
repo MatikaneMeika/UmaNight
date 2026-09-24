@@ -19,9 +19,17 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 #tTime{position:absolute;top:calc(var(--u)*3);right:calc(var(--u)*3.4);font-size:calc(var(--u)*3.6)}
 #tNight{position:absolute;top:calc(var(--u)*8);right:calc(var(--u)*3.4);font-size:calc(var(--u)*1.9);color:#93939d;font-family:var(--fh)}
 /* ---- 批次7 §7.0 工控面板令牌：结构底/结构线/静默字/可用字/告警/致命（不新增色值） ---- */
-#alertDot{position:absolute;top:calc(var(--u)*3);left:50%;transform:translateX(-50%);width:calc(var(--u)*2);height:calc(var(--u)*2);background:#6a7480;box-shadow:0 0 0 1px #3a3a48}
+#alertDot{position:absolute;top:calc(var(--u)*3);left:50%;transform:translateX(-50%);width:calc(var(--u)*2);height:calc(var(--u)*2);background:#6a7480;box-shadow:0 0 0 1px #3a3a48;cursor:pointer;z-index:7}   /* A-131（批次19，↔D57-①）：本块退役「暂停入口」、只管告警（点歌机黄 .on / 冲刺致命 .crit，判定式逐字未改）；.pe 仍由引擎在 updateHud 里每帧续挂（A-112 记录过同类风险，续挂位置同处） */
 #alertDot.on{background:#ffd24a;box-shadow:0 0 0 1px #ffd24a}
 #alertDot.crit{background:#e04848;box-shadow:0 0 0 1px #e04848}
+/* A-131：暂停键=独立 DOM。几何：与告警块同行（top:3u）、居其右侧，两枚中心相隔 3.6u、边气口 1.1u（要求 ≥1u）；
+   远离左上角 #answBox（其自左缘展开）与右侧 #tTime / 下方 #jukeGauge（全按 --u 与 % 相对定位，1280/1920 同布局）。
+   z-index=7 沿用 A-112 约束：暂停罩 #pauseOv z=6 照常盖住 HUD，暂停键在暂停中仍可再点返回。
+   色值零新增：底 #6a7480、描边 #3a3a48、两竖条 #3a3a48，全部批次7 工控面板令牌域内；图形 CSS 画，不引字形不加图片。 */
+#pauseBtn{position:absolute;top:calc(var(--u)*3);left:calc(50% + var(--u)*3.6);transform:translateX(-50%);width:calc(var(--u)*3);height:calc(var(--u)*2);background:#6a7480;box-shadow:0 0 0 1px #3a3a48;cursor:pointer;z-index:7}
+#pauseBtn::before,#pauseBtn::after{content:"";position:absolute;top:25%;width:14%;height:50%;background:#3a3a48}
+#pauseBtn::before{left:30%}
+#pauseBtn::after{right:30%}
 #jukeGauge{position:absolute;top:calc(var(--u)*11.5);right:calc(var(--u)*3.4);display:none;align-items:stretch;height:calc(var(--u)*8);background:#2c2c34;border:1px solid #3a3a48;color:#6a7480;opacity:.5;padding:0;cursor:pointer;font-family:var(--fh);z-index:4;transition:opacity .18s,color .18s,border-color .18s,box-shadow .18s}
 #jukeGauge .jgIco{display:block;width:calc(var(--u)*4);height:calc(var(--u)*7);margin:calc(var(--u)*0.5) calc(var(--u)*1.6);shape-rendering:crispEdges}
 #jukeGauge .jgIco rect{fill:currentColor}
@@ -40,8 +48,19 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 #usage{display:inline-flex;gap:2px;vertical-align:middle}
 #usage i{width:calc(var(--u)*2.2);height:calc(var(--u)*2.2);background:#20202a;border:1px solid #000}
 #usage i.on{background:#e8e8ec}
-#camStrip{position:absolute;left:50%;bottom:0;transform:translateX(-50%);padding:calc(var(--u)*1.4) calc(var(--u)*5);border:1px solid rgba(255,255,255,.45);border-bottom:none;background:rgba(0,0,0,.55);color:#e8e8e8;font-size:calc(var(--u)*2);letter-spacing:2px;white-space:nowrap;cursor:pointer}
-#camStrip:active{background:rgba(255,255,255,.15)}
+/* A-145（批次20）：底部中央控制条 #camBar —— 左段「打开监控」与右段「地图展开/隐藏」连排成一条，共用边框与字体档。
+   用户直令（批次20 追加）：按钮不浮空，贴 #camStrip 旁边、字体排版与其完全一致 ⇒ 两件写进同一条规则（同 padding、同字号、同字间隔、同底色、同边框）。
+   🔴 font-family 与 font-weight 必须显式声明：本文件零 `button{}` 复位，button 不吃 body 的 --fm（默认走 UA Arial），
+     只给 div 设样式的写法会让左段像素字、右段无衬线字——批次20 第一版就是这个毛病。
+   两态文案「隐藏地图 / 展开地图」都是 4 个全角字 ⇒ 右段宽度不变，切态时整条不横移。
+   位置口径：与 #map 面板、19 个 YBOX 框 9 相位极值投影均不相交（实测量见 work/_b20_btn_geom.txt）；
+   非监控态右段 display:none，左段单独居中=现行位置逐字不变。
+   排法取舍（实测）：整条居中 ⇒ 开监控时左段向左让 35.9 逻辑像素（右段右缘到 x270.3）。
+   若改为把左段锁在正中不动，右段右缘要到 x≈306.9，与 #map 面板（x 自 291.8 起）在底角相撞 ⇒ 不用此方案。 */
+#camBar{position:absolute;left:50%;bottom:0;transform:translateX(-50%);display:flex;align-items:flex-end}
+#camStrip,#mapBtn{padding:calc(var(--u)*1.4) calc(var(--u)*5);border:1px solid rgba(255,255,255,.45);border-bottom:none;background:rgba(0,0,0,.55);color:#e8e8e8;font-family:var(--fm);font-weight:400;font-size:calc(var(--u)*2);letter-spacing:2px;white-space:nowrap;cursor:pointer;border-radius:0}
+#camStrip:active,#mapBtn:active{background:rgba(255,255,255,.15)}
+#mapBtn{border-left:none;display:none}   /* 左段右边框即两段分线，不双描边；默认藏=由 mapBtnSync 随 camHud.on 同步 */
 .arw{position:absolute;top:38%;font-size:calc(var(--u)*7);color:rgba(255,255,255,.4);padding:calc(var(--u)*2);cursor:pointer}
 #arL{left:calc(var(--u)*.6)}#arR{right:calc(var(--u)*.6)}
 #camHud{position:absolute;inset:0;display:none}
@@ -50,12 +69,15 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 #camSub{position:absolute;top:calc(var(--u)*7);left:calc(var(--u)*3.4);font-size:calc(var(--u)*1.8);color:#8a9a6a;font-family:var(--fh)}
 #rec{position:absolute;top:calc(var(--u)*3);right:calc(var(--u)*15);font-size:calc(var(--u)*2);color:#cdd0c6;font-family:var(--fm);letter-spacing:1px}
 #rec i{display:inline-block;width:calc(var(--u)*2);height:calc(var(--u)*2);background:#e04848;margin-right:calc(var(--u)*1.4);vertical-align:-8%}
-#map{position:absolute;right:calc(var(--u)*2);bottom:calc(var(--u)*2);width:calc(var(--u)*22);height:calc(var(--u)*16);background:#000;border:1px solid #d8d8dc}   /* A-84 原生幅面 + 用户指令：黑底白线 */
-#map .mb{position:absolute;border:1px solid #d8d8dc;background:rgba(255,255,255,.06);color:#e8e8e8;font-size:calc(var(--u)*1.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--fm)}
+/* A-130（批次18）用户直令：监控地图「去掉黑色背景，只留白色字和框」⇒ 面板与各房块全部无填充，
+   只剩白线框 + 白像素字（原 A-84「黑底白线」口径作废）。选中/告警也一律改用线框表达，不再用白实心块。
+   text-shadow 是给字本身描一圈暗边（保证压在高亮画面上的白字仍可读），不是面板底衬：整块背景全透明。 */
+#map{position:absolute;right:calc(var(--u)*2);bottom:calc(var(--u)*2);width:calc(var(--u)*22);height:calc(var(--u)*16);background:transparent;border:1px solid #d8d8dc}
+#map .mb{position:absolute;border:1px solid #d8d8dc;background:transparent;color:#fff;font-size:calc(var(--u)*1.6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--fm);text-shadow:0 0 calc(var(--u)*.6) rgba(0,0,0,.85),0 calc(var(--u)*.15) 0 rgba(0,0,0,.7)}
 @media (pointer:coarse){#map .mb{font-size:calc(var(--u)*2.1)}}   /* 移动端命中区字号放大 */
-#map .mb.on{background:#e8e8e8;color:#000}
-#map .mb.alert{border-color:#fff;background:rgba(255,255,255,.28);color:#fff}   /* 单色提亮：告警=更亮的白，不用彩色、不闪烁 */
-#map .you{position:absolute;border:1px solid #d8d8dc;color:#c9c9cf;font-size:calc(var(--u)*1.3);display:flex;align-items:center;justify-content:center;font-family:var(--fh);background:rgba(255,255,255,.04)}   /* 训练员室=矩形（不可点，与房间块同边但更淡） */
+#map .mb.on{border-color:#fff;box-shadow:inset 0 0 0 1px #fff}   /* 选中=双线框（纯线，无填充） */
+#map .mb.alert{border-color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 0 calc(var(--u)*.8) rgba(255,255,255,.5);color:#fff}   /* 告警=更亮的白描边，不用彩色、不闪烁 */
+#map .you{position:absolute;border:1px solid #d8d8dc;color:#e2e2e6;font-size:calc(var(--u)*1.3);display:flex;align-items:center;justify-content:center;font-family:var(--fh);background:transparent;text-shadow:0 0 calc(var(--u)*.6) rgba(0,0,0,.85)}   /* 训练员室=矩形（不可点，与房间块同边） */
 #blackHud{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:calc(var(--u)*9);color:#5a5a66}
 #blackHud.on{display:flex}
 #dbg{position:absolute;top:calc(var(--u)*12);left:calc(var(--u)*3);font:calc(var(--u)*1.7)/1.7 var(--fm);color:#7de07d;background:rgba(0,0,0,.6);padding:calc(var(--u)*1.2);white-space:pre;display:none;text-shadow:none}
@@ -119,10 +141,13 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 .lgAt{color:#5a7a88;font-size:calc(var(--u)*1.5);margin-top:calc(var(--u)*1)}
 .lgSys{color:#b8d0d8;font-family:var(--fm);font-size:calc(var(--u)*1.8);line-height:1.8;white-space:pre-wrap}
 .lgNote{color:#d8b84a;font-family:var(--fh);font-size:calc(var(--u)*1.8);line-height:1.8;white-space:pre-wrap}
-/* 录音机（v1.8 重构）：右下角「电话残留」同款字幕（固定 0.75 缩放），一次 1-2 行滑窗，播中红点闪烁 */
+/* 答录机（v1.8 重构）：右下角「电话残留」同款字幕（固定 0.75 缩放），一次 1-2 行滑窗，播中红点闪烁
+   —— A-132（批次19，↔D57-②）本条说明至此与实现对齐：闪烁已落地（下方纯 CSS），引擎零 JS。 */
 #answBox{position:absolute;top:calc(var(--u)*2);left:calc(var(--u)*2);transform:scale(.75);transform-origin:left top;max-width:84%;width:max-content;background:rgba(0,0,0,.72);border-left:2px solid #6a6f60;padding:calc(var(--u)*1.2) calc(var(--u)*2.4);text-align:left;font-family:var(--fh);font-size:calc(var(--u)*2.2);color:#cdd0c6;opacity:0;transition:opacity .5s;pointer-events:none}
 #answBox.on{opacity:1;pointer-events:none}
-#answDot{position:absolute;top:calc(var(--u)*1.5);right:calc(var(--u)*1.6);width:calc(var(--u)*2);height:calc(var(--u)*2);background:#ffd24a}
+#answDot{position:absolute;top:calc(var(--u)*1.5);right:calc(var(--u)*1.6);width:calc(var(--u)*2);height:calc(var(--u)*2);background:#e04848}   /* A-132：常驻黄 #ffd24a 改为红底（复用 #rec i 同值 #e04848，不新增色值）；明灭只挂 #answBox.on 分支，显隐仍由既有 startDiary/endDiary/interruptDiary 驱动 */
+#answBox.on #answDot{animation:answBlink 1.2s ease-in-out infinite}   /* 播中闪烁：opacity 1..0.25，周期 1.2s（落在 1.0~1.4s 带内，禁高频闪）；R 键中断与播毕随框隐去即停 */
+@keyframes answBlink{50%{opacity:.25}}
 #answBody{line-height:2;white-space:pre-wrap;min-width:calc(var(--u)*40)}
 #answBody div{opacity:.06;transition:opacity 1s}
 #answBody div.rl{color:#ff6a6a}   /* D44 补裁2（审查位直改）：日记规则教学行红字——「日记=说明书」的视觉高亮 */
@@ -134,6 +159,10 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 #wtTitle{position:absolute;left:50%;top:42%;transform:translateX(-50%);white-space:nowrap;font-family:var(--fm);font-size:calc(var(--u)*5.4);letter-spacing:4px;color:#e8e8ec;animation:gl .34s steps(2) infinite}
 #wtSub{position:absolute;left:50%;top:56%;transform:translateX(-50%);white-space:nowrap;font-family:var(--fm);font-size:calc(var(--u)*1.9);letter-spacing:2px;color:#7a8494}
 #goT.wtjit{animation:gj .34s steps(2) infinite}
+/* A-112：暂停罩——独立于 OV 表（scene 保持 'game'），参照 #watchTitle 先例；复用既有令牌，不新增颜色/不加框体，只留罩色+文字+两键 */
+#pauseOv{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.88);z-index:6;pointer-events:auto}
+#pauseOv.on{display:flex}
+#puTitle{font-size:calc(var(--u)*4);color:#e8e8e8;letter-spacing:6px;margin-bottom:calc(var(--u)*4)}
 @keyframes gj{0%{transform:translate(0,0)}25%{transform:translate(-1px,1px)}50%{transform:translate(1px,-1px)}75%{transform:translate(-1px,-1px)}100%{transform:translate(1px,1px)}}   /* 同 gl 的抖动量，但不含 -50% 位移（#goT 由 flex 居中） */
 @keyframes gl{0%{transform:translateX(-50%) translate(0,0)}25%{transform:translateX(-50%) translate(-1px,1px)}50%{transform:translateX(-50%) translate(1px,-1px)}75%{transform:translateX(-50%) translate(-1px,-1px)}100%{transform:translateX(-50%) translate(1px,1px)}}
 #eggFx{position:absolute;right:5%;bottom:22%;font-family:var(--fh);font-size:calc(var(--u)*2.2);color:#e0d8c8;opacity:0;transition:opacity 2.4s;text-shadow:1px 1px 0 #000;pointer-events:none}
@@ -149,6 +178,8 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 #credits{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:60%;color:#c9c9cf;font-family:var(--fh);font-size:calc(var(--u)*2.2);line-height:2.4;text-align:center;pointer-events:none;animation:roll 14s linear forwards}
 #credits.on{display:flex}
 @keyframes roll{from{transform:translateY(0)}to{transform:translateY(-160%)}}
+/* E12：prefers-reduced-motion 降级——高频闪/抖降为无动画（不新增色值，仅取消 animation）*/
+@media (prefers-reduced-motion:reduce){#edgeFx.red,#edgeFx.white{animation:none}#answBox.on #answDot{animation:none}#reevalTag.on,#wtTitle{animation:none}#goT.wtjit{animation:none}#inProg.run i{animation:none}}
 </style>
 </head>
 <body>
@@ -157,18 +188,20 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 <canvas id="cv" width="320" height="180"></canvas>
 <div id="hud">
   <div id="tTime">12 AM</div><div id="tNight"></div>
-  <div id="alertDot"></div>
+  <div id="alertDot" class="pe"></div>
+  <div id="pauseBtn" class="pe"></div>
   <div id="staBox">耐力 <b id="staPct">100%</b></div>
   <div id="powBox">电力 <b id="powPct">100%</b><br>用量 <span id="usage"><i></i><i></i><i></i><i></i></span></div>
   <div id="camHud"><div id="camTitle">CAM1 · 大厅</div><div id="camSub"></div><button id="jukeGauge" class="pe" title="续电" aria-label="续电"><svg class="jgIco" viewBox="0 0 8 8" width="16" height="16" shape-rendering="crispEdges"><rect x="4" y="0" width="3" height="1"/><rect x="3" y="1" width="3" height="1"/><rect x="2" y="2" width="5" height="1"/><rect x="4" y="3" width="3" height="1"/><rect x="3" y="4" width="3" height="1"/><rect x="2" y="5" width="3" height="1"/><rect x="1" y="6" width="2" height="1"/></svg><i class="jgSep"></i><span id="jukeSec">00</span></button><div id="rec"><i></i>REC</div><div id="map"></div></div>
   <div id="blackHud">10</div>
   <div id="dbg"></div>
-  <div id="camStrip" class="pe">▲ 打开监控</div>
+  <div id="camBar"><div id="camStrip" class="pe">▲ 打开监控</div><button id="mapBtn" class="pe" aria-label="地图开关">隐藏地图</button></div>
   <div id="arL" class="arw pe">‹</div><div id="arR" class="arw pe">›</div>
   <div id="edgeFx"></div>
   <div id="answBox"><i id="answDot"></i><div id="answBody"></div></div>
   <div id="reevalTag">RE-EVALUATING</div>
   <div id="watchTitle"><div id="wtTitle"></div><div id="wtSub"></div></div>
+  <div id="pauseOv"><div id="puTitle"></div><div class="btnrow"><button class="mbtn primary" id="puResume"></button><button class="mbtn" id="puQuit"></button></div></div>
   <div id="eggFx"></div>
 </div>
 <div class="ovl on" id="ovMenu">
@@ -206,7 +239,7 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 </div></div>
 <div class="ovl" id="ovIntro"><div id="inPanel"><div id="inTime">CLOCK 00:00</div><div id="inNight">NIGHT 1</div><div id="inProg"><i></i></div></div><div id="inRetry"></div></div>
 <div class="ovl" id="ovDone"><div id="dnTitle">6:00 AM</div><div id="dnGauges" class="gauge"></div><div id="dnSub"></div>
-  <div class="btnrow"><button class="mbtn" id="dnRetry">再来一夜</button><button class="mbtn" id="dnMenu">主菜单</button></div></div>
+  <div class="btnrow"><button class="mbtn primary" id="dnNext">进入下一夜</button><button class="mbtn" id="dnRetry">再来一夜</button><button class="mbtn" id="dnHome">回到主页</button><button class="mbtn" id="dnMenu">主菜单</button></div></div>
 <div class="ovl" id="ovOver"><div id="goT">GAME OVER</div><div id="goLine"></div><div id="goTag"></div><div id="goS"></div>
   <div class="btnrow"><button class="mbtn" id="goRetry">再来一夜</button><button class="mbtn" id="goMenu">主菜单</button></div></div>
 <div id="teBox"></div>
@@ -231,6 +264,7 @@ body{display:flex;align-items:center;justify-content:center;font-family:var(--fm
 const W=320,H=180,OW=640,SQ=5/6;   /* 逻辑坐标 384x216，画布 320x180，统一 ×5/6 */
 const cv=document.getElementById('cv'),cx=cv.getContext('2d');
 cx.imageSmoothingEnabled=false;
+var RM=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);   /* E12：光敏降级总开关，默认 no-preference 为假、零视觉差异 */
 const R=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x|0,y|0,Math.round(w),Math.round(h))};
 const mk=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c};
 const pick=a=>a[(Math.random()*a.length)|0],rnd=n=>(Math.random()*n)|0;
@@ -239,7 +273,7 @@ const $=id=>document.getElementById(id);
 const stage=$('stage'),hud=$('hud');
 const OV={menu:$('ovMenu'),nights:$('ovNights'),how:$('ovHow'),log:$('ovLog'),arch:$('ovArch'),intro:$('ovIntro'),done:$('ovDone'),over:$('ovOver')};
 let scene='load';
-function showScene(n){scene=n;for(const k in OV)OV[k].classList.toggle('on',k===n);hud.classList.toggle('on',n==='game');stage.style.cursor=n==='game'?'grab':'default'}
+function showScene(n){scene=n;for(const k in OV)OV[k].classList.toggle('on',k===n);hud.classList.toggle('on',n==='game');stage.style.cursor=n==='game'?'grab':'default';if(n==='game'||n==='jump'||n==='over'||n==='trueEnd')xfT=.35;   /* E2：开机过场 */}
 function fit(){const s=Math.min(innerWidth/W,innerHeight/H)*.996;stage.style.width=W*s+'px';stage.style.height=H*s+'px';document.documentElement.style.setProperty('--u',(W*s/100)+'px')}
 addEventListener('resize',fit);fit();
 /* ============ 数据层（契约 v1 §3.1/§3.2，容错读取） ============ */
@@ -293,17 +327,27 @@ const TXT={
  'goTagLabel':'回收标签：',
  'mercy':'减半',
  'recycle':'异常进程定位 TRAINER-00 · 开始回收',
+ 'roseIn':'房间里多了一束花。',      /* A-118 兜底串（B-63 供值 META.texts.roseIn，键名不许改） */
+ 'roseInFirst':'有个调皮的孩子进来了，要献上玫瑰，应该在其他房间。',   /* A-137（批次19）兜底串=B-68③ 供值 META.texts.roseInFirst 逐字相同（D57-⑦ 已去代词）；缺键时 T 走本串，两边都空=不追加 */
  'selfCheck':'残留数据自检中……',
  'ui.logDiary':'—— 训练日记 · 点击重播 ——',
  'ui.logEmpty':'暂无记录。<br>深夜 00:00 的答录机留言会归档在这里，可随时重播；<br>夜里听到的系统声响（SYS 日志）推送后也会收录在下方。',
  'ui.logSys':'—— SYS 日志 · 点击阅读 ——',
  'wbChannel':'白板通道 · 反应模式超出基线。',
  'wbTimeout':'白板倒计时归零。',
+ 'winIn.L':'左窗户那里有东西。',      /* A-117 兜底串（B-63 供值 META.texts.winIn.L/R，键名不许改） */
+ 'winIn.R':'右窗户那里有东西。',
+ 'winIn.LFirst':'如果窗户边的那个孩子来了，就用灯照亮方向。',   /* A-137（批次19）兜底串=B-68③ 供值 META.texts.winIn.LFirst/RFirst 逐字相同（D57-⑦ 已去代词；S2 禁她两侧同守） */
+ 'winIn.RFirst':'如果窗户边的那个孩子来了，就用灯照亮方向。',
 };
 function T(path){var v=(window.META&&META.texts)||null;
  if(v)for(var p=String(path).split('.'),i=0;i<p.length&&v;i++)v=v[p[i]];
  if(v!=null&&v!=='')return String(v);
  return TXT[path]!=null?TXT[path]:''}
+/* A-111/A-112（B-60 供值）：结算页/暂停罩占位文案=META.done.{next,home,pause,resume,quit}；
+   缺供值一律回落引擎兜底串（契约容错惯例，B 未供值也照常可玩）。 */
+function doneTxt(k,def){var d=(window.META&&META.done)||{},v=d[k];
+ return (v!=null&&v!=='')?String(v):def}
 /* A-101：早段 error 钩子只攒事件（那时没有 META），本函数接管渲染 ⇒ 前缀『[异常] 』同样走 texts */
 window.__errPaint=function(){var d=$('errBox'),L=window.__ERRS||[];
  if(!d||!L.length)return;var e=L[L.length-1];
@@ -335,14 +379,19 @@ function buildRT(){var p=N.power||{},b=N.board||{},j=N.juke||{};
    blackT:10,camCd:1,slowX:2,               /* 白板对局期间全场移动 ×2 慢（引擎常量） */
    plazaWatch:N.plazaWatch!=null?+N.plazaWatch:0,   /* A-95：盯三女神广场的连续停留上限（秒）；缺省 0=不启用，旧档与 _sample 无感 */
    visits:Object.assign({powerCost:VISIT_POWER_COST},N.visits||{}),   /* A-106：全透传（A-73 口径），缺省 2 由前项兜住——数据缺失绝不回退 5 */
+   winE:Object.assign({},WIN_E,N.winE||{}),     /* A-117：窗户敌契约（可选键，缺省=WIN_E ⇒ 无该字段=零变化） */
+   roseE:Object.assign({},ROSE_E,N.roseE||{}),  /* A-118：玫瑰敌契约（同上） */
    hints:N.hints||{}}}
 function jukeWarn(){var w=CFG&&CFG.juke&&CFG.juke.warn;return w!=null?w:(CUR===7?3:5)}
 /* ============ 存档（契约 §3.4） ============ */
 /* A-87：SAVE_KEY 自发布起冻结，结构变更一律走 schemaVer 迁移链——
-   每次改存档结构：SAVE_VER+1，并在 loadSave 的迁移段按 ver 顺序追加一级分支。 */
+   每次改存档结构：SAVE_VER+1，并在 loadSave 的迁移段按 ver 顺序追加一级分支。
+   A-134（批次19）：SAVE_VER 1→2，新增 items 四键与 clearedHidden；迁移链 v1→v2=旧档缺字段清洗为全 0（实测旧档不炸交 T-85③）。 */
 const SAVE_KEY='umanight_save_v1';
-const SAVE_VER=1;
+const SAVE_VER=2;
 function defSave(){return{schemaVer:SAVE_VER,unlockedNight:1,diaryHeard:[],archFlags:{A:0,B:0,C:0,D:0,final:0},winCount:0,everWon:false,clearedTrue:false,
+ items:{chess:0,trophy:0,flyer:0,doll:0},   /* A-134/D57-(5)→A-147/A-148（批次21 用户直令改写）：只表示「已过夜落档」——win() 前段 commitNightItems() 才写，故仍跨周目、跨读档持久；本夜收取未过夜挂 S.itemGot，不进这里 */
+ clearedHidden:0,                           /* A-135：暗线尾段通关旗标，与 clearedTrue 分列（两者在暗线链上同时置位） */
  ghosts:[],eggAt:0,deaths:0,sysArch:{}}}   /* ghosts/eggAt/deaths/sysArch 为引擎内部字段（A14 残影层 / A15 彩蛋 / 备选死亡计数 / SYS 日志归档），B 不消费 */
 function loadSave(){try{var raw=localStorage.getItem(SAVE_KEY);if(!raw)return defSave();
   var d=JSON.parse(raw),s=defSave();
@@ -354,9 +403,11 @@ function loadSave(){try{var raw=localStorage.getItem(SAVE_KEY);if(!raw)return de
    if(d.sysArch&&typeof d.sysArch==='object')for(var nk in d.sysArch)if(Array.isArray(d.sysArch[nk]))
     s.sysArch[nk]=d.sysArch[nk].filter(function(e){return e&&typeof e.sys==='string'}).map(function(e){return{t:String(e.t||''),sys:e.sys,note:typeof e.note==='string'?e.note:null}});
    s.winCount=d.winCount|0;s.everWon=!!d.everWon;s.clearedTrue=!!d.clearedTrue;
+   s.clearedHidden=!!d.clearedHidden;                                  /* A-134：v1→v2 迁移=缺字段清洗为 0（旧档无键不炸，items 同理走下面的逐键清洗） */
+   if(d.items&&typeof d.items==='object')for(var ik in s.items)if(d.items[ik])s.items[ik]=1;   /* 白名单逐键写入：只认 chess/trophy/flyer/doll，非法键丢弃 */
    if(Array.isArray(d.ghosts))s.ghosts=d.ghosts.filter(function(g){return g&&(typeof g.msg==='string'||typeof g.t==='string')}).map(function(g){return{n:g.n||0,msg:g.msg||g.t||'',t:g.t||g.msg||'',reply:g.reply||null,o:g.o!=null?g.o:.06}}).slice(-14);
    s.eggAt=d.eggAt|0;s.deaths=d.deaths|0}
-  while(ver<SAVE_VER){                                     /* 迁移链：逐级升版，v0→v1 即上面的字段清洗 */
+  while(ver<SAVE_VER){                                     /* 迁移链：逐级升版，v0→v1 即上面的字段清洗；v1→v2=items/clearedHidden 缺省清洗（全 0），无多余搬运动作 */
    ver++;s._migrated=1}
   s.schemaVer=SAVE_VER;
   return s}catch(e){return defSave()}}
@@ -375,37 +426,130 @@ const CAMNO={hall:'CAM1',gym:'CAM2',shop:'CAM3',lib:'CAM4',pool:'CAM5',gymn:'CAM
 const MAPLAY=[['lib',1,2,25,20],['pool',1,26,25,20],['plaza',1,50,25,20],['roof',1,74,25,16],
  ['gymn',30,2,40,20],['corrA',30,26,18,44],['corrB',52,26,18,44],
  ['hall',74,2,25,20],['shop',74,26,25,20],['gym',74,50,25,20]];   /* A-96：roof 喂 doorL ⇒ 按 A-79 同侧口径落左半区底带左段（YOUPLAY 占 x30-70，不冲突） */
-/* A-99：SLOTPOS 目视校正值表（10 房，384×216 逻辑坐标，y=脚底线；FOOT 补偿与 1.14× zoom 语义不变）。
-   修掉用户点名的四处硬伤：shop 远位压收银台、lib 站书架桌、gym 站跑步机、gymn 上舞台；
-   corrA/corrB 以纵深错位（y 差 14px）换取横向气口 ≥60 ⇒ 正式关闭 A-82②。
-   zoom 裁切安全区 x 取 24~360、y 取 14~202，含 ±5/±3px 晃动余量；plaza 走 camStatic 不消费本表。
-   实机微调（表值与实机冲突以实机为准）：监控地图面板实测占相机逻辑 x 279.6~353.7 / y 142.1~196.0，
-   表内六位落在其下（立绘被 DOM 面板挡死）⇒ gym/shop/lib/gymn 远右位改到同层自由地板、pool 远右位上移 10 让出板沿、
-   corrB 近右位 275→250（右缘 301→276 出框）；hall 远右位 [305,138] 脚底在板沿之上实测可见，不动。 */
+/* A-129（批次18）：SLOTPOS 按 game/media/scenes/mapreset/ 十图的绿/红框重标（384×216 逻辑坐标）。
+   来源=审查位 2026-09-21 框实测（图 2400×1350=逻辑 ×6.25）；换算写死：x=框左右缘中点×0.16、
+   y_框底=框下缘×0.16、s=框高×0.16/30（drawSlot 的 hh=s*30）。绿框两位→[0]/[1]、红框两位→[2]/[3]，各自左→右排。
+   🔴 y 存的是 drawSlot 的锚点 Y 而非框下缘：drawSlot 的视觉底边在 Y+footOff、footOff=(FOOT[单位]/256)*hh，
+     直接写框下缘会让人"陷进地板"且四单位下沉量不一致（A24/B21/C6/D28）。默认案取对称折算
+     Y = y_框底 - (FOOT_MEAN/256)*hh、FOOT_MEAN=19.75（四档均值）⇒ 系数 = 19.75/256*30 = 2.3145×s。
+   🔴 待裁（T-79b 实测，未自行改表）：alpha 实量四张图的不透明下沿留白=26.1/23.0/7.9/30.0 源图像素，与
+     FOOT 24/21/6/28 一一对得上 ⇒ footOff 本就把表 Y 折成「不透明脚底」，上式再扣一次 FOOT_MEAN 属二次扣减，
+     实测四单位一致上浮 2.3145×s（绿档约 4.6px、红档约 10.2px，互相差 ≤0.2px，即与档位无关）。
+     若裁「贴框」，改法是 Y 直接写框下缘（纯数据、引擎零动），不是按单位分表。
+   plaza 无参照图 ⇒ 整行零动（且走 camStatic 不消费本表）；pool 第三绿框 (40.1,208.0,s1.73) 在 1.14 镜头
+   可见窗外，按用户裁忽略不并入（已回报，见 work/A-进度.md 批次18）。
+   旧 A-99「目视校正 + 避让监控地图面板挪位」口径随本批作废（被面板挡的位改由 A-130 修面板，禁再挪立绘）。 */
 const SLOTPOS={
- hall:[[70,148,1.4],[305,138,1.4],[130,204,2.9],[250,204,2.9]],
- gym:[[78,158,1.4],[170,172,1.4],[140,200,2.9],[240,200,2.9]],
- shop:[[215,152,1.4],[128,163,1.4],[140,200,2.8],[240,200,2.8]],
- lib:[[196,158,1.4],[265,168,1.4],[70,206,2.9],[250,204,2.9]],
- pool:[[270,128,1.4],[330,132,1.4],[130,200,2.9],[230,200,2.9]],
- gymn:[[170,150,1.4],[262,150,1.4],[130,200,2.9],[240,200,2.9]],
+ hall:[[167.8,152.7,1.97],[229.4,153.3,1.95],[69.5,194.7,4.36],[322.6,194.0,4.34]],
+ gym:[[69.1,152.2,2.07],[168.7,150.8,1.82],[211.5,176.7,4.09],[325.4,177.2,4.23]],
+ shop:[[205.2,182.6,2.42],[331.4,181.5,2.37],[70.2,189.5,4.66],[324.3,187.1,4.47]],
+ lib:[[291.0,182.1,1.85],[360.8,176.9,1.78],[58.3,206.0,3.52],[176.6,206.0,3.52]],
+ pool:[[28.6,135.6,1.65],[113.9,176.1,2.05],[193.2,194.3,3.75],[307.1,195.4,3.72]],
+ gymn:[[275.6,140.9,1.70],[335.4,136.7,1.88],[64.0,200.7,3.96],[179.1,200.1,3.88]],
  plaza:[[128,140,1.8],[248,140,1.8],[120,190,2.6],[250,190,2.6]],
- corrA:[[168,132,1.4],[228,146,1.4],[110,196,2.9],[205,196,2.9]],
- corrB:[[160,130,1.4],[232,144,1.4],[180,196,2.9],[250,196,2.9]],
- roof:[[150,150,1.4],[225,142,1.4],[135,205,2.9],[245,205,2.9]]   /* A-96：中部-前景大方砖空地；禁左砖塔(x<95)、右空调矮墙(x≈255-360 y<150) */
+ corrA:[[108.6,132.1,1.69],[167.9,131.6,1.66],[67.1,191.5,4.71],[255.7,175.3,4.11]],
+ corrB:[[216.1,131.6,1.66],[275.4,132.1,1.69],[128.3,175.3,4.11],[316.9,191.5,4.71]],
+ roof:[[279.3,151.8,2.09],[350.2,150.8,2.15],[65.1,194.3,4.17],[182.1,194.8,4.24]]   /* A-96：roof 喂 doorL ⇒ 按 A-79 同侧口径落左半区底带左段（YOUPLAY 占 x30-70，不冲突） */
 };
+/* A-139（批次19b，↔B-69①）：暗线物品与玫瑰的落位候选框——唯一真源=本表，几何口径与 SLOTPOS 同类（从美术参考图实测）。
+   表体由审查位实测完毕并逐字照抄（取证 work/_b19b_yellow.py / 读数 _b19b_yellow.txt / _b19b_yellow.json），禁自行重估。
+   🔴 每项 [x,y,w,h]=384x216 逻辑坐标的矩形左上角+宽高，坐标已夹取进 1.14 镜头「始终可见」窗
+     （x27.96~356.04 / y15.89~200.11），引擎侧禁再叠第二次夹取；原框坐标在 _b19b_yellow.json 的 raw 里可回退。
+   🔴 禁删框：与监控地图面板包围盒重叠的 5 个框仍留在候选表里（A-130 已把面板底色改 transparent，不再挡画面）。
+   hall_on 该图无黄框 ⇒ 本表按房名索引，大厅亮灯态同样走 hall 条目（renderCams 只换背景键，落位键不换）。
+   注：任务书里那段表头说明含一个字体子集缺字，按本机红线只改用字（换成「始终可见」），坐标逐字未动。 */
+/* 批次19b A-139：暗线物品/玫瑰 落位候选框（mapreset 黄框实测，逻辑 384x216，已夹取进 1.14 镜头始终可见窗）。*/
+const YBOX={
+  ca:[[328.84,172.91,27.2,27.2], [184.16,124.32,25.6,23.04]],
+  cb:[[27.96,172.91,27.2,27.2], [174.24,124.32,25.6,23.04]],
+  gym:[[312.16,138.88,24.32,24.32], [27.96,120.64,22.56,23.52]],
+  gymn:[[27.96,158.56,30.88,32.8], [326.76,156.64,29.28,29.92]],
+  hall:[[76.96,54.08,21.12,21.12], [232.16,93.28,20.96,22.72]],   /* A-142（批次19c）：第二个黄框追加，见下方说明块 */
+  lib:[[143.36,101.12,33.6,35.68], [33.12,147.2,32.64,32.32], [311.04,106.88,28.32,27.04]],
+  pool:[[326.6,114.56,29.44,28.16], [55.68,129.76,25.12,23.52]],
+  roof:[[330.44,172.96,25.6,26.08], [27.96,15.89,20.32,21.92]],
+  shop:[[255.52,126.4,21.6,21.44], [49.92,122.4,19.68,19.36]],
+};
+/* A-142（批次19c）：hall 为什么有两个框、批次19b 为什么只收到一个。
+   事实：美术在 hall 参考图上始终标了 2 个黄框（用户原话「只是加了两个黄的」指的就是这件事，
+     批次18 标定与批次19b 重测都印证红框数未变），而批次19b 的 YBOX.hall 只落了 1 条 ⇒ 属漏框真缺陷，不是改图。
+   漏检根因：旧检测（work/_b19b_yellow.py）用「宽口径色相（R、G 高而 B 低）+ 空心判据 edge>=0.55 且 inner<0.05」估标注色，
+     第二个框正好压在点歌机的暖光区上、框内像素被暖光染色 ⇒ inner=0.196 被空心闸误杀。
+     同一处暖光在批次18 里还让红掩码吃出过两个假红框（下发历史 §35）：同一幅画的同一处暖光，既造出假红框、又吃掉真黄框，
+     说明「估色相 + 看空心度」这套判据本身不该用。
+   🔴 以后重标本表一律用「标注色逐通道准确比对」（标注黄=纯色 247,203,1，三通道差值之和 < 90），
+     不再估色相、也不用空心度删框：脚本 work/_b19c_yellow.py、读数 work/_b19c_yellow.txt。
+   本次全十图重扫 = 18 → 19 框：只有 hall 多这一框，其余 18 框与新口径逐格差 ≤0.32 逻辑像素（旧口径把外沿亮边也算进了边界），
+     属噪声级 ⇒ 本表其余 18 条逐字不动，不为噪声重跑落位取证。新框在始终可见窗内、未与 #map 面板相交，无需夹取。 */
+/* 房名映射：mapreset 的参考图文件名 ca/cb 就是 CAMORDER 里的 corrA/corrB（左/右走廊），坐标系同一张图
+   （同 _b18_slotpos.py 的 ROOMS 表口径）。这里只做键名对齐，不重估任何坐标；
+   无对应条目的房（plaza 与未标框的房）⇒ yboxes() 返回 null ⇒ 早退零绘制。 */
+const YBOX_ALIAS={corrA:'ca',corrB:'cb'};
+function yboxes(room){var k=YBOX_ALIAS[room]||room;var a=YBOX[k];return (a&&a.length)?a:null}
+function yboxPick(room){var a=yboxes(room);return a?rnd(a.length):-1}   /* 抽框只在 startNight/roseSpawn 各调一次；🔴 禁在逐帧绘制或命中判定里调 rnd */
+function yboxAt(room,i){var a=yboxes(room);return (a&&i>=0&&i<a.length)?a[i]:null}
 const YOUPLAY={x:30,y:74,w:40,h:16};                 /* 训练员室：底边中央，画成矩形（用户指令：不要连线叉） */
 const FOOT={slot_A:24,slot_B:21,slot_C:6,slot_D:28};
 const LIGHT_T=1;          /* 灯钮点亮时长（秒，引擎常量；说明页 {light} 同源） */
 const BOARD_MERCY=0.5;    /* A-80 仁慈阀：开监控/近看时白板倒计时流速系数 */
 const CAM9_PRE=1.5;       /* A-88：她的登场预告提前量（秒） */
 const CAM9_FLASH=0.09;    /* A-88：闪屏时长（秒，60-120ms 区间内） */
+const CAMFOCUS=0.18;      /* E9：切镜头聚焦收缩时长（秒） */
 const CORRUPT_LINE_T=2.2; /* A-94：乱码每行停显时长（tick 判定与噪声铺底同源） */
 const WT_STARS=['＊','▓','█'];  /* A-95 裁决⑧：死亡标题星号位的跳动字符集（三字均已在字体子集内） */
 const VISIT_REACT=2.5;          /* A-98：拜访反应窗缺省秒（D37），数据 visits.react 可覆盖 */
 const VISIT_DEFER=6;            /* A-98/D43：占门或对局态时顺延秒数（同刻不叠两只 D、不打断对弈） */
 const VISIT_POWER_COST=2;       /* A-106/D45：拜访花屏抽电（电力百分点）。原硬编码 5 使夜7 三次白吃 15 点=全夜预算 19%；
                                    数据 visits.powerCost 可覆盖，缺省与兜底一律本值，禁止回退成 5（双真源红线）。 */
+const VISIT_BANG_T=5.0;         /* A-153（批次22 B22-A1 用户直令「关门不再当帧化解」）：D 巡门撞门阶段时长（秒）。
+                                   期间按现行 AU.bang 节奏（CFG.edge.knock，七夜均默认 1s）周期性响；走完零惩罚离开（不死/不扣电/不刷冲刺）。 */
+const JUKE_DEATH_T=5.0;         /* A-154（批次22 B22-A2 用户直令「点唱机一停即刷近端、5s 未续跳杀致死」）：
+                                   batt 过零后的致死窗（秒），全七夜同值（夜7 原 3s 余量窗语义并入本窗，jWarnTh 只剩低电告警阈值用途）；
+                                   窗内续电=回退现行解除路径，窗耗尽=jump() 直接致死，双门锁不豁免。 */
+/* A-117（批次16）/A-128（批次18）窗户敌=单元E 的引擎常量。全部可被当夜数据 N.winE 同名键覆盖。
+   出现/进阶只在「打开监控」那一刻结算（D56-a：不扩结算点），剪影常态不致死；登场夜=每夜，每夜有次数带。 */
+const WIN_E={nFrom:1,nTo:7,lateAt:'02:30',lateMul:.5,cost:1,cool:60,
+             pSeq:[.30,.26,.22,.18,.15,.12,.09,.07],
+             coolSeq:[60,55,50,45,40,35,30,30],
+             trim:[226,86,800,1148],roam:{every:8,p:.45,minGap:8}};
+/*   pSeq（A-128）：第 k 次登场（k=S.winECount，从 0 起）的掷骰概率，逐次衰减；02:30 后统一乘 lateMul
+       （保留批次17 之前"后半夜更沉"的观感）。pEarly/pLate 两键随本条退役，掷骰率唯一真源=pSeq。
+     coolSeq（A-128）：第 k 次被驱赶后的再登场冷却，60→30 递减（用户裁「冷却随次数递减」）。
+       cool 键只作 coolSeq 读不到时的兜底，不再单独维护一份数值（禁双真源）。
+     三张表长度=8（对齐 max=8），越界一律取末位兜底（seqAt），禁出现 undefined。
+     lateAt：时钟串口径与 hourLen 真源=N 沿用批次17 §30.2；roam 见 A-126。
+     nFrom：3→1（A-128 用户裁「扩到每夜登场」，夜1 难度面复测归 B-67）；trim=window_E.png alpha 有效区。 */
+const WIN_E_QUOTA=[{min:3,max:7},{min:5,max:8}];   /* A-128 次数带：[0]=夜1-3、[1]=夜4-7；N.winE.quota 可覆盖 */
+function seqAt(arr,i,fb){                           /* 逐次表统一取位：越界夹到末位，非数才回落 fb */
+ var k=Math.min(Math.max(0,i|0),(arr&&arr.length||1)-1);var v=arr&&arr[k];
+ return (typeof v==='number'&&isFinite(v))?v:fb}
+/* A-118（批次16）玫瑰敌=单元F：登场夜 4-7、限时找花（每夜次数口径见 A-156：拔除后固定间隔不限次）。
+   避让窗=到点前后各 15s；开场 90s / 收尾 30s 为安全期；玫瑰房排除 plaza（纯雪花里找花不公平）。
+   全部可被当夜数据 N.roseE 同名键覆盖（缺省 ⇒ 无该字段=零变化；现网 nights.js 不供 roseE ⇒ limit 真源在本常量）。
+   🔴 limit=找花限时秒数：批次22 追加令（用户 09-23 裁「玫瑰延长至 25 秒」）由批次16 的 20 延长到 25，roseSpawn 兜底值随本键。 */
+const ROSE_E={nFrom:4,nTo:7,limit:25,avoid:15,openSafe:90,endSafe:30,skipRooms:['plaza'],
+              size:22,groundY:246,trim:[0,0,272,1010],trimF:[104,64,976,1258]};
+/* A-156（批次22 B22-A4 用户直令「首朵必落 00:00:30~03:00 + 拔除后固定间隔不限次」）：玫瑰排程常量（引擎侧，B 侧禁碰）。
+     ROSE_FIRST_LO_T=30 —— 首朵窗口下限（秒）；03:00 前必来的直令覆盖旧 openSafe=90 的下限语义
+       （ROSE_E.openSafe 键保留不删=数据契约零动，但首朵排程不再消费它）。
+     ROSE_FIRST_UNTIL_H=3 —— 首朵窗口上限（游戏小时，即 03:00；真源=N.hourLen）。
+     ROSE_AGAIN_H=1.5 / ROSE_AGAIN_JIT=0.25 —— 每次成功拔除后的再登场固定间隔（游戏小时）与 ±抖动。
+     ROSE_LATE_P=0.5 —— 03:00 之后再登场的掷骰概率（用户直令建议值，可调；掷不中=本夜不再来）。 */
+const ROSE_FIRST_LO_T=30,ROSE_FIRST_UNTIL_H=3,ROSE_AGAIN_H=1.5,ROSE_AGAIN_JIT=0.25,ROSE_LATE_P=0.5;
+/*   size=「所抽黄框缺失」时的兜底绘制高（真实登场路径 roseSpawn 必定写 box，正常走不到这条兜底）。
+       批次19b 收尾轮起主口径改为「所抽黄框的高即该图绘制高」，理由见 roseGeom 的说明。
+     hot 键随本轮退役（命中判定改矩形口径，见 roseHit）：旧值 14 是给「未裁边的旧玫瑰 + 圆半径」量的，
+       换成裁边后的细高条后实绘仅 5.7~9.6 逻辑像素宽，圆半径 14 等于允许点着 sprite 外侧约 8 像素的空气。
+     trim/trimF=两张图的 alpha 有效区（源图 x/y/w/h，PIL 量得）：
+       A-138（批次19b）trim 改 [0,0,272,1010] —— IMG.rose 现指向 work/_b19b_vase.py 的裁边成品 rose_vase.png，
+         成品已无空边（alpha 有效区 1,1..271,1009，四边各留 1 像素，实测量见 work/_b19b_gates.txt 素材段），trim=整图；
+         旧值 [451,224,221,834] 是未裁边的 rose.png 口径，随改指作废。
+       宽高比复量：新图 272/1010=0.2693 vs 旧 221/834=0.2650 同量级 ⇒ 细长程度不变，变的只是「高由谁定」；
+         六点命中矩阵（中心/四角/顶部中点 + 外侧对照）实测在 work/_b19b_gates.py 判据5，禁只测中心。
+       trimF 属 IMG.rose_F（办公室静立剪影），A-138 明令零动、值不变：rose_F 仍是未裁边的用户直供图，
+         整图四周留 78%×93% 空边，靠 trimF 裁出剪影本体，删掉这个裁边会让剪影压成几个像素。
+     groundY=办公室静立剪影脚底线的 1024×256 全景 y：初版取门底 yBot 在屏上落设备 y136.5 与桌面重合（"站在桌上"），
+       故标定至桌前地板（fy246→设备 y160.6，pan 无关，见 work/_b16_rose_cal.py）。A-122 迁 flat 后该值仍是全景坐标，不变。 */
 /* A-31/A-57 去 FNAF 化映射：slot→贴图映射常量。
    img=全身立绘主键（三档：原色/_glitch 静息/_glitch_strong 加强）；d=特写键（face_slot_A..D）。 */
 const SLOTDEF={A:{img:'slot_A',d:'slot_A',t0:6},B:{img:'slot_B',d:'slot_B',t0:7},
@@ -413,17 +557,33 @@ const SLOTDEF={A:{img:'slot_A',d:'slot_A',t0:6},B:{img:'slot_B',d:'slot_B',t0:7}
 /* ============ 资源复用：加载 media/ 提取贴图 ============ */
 const IMG={};
 function officeImg(){return (CUR>=1&&CUR<=7&&IMG['office'+CUR])||IMG.office}
+/* A-124（批次17）：挖洞版=同一版式的 alpha 掩膜成品，只供 composeFlat 第 3 层（背景盖顶）使用。
+   原图 officeImg() 继续充当第 1 层洞后背衬与 renderTrueEnd/closeGrid 的来源 ⇒ 两套键并存、返回值语义不变。 */
+function officeImgHole(){return (CUR>=1&&CUR<=7&&IMG['office'+CUR+'_hole'])||IMG.office_hole}
 function loadAssets(done){
- const files={office:'media/scenes/office.png'};
- for(let n=1;n<=7;n++)files['office'+n]='media/scenes/office/'+n+'.png';
+ const files={office:'media/scenes/office.png',office_hole:'media/scenes/office_hole.png'};
+ for(let n=1;n<=7;n++){files['office'+n]='media/scenes/office/'+n+'.png';
+  files['office'+n+'_hole']='media/scenes/office/'+n+'_hole.png'};   /* A-124：8 张 hole 档 */
  CAMORDER.forEach((id,i)=>files[id]='media/scenes/cam'+(i+1)+'_'+id+'.png');
  files['hall_on']='media/scenes/cam1_hall_on.png';   /* v1.9b：点歌机亮灯态 */
- ['slot_A','slot_B','slot_C','slot_D','shadow'].forEach(tp=>{  /* A-57：脸部与影子特写 */
+ /* A-121（批次17）：slot_E/slot_F = 窗户敌/玫瑰敌自己的跳脸特写档，由 make_faces_ef.py 从
+    window_E.png / rose_F.png 加工。与 A~D 同管线同命名族；unit D 本体键零改动。 */
+ ['slot_A','slot_B','slot_C','slot_D','slot_E','slot_F','shadow'].forEach(tp=>{  /* A-57：脸部与影子特写 */
   files['face_'+tp]='media/characters/face_'+tp+'_dark.png'});
  ['A','B','C','D'].forEach(sl=>{                       /* v1.9 A-30：新立绘三档 */
   files['slot_'+sl]='media/characters/char_'+sl+'.png';
   files['slot_'+sl+'_glitch']='media/characters/char_'+sl+'_glitch.png';
   files['slot_'+sl+'_glitch_strong']='media/characters/char_'+sl+'_glitch_strong.png'});
+ /* A-117/A-118（批次16）：两个新敌对单位的用户直供图。键名与图名同形，缺图时渲染早退（不炸、不占判定）。 */
+ files['window_E']='media/characters/window_E.png';
+ files['rose_F']='media/characters/rose_F.png';
+ files['rose']='media/characters/rose_vase.png';   /* A-138（批次19b）：唯一一处改指——CAM 侧的可点玫瑰换成 work/_b19b_vase.py
+    的裁边成品（源图 alpha 有效区 270x1008+1px 余量）。旧件 media/characters/rose.png 已无引用、按红线保留在 media 目录（删除归审查位另轮裁定）。
+    IMG.rose_F（办公室静立剪影）与特写 face_slot_F 一律零动：用户只改了 CAM 侧那张图。 */
+ /* A-134/A-135（批次19）：暗线物品四张裁边单体 sprite（work/_b19_cut_items.py 产物、与引擎键名同形，不进字体扫描范围
+    + 暗线尾镜玩偶服 sprite（work/_b19_suit.py 产物）。缺图=drawItemCam/renderTailEnd 早退，不炸判定。 */
+ ['chess','trophy','flyer','doll'].forEach(function(k){files['item_'+k]='media/scenes/office/items/'+k+'.png'});
+ files['suit']='media/scenes/office/suit.png';
  const keys=Object.keys(files);let n=0;
  keys.forEach(k=>{const im=new Image();
   im.onload=()=>{IMG[k]=im;if(++n===keys.length)done()};
@@ -461,6 +621,10 @@ AU.camOn=()=>{nz(.2,1500,.2,'highpass');tone(700,300,.1,'square',.04)};
 AU.door=p=>{tone(p?90:60,38,.14,'sine',.4);nz(.12,320,.22)};
 AU.thump=v=>{tone(75,42,.12,'sine',v);nz(.07,220,v*.6)};
 AU.knock=side=>{const dest=panDest(side);[0,180,360].forEach(d=>setTimeout(()=>{tone(85,50,.1,'sine',.34,null,null,dest);nz(.08,400,.2,null,null,dest)},d))};
+/* A-110（批次15）：锁定门边撞门声。旧 AU.knock=85Hz/.34 轻拍三连，实机几乎不可闻（批次15 取证：单记输出读数 0.214；
+   且每次到门只结算一记即挡回）⇒ 换更低更重的单记 thump + 噪声击打，声像沿用 panDest(side) 与门同侧。
+   只改「发什么声」，不改 edge 数值与 fails 推进/挡回/离场逻辑。AU.knock 保留为历史音型（现零引用，是否删待裁）。 */
+AU.bang=side=>{const dest=panDest(side);tone(60,35,.18,'sine',.52,null,null,dest);nz(.12,320,.34,null,null,dest)};
 AU.run=()=>{for(let i=0;i<9;i++)setTimeout(()=>{tone(100,55,.08,'sine',.1+i*.03);nz(.05,300,.08)},i*115)};
 AU.whis=()=>nz(.5,700,.05,'bandpass',8);
 AU.preBreath=()=>nz(.14,900,.03,'bandpass',6);   /* A-88：登场预告极轻气声（≤提示音量 30%） */
@@ -505,7 +669,20 @@ AU.tapeNoise=(dur,vol)=>{const C=AU.ctx;if(!C)return;dur=dur||2.2;vol=vol==null?
 AU.beep2=()=>{if(!AU.ctx)return;var C=AU.ctx;   /* 「嘟嘟」：录音机走带开始/结束（暖方波双响） */
  [0,.17].forEach(function(d){tone(560,560,.07,'square',.10,null,C.currentTime+d)})};
 AU.glitchCut=()=>{if(!AU.ctx)return;nz(.35,900,.30,'bandpass',3);tone(1600,120,.18,'square',.12)};   /* A-64：戛然而止错乱音效 */
-AU.visitSound=()=>{if(!AU.ctx)return;nz(.2,600,.22,'bandpass',2);tone(300,180,.28,'sawtooth',.10)};   /* A-81：「她来了」逼近音效 */
+AU.visitSound=()=>{if(!AU.ctx)return;nz(.2,600,.22,'bandpass',2);tone(300,180,.28,'sawtooth',.10)};   /* A-81：「D巡门」逼近音效 */
+/* A-119（批次16）：单元D 的移动提示音=小孩笑。四记高八度短音下行 + 每记微失谐双振荡（失谐量固定种子外，
+   刻意留一点不稳），只挂在 D 的推进上（契约 slots.D.moveSfx='giggle'，A/B/C 不加，防混淆）。 */
+AU.giggle=()=>{if(!AU.ctx)return;const C=AU.ctx;
+ [1568,1372,1176,1042].forEach((f,i)=>{const t=C.currentTime+i*.075;
+  tone(f,f*.97,.075,'triangle',.07,null,t);tone(f*1.014,f*.99,.06,'triangle',.035,null,t)})};
+/* A-117（批次16）玻璃轻响：高频短促双层泛音+一撮擦边噪声。两处用=①窗户敌出现/进阶的提示音（带声像=窗在哪侧）
+   ②点灯驱赶成功的轻响。刻意低于威胁音型量级（提示音不致死的红线）。 */
+AU.glassTap=side=>{if(!AU.ctx)return;const C=AU.ctx,dest=panDest(side);const t=C.currentTime;
+ tone(2637,2560,.07,'sine',.06,null,t,dest);tone(3951,3880,.05,'sine',.03,null,t,dest);
+ nz(.03,5200,.05,'highpass',1,dest)};
+/* A-118（批次16）玫瑰敌登场提示：低频两记（与撞门/冲刺等威胁音型分层——它不响第二下就没时间了）。 */
+AU.hum=()=>{if(!AU.ctx)return;const C=AU.ctx;
+ tone(110,86,.5,'sine',.10,null,C.currentTime);tone(82,64,.42,'sine',.07,null,C.currentTime+.34)};
 function setStatic(on){if(AU.sg)AU.sg.gain.linearRampToValueAtTime(on?.045:0,AU.ctx.currentTime+.06)}
 addEventListener('pointerdown',()=>{aInit();if(AU.ctx.state==='suspended')AU.ctx.resume();if(window.tickHer)tickHer()},{capture:true});
 /* ============ A-105「她的歌」BGM 通道（用户直令 · D44） ============
@@ -560,7 +737,7 @@ function drawChar(g,tp,X,Y,s){const im=IMG['slot_'+tp]||IMG['face_'+tp];if(!im)r
 function drawFaceS(g,tp,X,Y,s){const im=IMG['face_'+tp];if(!im)return;
  g.drawImage(im,X-120*s/6,Y-205*s/6,im.width*s/6,im.height*s/6)}
 /* ============ v1.9 槽位立绘（A-28/A-30）============ */
-function glitchLv(o){if(o!=null)return o;return CUR>=5?2:1}                 /* A-28 逐夜花屏强度：1-4 夜常规，5-7 夜加强 */
+function glitchLv(o){if(RM)return 0;if(o!=null)return o;return CUR>=5?2:1}                 /* A-28 逐夜花屏强度：1-4 夜常规，5-7 夜加强 */
 let scratchCv=null,scratchG=null;
 function sliceGlitch(g,src,x,y,w,h,lv,bandsCount){
  if(!src)return;
@@ -587,6 +764,10 @@ function sliceGlitch(g,src,x,y,w,h,lv,bandsCount){
  }
 }
 function slotImg(k){var def=SLOTDEF[k];return def?IMG[def.img]||null:null}
+const SLOT_CAM_DIM=0.90;   /* A-164（批次24 用户直令「敌人变暗10%」）：监控侧槽位立绘亮度倍率唯一真源（与 ITEM_CAM_DIM 同语汇、不同表——那是暗线物品，这是敌人）。
+                              消费点只有 renderCams 内那两处 drawSlot（见 A164-b/c），办公室侧 drawSlot 不包 filter ⇒ 保持原色。
+                              实测基线 work/_b24_gates.txt 判据3：黑底反解现值=1.000（现无压暗）。容差注：filter 会连带的撕裂切片与冷色罩一起压，
+                              真画面读数偏 0.90 以下属预期，闸门以黑底档为准（与判据1 同一分层）。 */
  function drawSlot(g,k,X,Y,s,alpha){                    /* 槽位立绘：原色图 + 渲染时抖动/闪动/平滑撕裂（非烘焙非马赛克）；alpha=离场半透明（A-97，缺省 1 零变化） */
   var im=slotImg(k);
   if(!im){drawChar(g,SLOTDEF[k]&&SLOTDEF[k].d,X,Y,s);return}   /* 贴图缺失回退旧绘制 */
@@ -614,6 +795,66 @@ function slotImg(k){var def=SLOTDEF[k];return def?IMG[def.img]||null:null}
   var hf=hh/3;
   sliceGlitch(g,im,dx,dy,ww,hf,lv);
  }}
+/* A-122（批次17）：办公室空间的贴图一律进 flat（1024×256 全景）坐标、在 composeFlat 层序内画完，
+   warpFlat 一次成型。根除「先在屏幕空间贴好、再被圆柱视角甩偏」的老毛病（批次16 的窗户剪影/静立剪影/
+   门边剪影/白板笑脸四处全是屏幕空间 billboard，本批全部退役）。 */
+/* 直立元素的落位器：尺寸语汇仍是逻辑像素（drawSlot 的 s*30、±28 错开、脚底补偿照用），
+   经中心列实测系数折进全景坐标 ⇒ 与门洞/窗洞同坐标系、随 pan 与背景一起变形。
+   系数=中心列 1 逻辑px ≈ 1.6717 全景px（横）/1.3904（纵，colDepth=1），标定见 work/_b17_scale.py。
+   代价：视角推到边缘时局部各向异性偏离中心值约 ±12%（logPerFlatX .598~.752）⇒ 转视角有轻微形变感，
+   换来的是「贴图与洞口永不脱缝」；三视角截图见 work/_shotsA/v12_*.png。 */
+const FLAT_LOG_X=1.6717,FLAT_LOG_Y=1.3904;
+/* A-134④：办公室摆件统一缩放系数。写死 rect 的 1:1 在 320 宽画布上不足 10 设备像素、目视过小，
+   按任务书建议取 1.5 ⇒ 四件同系数，禁按单件自估（真源仍是 OFFICE.items，这里只是渲染倍率）。 */
+const ITEM_SCALE=1.5;
+function flatBlit(g,fx,fy,fn){g.save();g.translate(fx,fy);g.scale(FLAT_LOG_X,FLAT_LOG_Y);fn();g.restore()}
+/* 按 alpha 有效区裁出的子画布（缓存）：用户直供图带大片透明边，整图宽高比会把主体压小，
+   且 sliceGlitch 是按「整条源图映进目标矩形」切片的 ⇒ 不裁则故障带与主体错位。 */
+function subImg(im,tr){var k=im.__sub||(im.__sub={}),id=tr.join();
+ if(!k[id]){var c=mk(tr[2],tr[3]);c.getContext('2d').drawImage(im,tr[0],tr[1],tr[2],tr[3],0,0,tr[2],tr[3]);k[id]=c}
+ return k[id]}
+/* A-117/A-122：窗户敌=单元E 的洞后渲染（composeFlat 第 2 层）。宽按窗洞收、脚底贴窗台下缘，
+   纵向溢出由第 3 层挖洞背景自然盖住（=免费 clip），横向被 4 根窗棂切成 5 条缝——遮挡由图本身保证，不再 clip。
+   D55-b alpha 阶梯：不点灯 阶段1/2=.18、阶段3=.55；点灯 .42/.5/.62（净通光仅窗高 70%，旧阶梯实机不可辨）。 */
+function drawWinE(g,side,e){
+ if(!S||!e)return;var WR=OFFICE[side==='L'?'winL':'winR'],tr=WIN_E.trim;
+ if(!WR||!IMG.window_E)return;
+ var im=subImg(IMG.window_E,tr);
+ var dw=WR.w,dh=dw*im.height/im.width,dx=WR.x+(WR.w-dw)/2,dy=WR.sillY-dh;
+ var lit=(side==='L'?S.lightL:S.lightR);
+ var a=e.phase>=3?(lit?.62:.55):(lit?(e.phase>=2?.5:.42):.18);
+ var jx=0,jy=0;
+ if(e.phase>=2&&lit){jx=(Math.random()-.5)*(e.phase>=3?1.6:1);jy=(Math.random()-.5)*1.2}
+ g.save();g.globalAlpha=a;
+ g.drawImage(im,dx+jx,dy+jy,dw,dh);
+ if(e.phase>=2&&lit)sliceGlitch(g,im,dx+jx,dy+jy,dw,dh,2,2);
+ g.globalAlpha=1;g.restore()}
+/* A-118/A-122：F 单位（单元F）的两个渲染件。drawRoseSil=办公室静立剪影（贴地面线、两门之间、洞外表面层），
+   无 HUD 数字，倒计时全靠「越可辨=越近死」的不透明度+尾段抖动；
+   drawRoseFlower=CAM 画面内的可点目标（在镜头变换内绘制，故点击逆变换与之严格同源）。 */
+function drawRoseSil(g){
+ var e=S.roseE,im=IMG.rose_F;if(!e||!im)return;
+ var c=CFG.roseE||ROSE_E,tr=c.trimF||ROSE_E.trimF;
+ var fx=(OFFICE.doorL.doorX+OFFICE.doorL.doorW+OFFICE.doorR.doorX+OFFICE.doorR.doorW)/2;
+ var fy=c.groundY||ROSE_E.groundY;
+ var k=1-clamp(e.left/(e.max||20),0,1);
+ var im2=subImg(im,tr),h=30,w=h*im2.width/im2.height;
+ var jx=(k>.6?(Math.random()-.5)*(2+k*3):0),jy=(k>.6?(Math.random()-.5)*1.5:0);
+ flatBlit(g,fx,fy,function(){
+  g.globalAlpha=.15+.6*k;
+  g.drawImage(im2,-w/2+jx,-h+jy,w,h);
+  g.globalAlpha=1})}
+const ROSE_CAM_BRIGHT=1.10;   /* A-162（批次24 用户直令「玫瑰调亮10%」）：监控侧玫瑰亮度倍率唯一真源，禁把 1.10 散进绘制代码。
+                                 语义与消费点沿 A-143：filter 提亮，不用 globalAlpha（那句 .95 逐字不动）；办公室 drawRoseSil 零动。
+                                 实测基线 work/_b24_gates.txt 判据1：黑底反解现值=1.00（无提亮）、alpha 档=0.95 ⇒ 本系数落效后合成约 0.95x1.10=1.045。
+                                 代价（如实）：sprite 里已饱和到 255 的通道提不动 ⇒ 实测合成增益 < 1.045，闸门容差按实测记。 */
+function drawRoseFlower(){
+ var e=S.roseE,im=IMG.rose;if(!e||!im||S.camRoom!==e.room)return;
+ var g=roseGeom(e);if(!g)return;
+ cx.save();                                                   /* A-162：filter 只包这一次 drawImage，restore 一并复位，绝不留给背景与别的单位 */
+ cx.globalAlpha=.95;cx.filter='brightness('+ROSE_CAM_BRIGHT+')';
+ cx.drawImage(im,0,0,im.width,im.height,g.x-g.w/2,g.y-g.h/2,g.w,g.h);   /* A-138：成品已裁边，源矩形=整图（旧 trim 写死值随改指作废） */
+ cx.restore()}
 /* ============ A-27 CAM7 常驻纯雪花通道（v1.9 S1）============
    camStatic 房间：整屏纯雪花、抑制场景本体与槽位贴图；三女神轮廓依稀可辨。
    数据缺省时引擎按 S1 设定兜底 plaza 常驻（B-19 数据到位后覆盖）。
@@ -629,14 +870,14 @@ function renderCamStatic(){
  for(var j=0;j<14+10*lv;j++){cx.fillStyle='rgba(255,255,255,'+(.10+Math.random()*.4)+')';
   cx.fillRect(rnd(384),rnd(216),1+rnd(2),1)}
  cx.drawImage(SCAN,0,0,384,216);
- cx.fillStyle='rgba(255,255,255,.03)';cx.fillRect(0,(frame*1.3)%216,384,2);
+ cx.fillStyle='rgba(255,255,255,.03)';cx.fillRect(0,(ET*78)%216,384,2);
  drawNoise(.34+.14*lv)}
 /* ============ 曲名辅助 ============ */
 function songName(i){var tr=CFG&&CFG.juke.tracks;return tr&&tr.length?String(tr[i%tr.length].name||'—').slice(0,7):'—'}
 function fmtClock(t){var hl=(N&&N.hourLen)||60,h=Math.floor(t/hl),m=Math.floor((t%hl)/hl*60);
  return h+':'+String(m).padStart(2,'0')}
 /* ============ 游戏状态 ============ */
-let S=null,frame=0,menuFlash=0,mFlashT=3,goF=0,DT=0,lastT=0,hudT=0,SCALE=1,retryI=-1,TRUTH_TEST=0;
+let S=null,frame=0,menuFlash=0,mFlashT=3,goF=0,DT=0,lastT=0,hudT=0,SCALE=1,retryI=-1,TRUTH_TEST=0,ET=0,xfT=0;   /* E1：ET=演出累计秒；E2：xfT=场景开机过场计时 */
 /* ============ 脚本事件引擎（A11）：abs 'H:MM' / 相对 'post' 'post+N' ============ */
 function parseAt(at){
  if(typeof at==='number')return{abs:at};
@@ -656,7 +897,19 @@ function buildEvents(){S.events=[];
   if(e.stamina)applyStamina({delta:e.stamina,reason:null})})});
  (N.scriptedStamina||[]).forEach(function(e){add(e.at,function(){applyStamina(e)})});
   (N.camFx||[]).forEach(function(r){S.camFxRooms[r]=1});
-  /* A-98：「她·手偶」(=D 擦除单元) 拜访时刻改读 N.visits（B-39/B-48 供值），删除 vTimes 硬编码——
+  /* A-118：玫瑰敌登场避让表——把本夜所有脚本事件/整点/白板/拜访/点歌机开播都算成「±15s 内不去」 */
+  S.roseAvoid={};
+  (N.syslog||[]).forEach(function(e){var a=parseAt(e.at).abs;if(a!=null)S.roseAvoid['sys'+a]=a});
+  (N.cam9||[]).forEach(function(e){var a=parseAt(e.at).abs;if(a!=null)S.roseAvoid['c9'+a]=a});
+  (N.dream||[]).forEach(function(e){var a=parseAt(e.at).abs;if(a!=null)S.roseAvoid['dr'+a]=a});
+  (N.scriptedStamina||[]).forEach(function(e){var a=parseAt(e.at).abs;if(a!=null)S.roseAvoid['st'+a]=a});
+  if(CFG.board&&CFG.board.at)S.roseAvoid.board=CFG.board.at;
+  if(CFG.visits&&CFG.visits.at)CFG.visits.at.forEach(function(s,i){var a=parseAt(s).abs;if(a!=null)S.roseAvoid['vi'+i]=a});
+  if(CFG.diary&&CFG.diary.autoplayAt){var a=parseAt(CFG.diary.autoplayAt).abs;if(a!=null)S.roseAvoid['an'+a]=a}
+  if(CFG.juke&&CFG.juke.start)S.roseAvoid.juke=CFG.juke.start;
+  for(var hr=1;hr<=6;hr++)S.roseAvoid['hour'+hr]=hr*N.hourLen;
+  rosePlan();
+  /* A-98：「单元D（红帽持手偶）」=D 擦除单元，拜访时刻改读 N.visits（B-39/B-48 供值），删除 vTimes 硬编码——
      存量矛盾：引擎 夜5 03:15 / 夜7 04:50 与 nights.js 的 02:20·04:40 / 05:10 从来不一致，记录页对不上亲历时刻。
      顺延两条（D42 裁决 + D43 第1项）：① D 槽正占 corrA/doorL ⇒ 门洞会出两只 D；② 白板对局态或近看 ⇒ 玩家看不见门。 */
   var vs=N.visits;
@@ -776,16 +1029,23 @@ function renderAnswLine(li){var el=$('answBody');
   if(ru.indexOf(i+1)>=0)dv.className='rl';
   el.appendChild(dv);
   (function(node,tgt){requestAnimationFrame(function(){node.style.opacity=tgt})})(dv,i<li?.4:1)}}
+function itemReadyNow(){                               /* A-140（批次19b）：暗线物品的放行闸门=「开局录音环节结束」，N.item 的 at 秒数退役。
+   三个置位点缺一不可：① endDiary 播毕 ② interruptDiary（R 键主动跳过同样算环节结束，不得惩罚玩家）
+   ③ startNight 内当夜既无 diary.id 也无 openCorrupt 时的兜底（否则那夜物品永远出不来）。
+   置位后整夜不再复位（换台/暂停/断电都不清零；断电期间本来也不画 CAM）。禁写死夜号：夜7 的开场乱码链同样经 endDiary。 */
+ if(S&&S.item)S.item.ready=1}
 function endDiary(){var a=S.answ;if(!a.on)return;
  var wasCut=!!a.cutOff;
  a.on=0;a.phase='';a.cutOff=0;a.openCorrupt=null;
  if(!wasCut&&AU.ctx)AU.beep2();                          /* 走带结束「嘟嘟」——截断路径互斥不响 */
  $('answBox').classList.remove('on');
- pushDiaryHeard(a.id)}
+ pushDiaryHeard(a.id);
+ itemReadyNow()}                                         /* A-140①：播毕放行 */
 function interruptDiary(){var a=S.answ;if(!a||!a.on||scene!=='game')return;
  a.on=0;a.phase='';a.openCorrupt=null;                    /* 中断无惩罚，未播毕不归档 */
  if(AU.ctx)AU.beep2();                                   /* 中断也收尾「嘟」 */
- $('answBox').classList.remove('on')}
+ $('answBox').classList.remove('on');
+ itemReadyNow()}                                         /* A-140②：跳过=环节同样结束，放行不得比播毕晚 */
 function pushDiaryHeard(id){if(!id)return;
  if(SAVE.diaryHeard.indexOf(id)<0)SAVE.diaryHeard.push(id);
  writeSave()}
@@ -798,6 +1058,17 @@ function mkSlots(){var out={};
   if(sd.sprintOnJukeDead)o.sprintOn=1;
   if(sd.fast)o.fast=1;
   if(sd.skipChance!=null)o.skip=sd.skipChance;
+  /* A-119（批次16）：D 机制强化的三个契约键——白名单透传，缺省时行为与旧版逐字一致：
+     moveSfx=推进后播的音型名（现仅 'giggle'）；doorRush=末段（corrA→doorL）提速 ×0.5；
+     giveUp=该槽撞门几记后离场（缺省回落 CFG.edge.giveUp，禁双真源）。 */
+  if(sd.moveSfx)o.moveSfx=String(sd.moveSfx);
+  if(sd.doorRush)o.doorRush=1;
+  if(sd.giveUp!=null)o.giveUp=+sd.giveUp;
+  /* A-125（批次17，↔B-65）：闲逛增压两键——roam=闲逛段（走廊之前的房间）提速/加概率，
+     corridorAt=首入走廊的时钟闸（走 parseClock，夜7 hourLen=70 下裸秒数会漂移）。
+     两键全可选：缺省 ⇒ 移动节奏与走廊时机与本批前逐字一致（槽A 全系不供=结构豁免）。 */
+  if(sd.roam&&typeof sd.roam==='object')o.roam={ivMul:sd.roam.ivMul,pAdd:sd.roam.pAdd};
+  if(sd.corridorAt!=null)o.corrAt=parseClock(sd.corridorAt,N.hourLen);
   if(sd.bell){var e0=(sd.bell.every&&sd.bell.every[0])||20,e1=(sd.bell.every&&sd.bell.every[1])||32;
    o.bellEvery=e0;o.bell=e0+rnd(Math.max(1,e1-e0));o.roll=sd.bell.roll||2;o.rollT=0}
   out[k]=o}
@@ -821,7 +1092,7 @@ function startNight(n,fromDeath){
   slots:mkSlots(),
   board:{state:0,cells:[0,0,0,0,0,0,0,0,0],turn:'you',moveT:0,oppT:0,result:'',phase:0,msgT:0,replT:0},
   black:0,blackT:0,blackSec:0,
-  god:0,deathTag:'',
+  god:0,deathTag:'',paused:0,   /* A-112：paused=暂停罩开关（每夜重置；暂停罩不进 OV 表，scene 保持 'game'） */
   stats:{renewals:0,miss:0,blocks:0},
   answPlayed:0,
   /* P2 状态：事件引擎 / 白板锚点 / 紧急评估 / 答录机 / 演出层 */
@@ -830,16 +1101,35 @@ function startNight(n,fromDeath){
   openCorruptPlayed:0,
   cam9Ev:null,cam9Pending:null,cam9Flash:0,dreamEv:null,capText:null,capT:0,close:0,camFxRooms:{},
   visit:null,visitLitL:0,visitScare:0,visitPending:null,   /* A-104：visitPending=被对局/近看/占门顺延的补判 {react,t} */
+  winE:null,winEReadyAt:0,winECount:0,winEFirst:0,         /* A-117：窗户敌（单元E）{side,phase}；winEReadyAt=驱赶后的再出现闸门（游戏秒）；winECount=A-128 当夜已登场次数（概率/冷却/次数带三处共用）；winEFirst=A-137 当夜首次提醒句标记（随 startNight 复位） */
+  roseE:null,roseSpawns:0,roseAt:-1,roseFirst:0,roseAvoid:{},   /* A-118：玫瑰敌（单元F）{left,room,box,x,y}（A-139：box=YBOX 抽中框索引，x,y=实绘中心）；roseAt=预约登场秒（-1=本夜不再登场）；roseFirst=A-137 当夜首次标记；
+                                                                   A-156③：roseUsed 一次锁退役 ⇒ 本字段改 roseSpawns=本夜已登场次数（不限次，随 startNight 复位） */
+  item:null,                                              /* A-134→A-139/A-140：当夜暗线物品 {def,box,ready}（N.item 缺键=null=零绘制零变化） */
+  itemGot:{},                                             /* A-147（批次21，用户直令「收集到办公桌上立马出现；没活过去还要再找」）：当夜收取态 {key:1}，随 startNight 复位。
+                                                             🔴 收取态只挂 S，不进存档 ⇒ SAVE.items 的语义改小为「已过夜落档」（win() 前段 commitNightItems 才写）。
+                                                             本轮零新增持久字段 ⇒ SAVE_KEY / SAVE_VER=2 逐字不动（A-87 契约不破）。 */
   finaleMel:0};
+ var nid=nightItemDef();                                  /* A-139/A-140（批次19b）：at 秒数与 x/y/s 三键退役
+    ⇒ box=当夜从 YBOX[room] 抽中的候选框索引（每夜只抽这一次，换台/暂停/重开监控都不重抽；-1=该房无框=零绘制）
+    ⇒ ready=放行开关，0=开局录音环节未结束；三处置位（endDiary / interruptDiary / 本夜无开场留言的兜底） */
+ S.item=nid?{def:nid,box:yboxPick(nid.room),ready:0}:null;
+ if(S.item&&!(CFG.diary&&CFG.diary.id)&&!(CFG.diary&&CFG.diary.openCorrupt&&CFG.diary.openCorrupt.length))
+  S.item.ready=1;                                        /* A-140③：无开场留言、也无开场乱码的夜 ⇒ 没有「播完」这回事，直接放行 */
  buildEvents();
  var boot=(META.menu&&META.menu.boot)||{};
  $('inTime').textContent=(boot.clock||'CLOCK')+' 00:00';
  $('inNight').textContent=(boot.night||'NIGHT')+' '+CUR;
  var pb=$('inProg');pb.classList.remove('run');void pb.offsetWidth;pb.classList.add('run');
+ /* E12 兜底（用户 09-24 直令「加」）：`:182` 在 prefers-reduced-motion:reduce 下把进度条的 animation 关掉 ⇒ `animationend`
+    永不到来 ⇒ 自动开局这条腿断掉，reduce 玩家只能靠点一下。补一条与 `rp 3.2s` 等长的定时器走同一个 `enterGame`；
+    🔴 只在 `RM` 为真时设 ⇒ 非 reduce 玩家一个定时器都不建，零行为变更；`enterGame` 首行 `if(scene!=='intro')return`
+    已保证本处与「点击 / animationend」两条既有路径互斥幂等，重复触发只会放空炮。 */
+ if(RM){clearTimeout(pb._t);pb._t=setTimeout(function(){if(scene==='intro')enterGame()},3200);}
  $('inRetry').textContent=rc;
  if(rc)setTimeout(function(){$('inRetry').textContent=''},3200);
  setStatic(false);
  $('camHud').classList.remove('on');
+ mapBtnSync();                                       /* A-145：本处绕开 setCams 直接收台 ⇒ 右段钮一并归位（不读 S，纯 DOM 同步） */
  $('camStrip').textContent='▲ 打开监控';
  $('arL').style.display=$('arR').style.display='none';
  document.querySelectorAll('#map .mb').forEach(function(b){b.classList.remove('on','alert')});
@@ -859,7 +1149,7 @@ function checkEgg(){if(!SAVE.winCount||SAVE.winCount<=SAVE.eggAt)return;
   setTimeout(function(){el.classList.remove('on')},6200)}
  SAVE.eggAt=SAVE.winCount;writeSave()}
 /* ============ 机制 ============ */
-/* A-81：「她来了」D 单元迫近事件（左门灯亮起+剪影，2.5s反应窗口；锁门化解，超时跳脸不致死） */
+/* A-81：「D巡门」=单元D 迫近事件（左门灯亮起+剪影，2.5s反应窗口；锁门化解，超时跳脸不致死） */
 /* A-104（A-98 补丁）：顺延判定收进本函数——① D 正占 corrA/doorL（门洞会出两只 D）② 白板对局中 ③ 近看。
    三条任一命中 ⇒ 不触发、挂 visitPending 按 +6s 补判（可连续顺延），与 D 槽占门同款步长；
    放这里而非事件闭包 ⇒ 强制触发/调试路径同样受守卫，不再静默丢弃。 */
@@ -884,6 +1174,250 @@ function visitScare(){
  S.power=Math.max(0,S.power-(CFG&&CFG.visits&&CFG.visits.powerCost!=null?+CFG.visits.powerCost:VISIT_POWER_COST));   /* A-106：抽电契约化 5→2（D45 只改这一处） */
  if(S.power<=0&&!S.black)triggerBlackout();
 }
+/* ============ A-117（批次16）/A-128（批次18）窗户敌 =单元E ============
+   唯一结算时刻=「打开监控」那一下（D56-a 用户裁：不扩结算点，续电必须开监控）：
+   不在窗上→掷骰或保底登场（阶段1）；已在窗上→推进一阶；阶段3 再开监控→跳杀（走既有回收链）。
+   剪影常态不致死，反制只有「点它那一侧的灯」（见 pressLight）。
+   登场夜/概率表/冷却表/次数带全部走可选契约 N.winE（缺省=WIN_E）。 */
+function winENight(){var c=CFG.winE||WIN_E;return CUR>=(c.nFrom||1)&&CUR<=(c.nTo||7)}
+function winEQuota(){                            /* 次数带：夜1-3 [3,7]、夜4-7 [5,8]；N.winE.quota 覆盖 */
+ var q=(CFG.winE||WIN_E).quota;
+ if(q&&typeof q.min==='number'&&typeof q.max==='number')return q;
+ return WIN_E_QUOTA[CUR>=4?1:0]}
+function winEOn(){return winENight()&&(!S||S.winECount<winEQuota().max)}   /* 唯一门槛函数=登场夜且未到封顶 */
+function winEP(k){                               /* 第 k 次登场的掷骰率：pSeq 逐次衰减 × 02:30 后的 lateMul 折半 */
+ var c=CFG.winE||WIN_E;
+ var p=seqAt(c.pSeq||WIN_E.pSeq,k,.07);
+ return p*((N&&S.time<parseClock(c.lateAt,(N&&N.hourLen)||60))?1:(c.lateMul!=null?c.lateMul:.5))}
+function winEDue(k){                             /* 保底排程：firstAt+(k+1)*step，step=(endAt-firstAt)/min ⇒ 第 min 次必落夜内 */
+ var c=CFG.winE||WIN_E,hl=(N&&N.hourLen)||60,q=winEQuota();
+ var f=parseClock(c.firstAt||'00:30',hl),e=parseClock(c.endAt||'05:30',hl);
+ return f+(k+1)*((e-f)/Math.max(1,q.min))}
+function winESettle(){                          /* setCams(true) 调用；返回 true=本帧已结算（跳杀） */
+ if(!S||S.black||!winEOn())return false;
+ var c=CFG.winE||WIN_E,w=S.winE;
+ if(!w){
+  if(S.time<S.winEReadyAt)return false;         /* 驱赶后的再出现闸门（游戏秒，断电期间不计时） */
+  var k=S.winECount||0;
+  if(S.time<winEDue(k)&&rnd(100)>=winEP(k)*100)return false;   /* 未到保底点才掷骰；到点必出不掷（A-128 第5项） */
+  S.winE={side:rnd(2)?'L':'R',phase:1,flipAt:S.time,roamT:0};   /* flipAt/roamT 供 A-126 游移计时；无 roam 字段时两键无人消费 */
+  S.winECount=k+1;                              /* 计数=「由 null→存在」的每次实例化（含首登与每次回归；阶段推进与跳杀不另计） */
+  AU.glassTap(S.winE.side);
+  return false}
+ if(w.phase>=3){                                /* 阶段3 的这一次开监控=直接跳杀 */
+  var mE=T('winIn.'+w.side);                     /* A-137（↔D57-⑦/B-68③）：当夜首次跳杀在既有串后追加提醒句，走 jump msg 通道（不进 beat：beat 有 8 字闸与每夜 1 次闸）；缺键=不追加、零变化 */
+  if(!S.winEFirst){var xE=T('winIn.'+w.side+'First');if(xE){mE=mE+'<br>'+xE;S.winEFirst=1}}
+  jump('slot_E',mE,'WIN-'+w.side);               /* A-121：E 自己的跳脸，不再借 D 特写 */
+  return true}
+ w.phase++;w.side=rnd(2)?'L':'R';               /* 进阶同时换侧：不给「盯死一侧就不用想」的解法 */
+ AU.glassTap(w.side);
+ return false}
+function winERoamDbg(){                         /* A-126 取证读数（无 roam 字段 ⇒ 空串，读数与本批前一致） */
+ var r=(CFG.winE||WIN_E).roam,w=S&&S.winE;
+ if(!r||!w)return '';
+ return ' 游移 换侧后 '+(S.time-w.flipAt).toFixed(1)+'s 均隔 '+((r.every||8)/(r.p||1)).toFixed(1)+
+        's 灯停 '+((w.side==='L'?S.lightL:S.lightR)?'Y':'N')}
+function winERoam(dt){                          /* A-126（D55-c）：上窗后 E 在两窗之间自发换侧。
+   可解性硬约束：① 该侧灯亮期间整段冻结（点同侧灯驱赶不许退化成掷骰）；② minGap 夹住换侧频率；
+   ③ 只动 side，phase 与 alpha 阶梯不受影响；④ 缺 roam 字段=与本批前逐字一致。 */
+ var w=S.winE,r=(CFG.winE||WIN_E).roam;
+ if(!w||!r)return;
+ if(w.side==='L'?S.lightL:S.lightR)return;
+ var every=r.every||8,minGap=r.minGap==null?8:r.minGap;
+ w.roamT+=dt;
+ if(w.roamT<every)return;
+ w.roamT=0;
+ if(S.time-w.flipAt<minGap)return;
+ if(rnd(100)>=(r.p||0)*100)return;
+ w.side=w.side==='L'?'R':'L';
+ w.flipAt=S.time;
+ AU.glassTap(w.side)
+}
+function winERepel(t){                          /* 点灯同侧=驱赶；正常点灯耗 0.1% 由 pressLight 承担，此处只加阶段差 */
+ if(!S||!S.winE||S.winE.side!==t)return;
+ var c=CFG.winE||WIN_E,phase=S.winE.phase;
+ S.winE=null;S.winEReadyAt=S.time+seqAt(c.coolSeq||WIN_E.coolSeq,(S.winECount||1)-1,(c.cool||60));   /* A-128：冷却随次数递减 60→30；cool 只作兜底不另存数值 */
+ S.power=Math.max(0,S.power-phase*(c.cost||1));
+ AU.glassTap(t);
+ if(S.power<=0&&!S.black)triggerBlackout()}
+/* ============ A-118（批次16）玫瑰敌 =单元F ============
+   到点静默出现在训练员室（办公室立起剪影、不移动不攻击），同时把一朵玫瑰画进某个 CAM 房间；
+   限时内（ROSE_E.limit，现 25 秒）点中玫瑰=双双消散，超时=跳杀。倒计时无 HUD 数字（A-41 零文字），表现=剪影越清晰死期越近。 */
+function roseOn(){var c=CFG.roseE||ROSE_E;return CUR>=(c.nFrom||4)&&CUR<=(c.nTo||7)}
+function rosePickTime(lo,hi){                        /* A-156⑦：统一落点抽取管线（首朵专用；区间与「必落 03:00 前」由调用方给）。
+   旧口径「lo=openSafe, hi=6h-endSafe 全夜区间」退役——openSafe 键保留但首朵不再消费它（A-156②直令 00:00:30~03:00）。 */
+ var c=CFG.roseE||ROSE_E,out=[];
+ if(hi<=lo)return null;
+ for(var t=lo;t<=hi;t++){
+  var ok=true;
+  for(var k in S.roseAvoid)if(Math.abs(t-S.roseAvoid[k])<(c.avoid||15)){ok=false;break}
+  if(ok)out.push(t)}
+ return out.length?out[rnd(out.length)]:null}
+function roseSpawn(){
+ var c=CFG.roseE||ROSE_E,rooms=CAMORDER.filter(function(r){return (c.skipRooms||[]).indexOf(r)<0&&!camStaticOn(r)&&yboxes(r)});
+ if(!rooms.length)return;
+ var room=rooms[rnd(rooms.length)];
+ var box=yboxPick(room);                                /* A-139（批次19b）：旧口径 x=40+rnd(304),y=40+rnd(140) 的整片矩形随机退役
+    ⇒ 改从 YBOX[room] 抽一个黄框（本函数每夜只在登场那一刻调一次 rnd，绘制与命中判定不再调随机，见 roseGeom） */
+ if(box<0)return;
+ S.roseE={left:c.limit||25,max:c.limit||25,room:room,box:box,x:0,y:0};
+ var g=roseGeom(S.roseE);if(!g){S.roseE=null;return}
+ S.roseE.x=g.x;S.roseE.y=g.y;                            /* x,y=实绘中心（roseHit 与 GOD VIEW 共用这一份，绘制侧走 roseGeom 同式） */
+ S.roseSpawns++;                                             /* A-156③：只记次数（GOD VIEW 读数用），不再充当一次锁 */
+ if(AU.ctx)AU.hum()}
+function roseGeom(e){                                   /* A-139：玫瑰实绘包围盒（镜头逻辑坐标）——纯函数，禁调 Math.random
+   尺寸口径（批次19b 收尾轮改定）：目标高=所抽黄框的高 B[3]，不再用 ROSE_E.size=22 当上限。
+     为什么这么定：① A-138 换的 rose_vase.png 是 272x1010 的细高条（宽高比 0.269），旧口径「高夹到 min(22, 框高)」
+       把整张图压成 22 高 × 5.7 宽，在 384 宽的监控画面里几乎是一根线，换素材要的可辨度又被这个上限吃掉；
+     ② 用户点名「大小和位置参考黄框」⇒ 框就是尺寸真源，物品侧 itemBox() 早就是按框 fit，两侧同语汇才好核；
+     ③ 高=框高天然满足闸门判据1「实绘不出黄框」，小框（hall 21.12 / roof[1] 21.92）自动比旧 22 略小，
+       大框（lib[0] 35.68 / gymn[0] 32.80）自动放大，逐框前后对照见 work/_b19b_gates.txt 判据5。
+   等比禁拉伸：高定下后宽=高×IMG.rose 实际像素比；若有某框比这根细长条还细，则改由框宽定、反算高（两向都不越框）。
+   横向居中、底边贴框下缘=与物品同语汇。 */
+ var c=CFG.roseE||ROSE_E,B=yboxAt(e.room,e.box);
+ var im=IMG.rose,ar=(im&&im.width&&im.height)?im.width/im.height:(ROSE_E.trim[2]/ROSE_E.trim[3]);
+ if(!B){                                        /* 兼容历史取证件（work/_b16_rose_shots.py 手工塞 {room,x,y} 无 box）：
+      无黄框时退回「按存储中心 + size 高度」绘制，只影响那条老证据脚本，真实登场路径 roseSpawn 必定写 box */
+  if(typeof e.x!=='number'||typeof e.y!=='number')return null;
+  var h0=c.size||ROSE_E.size;return {x:e.x,y:e.y,w:h0*ar,h:h0}}
+ var h=B[3],w=h*ar;
+ if(w>B[2]){w=B[2];h=w/ar}                     /* 过细框的兜底：按框宽等比缩，高随之变小，仍不越框 */
+ return {x:B[0]+B[2]/2,y:B[1]+B[3]-h/2,w:w,h:h};
+}
+function rosePlan(){                                 /* A-156②（批次22 用户直令）：首朵必落 00:00:30~03:00 窗内随机（避让表全套沿用）。 */
+ if(!roseOn())return;
+ var lo=ROSE_FIRST_LO_T,hi=N.hourLen*ROSE_FIRST_UNTIL_H;
+ var t=rosePickTime(lo,hi);
+ if(t==null)t=lo+rnd(hi-lo+1);                      /* 避让把窗口挤满时按直令优先序保「必落 03:00 前」（接受让碰撞，绝不越窗） */
+ S.roseAt=t}
+function roseFreeAt(t){                              /* A-156：单点避让校验（与 rosePickTime 同判据同真源 c.avoid） */
+ var c=CFG.roseE||ROSE_E;
+ for(var k in S.roseAvoid)if(Math.abs(t-S.roseAvoid[k])<(c.avoid||15))return false;
+ return true}
+function roseBookNext(){                             /* A-156④⑤⑥：成功拔除⇒固定间隔(~1.5 游戏小时±抖动)再预约下一朵，不限次；
+   03:00 之后再登场先按 ROSE_LATE_P 掷骰（掷不中=本夜不再来）；endSafe=30s 对每次预约继续生效；
+   只在拔除当帧调用一次（非逐帧路径），随机量合规。 */
+ if(!roseOn()||!S)return;                           /* 预约无条件写位；登场那一刻的断电冻结由 roseTick 的 !S.black 闸负责（既有语义） */
+ var hl=N.hourLen||60,hi=hl*6-((CFG.roseE||ROSE_E).endSafe||30);
+ var t=S.time+(ROSE_AGAIN_H+(Math.random()*2-1)*ROSE_AGAIN_JIT)*hl;
+ if(t>=hl*ROSE_FIRST_UNTIL_H&&Math.random()>=ROSE_LATE_P){S.roseAt=-1;return}
+ for(var d=0;d<=120;d++){                           /* 落点吸附到最近的避让安全秒（前找后找；绝不越 endSafe 收口，也不早于当前） */
+  if(t+d<=hi&&roseFreeAt(t+d)){S.roseAt=t+d;return}
+  if(t-d>S.time&&t-d<=hi&&roseFreeAt(t-d)){S.roseAt=t-d;return}}
+ S.roseAt=-1}                                       /* 120s 内找不到安全落点⇒本夜不再来（不破坏避让表） */
+function roseTick(dt){
+ if(!S||!roseOn())return;
+ if(S.roseAt>=0&&S.time>=S.roseAt&&!S.roseE&&!S.black){S.roseAt=-1;roseSpawn()}   /* A-156③：roseUsed 一次锁退役，登场与否只看预约位；被跳杀=当夜已败，不再有下一次预约（④） */
+ if(!S.roseE||S.black)return;                        /* 断电期间倒计时冻结 */
+ S.roseE.left-=dt;
+ if(S.roseE.left<=0){var rm=S.roseE.room;S.roseE=null;
+  var mF=T('roseIn');                            /* A-137（↔B-68③）：当夜首次 F 结算追加提醒句（msg 通道，缺键=不追加）；此后各次仍只显原串 */
+  if(!S.roseFirst){var xF=T('roseInFirst');if(xF){mF=mF+'<br>'+xF;S.roseFirst=1}}
+  jump('slot_F',mF,'ROSE-'+String(CAMNO[rm]||'?').replace('CAM',''))}   /* A-121：F 自己的跳脸 */}
+function roseCamXf(){                                /* 与 renderCams 逐字同式的镜头变换参数 */
+ var ph=CAMORDER.indexOf(S.camRoom)*1.7;
+ var fo=(S.camFocusT>0)?Math.min(1,S.camFocusT/CAMFOCUS):0;   /* E9：与 renderCams 同源，保证焦点窗内命中逆变换不脱钓 */
+ return {swx:Math.sin(ET*.5+ph)*8,swy:Math.cos(ET*.42+ph)*5,zm:1.14+fo*.14}}
+function roseHit(px,py){                             /* 设备像素 → 逻辑 → 镜头逆变换 → 命中判定
+   渲染式=translate(192+swx,108+swy)·scale(zm)·translate(-192,-108) ⇒ screen=L*zm+(1-zm)*192+swx（平移量在缩放后，须带 (1-zm) 项）
+   批次19b 收尾轮：口径与 itemHit 逐字同源（同一套逐帧逆投影 + 实绘包围盒矩形，含边界）。
+     旧口径是「以实绘中心为圆心、半径 hot=14 的圆」——那是给未裁边的旧玫瑰量的；换成 272x1010 的细高条后
+     实绘只有 5.7~9.6 逻辑像素宽，圆半径会把 sprite 外侧约 8 像素的空气也算命中（点空气=消解一次死期，玩法被架空），
+     故退役圆、改矩形。ROSE_E.hot 键随之删除（无任何当夜数据消费它）。 */
+ if(!S||!S.roseE||S.camRoom!==S.roseE.room)return false;
+ var f=roseCamXf(),g=roseGeom(S.roseE);if(!g)return false;
+ var lx=(px/SQ-(1-f.zm)*192-f.swx)/f.zm,ly=(py/SQ-(1-f.zm)*108-f.swy)/f.zm;
+ return lx>=g.x-g.w/2&&lx<=g.x+g.w/2&&ly>=g.y-g.h/2&&ly<=g.y+g.h/2}
+function roseDispel(){
+ S.roseE=null;
+ roseBookNext();                                    /* A-156④（批次22 用户直令）：拔除成功⇒按固定间隔再预约（拔除前被跳杀走不到本函数=当夜已败无下一朵） */
+ if(AU.ctx)AU.glassTap(null)}
+/* ============ A-134（批次19，↔D57-(5)）暗线物品：夜3-6 各一件（N.item 由 B-68① 供值，缺键=零绘制零变化） ============
+   🔴 双坐标口径：监控画面一侧吃 N.item 的 384x216 背景逻辑坐标（drawItemCam，在镜头变换内画，与 roseHit 同一套逐帧逆投影）；
+   办公室侧吃 OFFICE.items 的 flat 1024x256 坐标（composeFlat 层序内画）——两份各存各的，永不混用（批次17 A-122 根因）。
+   物品不是敌：不复用 drawSlot、不碰 SLOTPOS/tier/FOOT 任何语义，不参与遏制/盯停/冲刺/玫瑰任何逻辑。 */
+function nightItemDef(){var it=N&&N.item;if(!it)return null;      /* 现契约=单对象；数组容错=取第一个合法项 */
+ if(Array.isArray(it)){for(var i=0;i<it.length;i++)if(it[i]&&OFFICE.items[it[i].key])return it[i];return null}
+ return OFFICE.items[it.key]?it:null}
+function itemsCount(){var n=0;for(var k in SAVE.items)if(SAVE.items[k])n++;return n}
+function itemsAll(){return itemsCount()>=4}                       /* A-135 判据：四件齐（已过夜落档的累计） */
+function itemTaken(k){                                            /* A-147 唯一「这件收过没有」判据：存档落档 或 本夜已收（待结算） */
+ return !!(SAVE.items[k]||(S&&S.itemGot&&S.itemGot[k]))}
+function commitNightItems(){                                      /* A-148（批次21）过夜才落档：把本夜收取并入 SAVE.items，只在真并入新键时写盘 */
+ if(!S||!S.itemGot)return 0;
+ var n=0;
+ for(var k in S.itemGot){if(!S.itemGot[k])continue;
+  if(!SAVE.items[k]){SAVE.items[k]=1;n++}}
+ if(n)writeSave();
+ return n}
+function itemPending(){                                           /* 当夜物品「在场」判定（不含「正在看那间房」） */
+ var it=S&&S.item;if(!it||!it.def)return false;
+ if(itemTaken(it.def.key))return false;                           /* A-147：已落档（跨周目/跨读档）或本夜已收 => CAM 不再画、不可重复收；没过夜则下夜重刷 */
+ if(!it.ready)return false;                                       /* A-140（批次19b）：放行时机=开局录音环节结束（N.item 的 at 秒数退役） */
+ if(!yboxes(it.def.room))return false;                            /* A-139：该房无黄框条目 => 早退零绘制（同 camStatic 容错口径） */
+ if(camStaticOn(it.def.room))return false;                        /* camStatic 房（plaza 纯雪花）零绘制 */
+ return true}
+function itemBox(){                                               /* sprite 实绘包围盒（镜头逻辑坐标）
+   A-139（批次19b）：旧口径「N.item 写死 x/y/s」退役 ⇒ 从 YBOX[room] 取当夜抽中的那一个框（S.item.box 索引），
+   等比 fit 进框（min 比例，禁拉伸）、底边贴框下缘、横向居中 —— 与 drawOfficeItems 同语汇。 */
+ if(!S||!S.item||!S.item.def)return null;
+ var d=S.item.def,im=IMG['item_'+d.key];if(!im||!im.width||!im.height)return null;
+ var B=yboxAt(d.room,S.item.box);if(!B)return null;
+ var fit=Math.min(B[2]/im.width,B[3]/im.height)*(ITEM_CAM_SCALE[d.key]||1);      /* A-150（批次21）：象棋线性缩到 1/3；A-155（批次22 用户直令）：奖杯再 ×1.1=11/30（宽高等各乘，不是面积）；表外键＝1 */
+ var w=im.width*fit,h=im.height*fit;
+ return {x:B[0]+B[2]/2-w/2,y:B[1]+B[3]-h,w:w,h:h}}
+/* A-143（批次19c）：暗线物品在监控画面里压暗。用户口径「在非训练员室里时（也就是没找到之前在监控里时）」
+   ⇒ 作用域只有本函数这一处：CAM 侧=还没找到，办公室侧 drawOfficeItems()=已收到摆出来了 ⇒ 后者零动、保持原亮度。
+   🔴 语义是「压暗」而不是「变淡」：用 canvas filter 把该次绘制的亮度整体压低（倍率＝ITEM_CAM_DIM[_KEYS]，批次19c 取 0.5、批次21 A-150 收到 0.30、批次22 A-155 分键 trophy=0.40，消费点仍唯一），不用 globalAlpha——
+     后者会把暗背景透上来，在暗场景里读起来像假影而不是暗（用户要的就是暗）。
+   CAM 里的玫瑰（drawRoseFlower）与 rose_F 静立剪影零动：用户点的是那四件暗线物品，玫瑰不在本令范围。
+   收取后 itemPending() 转 false、CAM 侧本就不再绘制 ⇒ 「没找到之前」天然成立，无需另加状态判断。
+   热区 itemHit()、抽框逻辑、放行时机、YBOX 语义、SLOTPOS/tier/FOOT 一律未动：压暗只改观感。 */
+const ITEM_CAM_SCALE={chess:1/3,trophy:11/30*1.15};   /* A-163（批次24 用户直令「奖杯调大15%」，口径=现值再 x1.15）：1/3 -> x1.1（A-155）-> x1.15 = 253/600 ≈ 0.4217；
+                                                          仍只作用监控侧（itemBox 唯一出口）、仍与亮度表 ITEM_CAM_DIM_KEYS(trophy=0.40) 互不相干；chess 逐字不动。 */                    /* A-150（批次21 用户直令「象棋、奖杯大小缩到当前的1/3」）：只作用监控侧（itemBox 唯一出口），表外键＝1；
+                                                                     A-155（批次22 用户直令「奖杯仅监控侧放大10%」）：trophy 1/3→11/30（=1/3×1.1 线性等比），chess 逐字不动；
+                                                                     办公室摆件尺寸（OFFICE.items × ITEM_SCALE）按用户裁决零动。 */
+const ITEM_CAM_DIM=0.30;                                          /* 监控侧亮度系数（唯一真源，禁把 0.30 散进绘制代码；不是颜色令牌，只是亮度倍率）
+                                                                     A-150：批次21 用户直令「这四个再压暗70%」⇒ 由批次19c 的 0.5 收到 0.30（读成最终压暗 70%，不是在 0.5 上累乘）。
+                                                                     A-155（批次22 用户直令）：本值退役为「表外键兜底」，逐键值进下方 ITEM_CAM_DIM_KEYS（仍守 A-143 唯一真源红线）。 */
+const ITEM_CAM_DIM_KEYS={chess:0.30,flyer:0.30,doll:0.30,trophy:0.40};   /* A-155 亮度分键表（监控侧唯一真源，消费点仍只有 drawItemCam 一处）：
+                                                                     chess/flyer/doll 维持 0.30 逐字不动；trophy 0.40（「提亮10%」=绝对值口径 0.30→0.40）。 */
+function drawItemCam(){                                           /* 在 renderCams 镜头变换内调用（zm=1.14+晃动与背景同源；hall 的 _on 变体同样走到这里） */
+ if(!itemPending()||S.camRoom!==S.item.def.room)return;
+ var b=itemBox();if(!b)return;
+ cx.save();                                                      /* filter 只包住这一次 drawImage，restore 一并清掉，绝不留到背景或别的单位上 */
+ var dim=ITEM_CAM_DIM_KEYS[S.item.def.key];if(dim==null)dim=ITEM_CAM_DIM;   /* A-155：分键取亮度（表仍唯一真源，消费点仍只有本处；表外键回落 ITEM_CAM_DIM=0.30） */
+ cx.filter='brightness('+dim+')';
+ cx.drawImage(IMG['item_'+S.item.def.key],b.x,b.y,b.w,b.h);
+ cx.restore()}
+function itemHit(px,py){                                          /* 设备像素 -> 逻辑 -> 镜头逆变换（式与 roseHit 逐字同源，_b18_mapshoot 已证 1 设备像素内）；禁另起坐标估算 */
+ if(!S||!S.cams||!itemPending()||S.camRoom!==S.item.def.room)return false;
+ if(S.black||S.staLock>0||S.board.state===1)return false;         /* 断电/僵直/对局态不响应；近看与跳脸演出进不到本分支（只在 S.cams 态的 stage 命中链里） */
+ var f=roseCamXf();
+ var lx=(px/SQ-(1-f.zm)*192-f.swx)/f.zm,ly=(py/SQ-(1-f.zm)*108-f.swy)/f.zm;
+ var b=itemBox();return !!b&&lx>=b.x&&lx<=b.x+b.w&&ly>=b.y&&ly<=b.y+b.h}
+var itemGrabT=0;                                                  /* A-134③ 顺序问题防御：#camStrip 的 click 在 pointerdown 之后触发，收取后短窗内吞掉一次切台 */
+var mbGrab=null;                                                  /* 批次19b 收尾轮：上一轮把上面那条全局短窗直接复用给 .mb 是过度吞击（压面板的 sprite 一收，整个地图 400ms 内点谁都切不了台，
+                                                                     与批次18 A-130「buildMap/点击热区零动」的规矩冲突）。改为「同一次手势 + 同一个房块」双限定的记号：只有真被 sprite 消耗掉的那一格、
+                                                                     那一手势的后续 click 才让位；指针下没有 sprite 时这个记号永不置位 ⇒ 其余块与改动前逐字一致。 */
+const GRAB_FX_T=0.35;   /* A-165（批次24 用户直令「修复拾取点击效果错位…或直接去掉拾取动画」主案）：扩散环生命窗（演出秒）。
+                            计时由旧「renderCams 内 t-=DT 递减」改成「ET 绝对窗」：ET 在关监控期间照走 ⇒ 残环缺陷一并消（取证判据5）。 */
+function collectItem(){
+ S.itemGot[S.item.def.key]=1;                                    /* A-147（批次21 用户直令，覆盖 D57-(5) 旧「收取即写档」口径）：
+                                                                    当夜收取只写 S.itemGot ⇒ 办公桌立刻摆上，win() 前段 commitNightItems() 才落档。
+                                                                    此处不再 writeSave() ⇒ 没收/没过夜 ⇒ 存档字节零变化；跳脸死后 goRetry 重建 S ⇒ 本夜重刷。 */
+ itemGrabT=performance.now()+400;
+ var _gb=itemBox();S.grabFx=_gb?{x:_gb.x+_gb.w/2,y:_gb.y+_gb.h/2,t0:ET,r:Math.max(_gb.w,_gb.h)/2}:0;   /* E10（A-165 修）：记实绘中心与实绘半径，交 renderCams 画一次扩散环（局内零文字）；
+                                                     坐标系口径与 drawItemCam 逐字同源（都在镜头变换内）⇒ 环与物品必然重合。旧 t:.35 递减制退役，改 t0=ET 绝对窗。 */
+ if(AU.ctx)AU.pushSoft()}                                          /* 成功反馈只落 sprite 自身：消失+一个既有暖音效（参照 A-83 jukeGauge.ok 不弹字口径，局内零文字） */
+function drawOfficeItems(g){                                      /* A-134④→A-149 办公室累加：本夜已收与已落档都摆（itemTaken 唯一判据），只进 composeFlat 层序（flat-then-warp 红线） */
+ for(var k in OFFICE.items){
+  if(!itemTaken(k))continue;
+  var im=IMG['item_'+k];if(!im)continue;                          /* 缺图早退不炸 */
+  var r=OFFICE.items[k],s=ITEM_SCALE;
+  var fit=Math.min(r.w*s/im.width,r.h*s/im.height);               /* 等比 fit 进写死 rect（禁拉伸；rect 宽高来自审查位写死换算表） */
+  var w=im.width*fit,h=im.height*fit;
+  g.drawImage(im,r.x+r.w/2-w/2,r.y+r.h-h,w,h)}}                   /* 底边贴 rect 下缘、横向中心对位：摆件底面贴它的面子线 */
 /* 回收演出统一口径（A13，v1.7 §7）：剪影扑近 0.5s → 系统接管「异常进程定位 TRAINER-00 · 开始回收」
    + 删除进度条约 2s → 黑屏 →「本夜评估未通过」。wb=true 为白板通道执行删除（夜7 胜/超时）。 */
 function jump(tp,msg,tag,wb){S.recycle={t:0,gearT:0,tp:tp,msg:msg,tag:tag||'?',wb:!!wb};
@@ -893,8 +1427,15 @@ function jump(tp,msg,tag,wb){S.recycle={t:0,gearT:0,tp:tp,msg:msg,tag:tag||'?',w
  hud.classList.remove('on');setStatic(false);
  if(AU.ctx)AU.scream()}
 function win(){scene='done';hud.classList.remove('on');setStatic(false);
+ /* A-148（批次21）过夜落档必须在 win 的最前段、早于后段夜7 结局判定的 return：
+    否则夜6 当晚收到并过夜的玩偶进不了 itemsAll() ⇒ 隐藏结局判据漏件。没过这一夜的路径（jump/回主菜单/关页面）到不了这里＝零落档。 */
+ commitNightItems();
  SAVE.everWon=true;
  if(CUR<7)SAVE.unlockedNight=Math.max(SAVE.unlockedNight,CUR+1);
+ /* A-111：结算页按键组文案与可见性——「进入下一夜」只对夜1-6 可见（夜7 走结局链，复用同一 #ovDone，
+    故 standardEnding 另行强制收起；本行在 win 的最前段，确保所有分支继承同一可见性）。 */
+ var dnN=$('dnNext');if(dnN){dnN.style.display=CUR<7?'':'none';dnN.textContent=doneTxt('next','进入下一夜')}
+ var dnH=$('dnHome');if(dnH)dnH.textContent=doneTxt('home','回到主页');
  /* 残影层（A14）与白板留言归档（A-77）：当夜留言按 ghostOpacity 归档，跨夜叠加 */
  if(CFG.board.message&&CFG.board.mode!=='none'){
   SAVE.ghosts.push({n:CUR,msg:String(CFG.board.message),t:String(CFG.board.message),reply:CFG.board.autoReply?String(CFG.board.autoReply):null,o:CFG.board.ghostOpacity!=null?CFG.board.ghostOpacity:.06});
@@ -922,8 +1463,9 @@ function win(){scene='done';hud.classList.remove('on');setStatic(false);
  /* 谢幕曲续播（A12 finale）：夜7 末曲在播 → 旋律延续进终局 */
  var j=S.juke;
  if(CFG.juke.finale&&j.started&&!j.dead&&j.left>0)S.finaleMel=1;
- /* 夜7 平局 → 结局判定（A17/A18）：档案 A-D 齐+点歌机未中断=真结局，否则标准结局 */
- if(CUR===7&&S.board.state===2&&S.board.result==='draw'&&!j.dead&&truthReady()){startTrueEnding();return}
+ /* 夜7 平局 → 结局判定（A17/A18）：档案 A-D 齐+点歌机未中断=真结局，否则标准结局。
+    A-135（↔D57-⑥）判据只多一项：四件暗线物品齐 ⇒ startTrueEnding({hidden:1})；不齐 ⇒ 与改前逐字节一致（hidden=0，尾段不挂）。 */
+ if(CUR===7&&S.board.state===2&&S.board.result==='draw'&&!j.dead&&truthReady()){startTrueEnding({hidden:itemsAll()?1:0});return}
  if(CUR===7&&S.board.state===2&&S.board.result==='draw'){standardEnding();return}
  AU.chime();
  var st=S.stats,rs=(META&&META.result)||{},bv=rs.boardValues||{};
@@ -948,6 +1490,7 @@ function standardEnding(){
  showScene('done');
  $('dnGauges').innerHTML='';                          /* A-85：结局走旁白，不叠仪表读数 */
  $('dnTitle').textContent='6:00 AM';
+ var dnStd=$('dnNext');if(dnStd)dnStd.style.display='none';   /* A-111：结局链复用 #ovDone ⇒ 「进入下一夜」必须收起 */
  $('dnSub').innerHTML='<span style="color:#9aa8b2">'+l0+'</span><br><span style="color:#5a5a62;font-size:.85em">'+l1+'</span>';
  setTimeout(function(){if(scene==='done')AU.ringOnce()},2200);
  setTimeout(function(){if(scene==='done'){$('dnTitle').textContent=l2;
@@ -958,11 +1501,14 @@ function standardEnding(){
    → HUD 元件依次熄灭（监控→门锁→红点→白板，白板保留「你」字残影 40%）
    → 黑屏 BUG CLEARED → threeLines 按序浮现 → NFX.epilogue 四镜
    → 最终档案解锁 + 制作名单（谢幕曲收束后完全静默） */
-function startTrueEnding(){
+const TE_TAIL_SHOTS=3;   /* A-135：暗线尾段镜数（静立/导出/空画留白）。节奏常数属引擎，文案不在此（读 META.endings.hidden.lines，缺键=不显示） */
+const TE_TAIL_T=3.4;     /* 每镜秒数（对齐 epilogue 段的 3.2s 量级） */
+function startTrueEnding(opts){
  var tr=(META&&META.endings&&META.endings.truth)||{};
  S.te={phase:'comm',t:0,lineI:-1,epi:0,rang:0,
   dialogue:tr.dialogue||[],lines:tr.threeLines||[],
-  holdSec:tr.holdSec||1.5,btn:tr.button||'跑吧。'};
+  holdSec:tr.holdSec||1.5,btn:tr.button||'跑吧。',
+  hidden:(opts&&opts.hidden)?1:0,shot:0};        /* A-135：hidden=真结局尾段变体旗标（整链照跑，仅名单后追加尾镜；不另开独立结局链、不复制相位机） */
  S.finaleMel=S.finaleMel||1;                        /* 谢幕曲持续 */
  hud.classList.remove('on');setStatic(false);
 $('teRun').firstChild.textContent=S.te.btn;
@@ -1007,7 +1553,15 @@ function tickTrueEnd(dt){var te=S.te;if(!te)return;te.t+=dt;
     if(te.epi>=4){te.phase='credits';te.t=0;startCredits()}}
    break;
   case 'credits':
-   if(te.t>=16){te.phase='end';endTrue()}
+   if(te.t>=16){
+    /* A-135（批次19）：暗线出口只挂在既有相位机的名单末段——真结局整链（对白18拍/长按/HUD熄灭/BUG CLEARED/
+       threeLines/epilogue 四镜/档案+名单）一行不删、一屏不替；四件不齐走 else 分支与改前逐字一致。 */
+    if(te.hidden&&itemsAll()){te.phase='tail';te.t=0;te.shot=0;if(AU.ctx)AU.tape()}
+    else{te.phase='end';endTrue()}}
+   break;
+  case 'tail':                                    /* A-135③ 暗线尾段=现实侧三镜（玩偶服→导出→留白指向后续剧情），完播并入同一个 endTrue 出口 */
+   if(te.t>=TE_TAIL_T){te.t=0;te.shot++;
+    if(te.shot>=TE_TAIL_SHOTS){te.phase='end';endTrue()}}
    break}}
 function nextFinalLine(){var te=S.te;te.lineI++;
  if(te.lineI>=te.lines.length){te.phase='epi';te.t=0;te.epi=0;return}
@@ -1017,9 +1571,33 @@ function startCredits(){var c=$('credits');
  c.innerHTML=rows.map(function(r){return '<div>'+r+'</div>'}).join('');
  c.classList.add('on');
  S.finaleMel=0}                                     /* 名单起谢幕曲收束 → 完全静默 */
-function endTrue(){SAVE.clearedTrue=true;SAVE.archFlags.final=1;writeSave();
+function endTrue(){SAVE.clearedTrue=true;
+ if(S&&S.te&&S.te.hidden&&itemsAll())SAVE.clearedHidden=1;   /* A-135/D57-(5)：clearedHidden 与 clearedTrue 分列，暗线链上两者同时置位；常规真结局只置 clearedTrue（与本批前一致） */
+ SAVE.archFlags.final=1;writeSave();
  $('credits').classList.remove('on');
  toMenu()}
+/* A-135 暗线尾段渲染（真结局尾段变体，不是第三条结局链）：语义=再生于计划外容器（宪章 S4：系统删的一直是壳，
+   这里读「搬家」不读「避开处决」）。三镜全在现实侧：①玩偶服静立 ②它自行挪出画框（导出=走向后续剧情，
+   禁画成她伸手进屏幕、不得停在办公室里——停=第二个循环）③空画只留一线地灯。
+   🔴 麻酱不出镜：无新立绘、char_A~D 零改动；她在本段仍只走既有通道（本段连白板字都不写，字只认 B 供键）。
+   文案键=META.endings.hidden.lines（B 另批供值；缺键=不显示，照 B-36 惯例），引擎不兜底任何尾镜文字。 */
+function tailLine(i){var h=window.META&&META.endings&&META.endings.hidden;
+ var L=h&&h.lines;if(!Array.isArray(L))return'';var v=L[i];return v?String(v):''}
+function renderTailEnd(te){
+ cx.fillStyle='#000';cx.fillRect(0,0,384,216);
+ var im=IMG.suit;
+ if(im&&te.shot<2){
+  var h=46,w=h*im.width/im.height;                         /* 逻辑像素高 46：与 epilogue 终端视角量级同档 */
+  var x=192-w/2,y=138-h,a=.92;
+  if(te.shot===0)a=.92*clamp(te.t/1.2,0,1);                /* 静立：缓显 */
+  else{var k=clamp(te.t/TE_TAIL_T,0,1);x=192-w/2+k*k*230;a=.92*(1-k)}   /* 导出：越挪越快离场+淡出，不回头 */
+  cx.globalAlpha=a;cx.drawImage(im,x,y,w,h);cx.globalAlpha=1}
+ if(te.shot===2)R(cx,150,150,84,2,'#3a3a44');              /* 空画+一线地灯（色值沿用 renderTrueEnd 熄灭段既有 #3a3a44） */
+ var ln=tailLine(te.shot);
+ if(ln){cx.fillStyle='rgba(205,205,212,.6)';               /* 供值才落字；行位与 fline 三行错开 */
+  cx.font='11px "Fusion Pixel","KaiTi","STKaiti",serif';cx.textAlign='center';
+  cx.fillText(ln,192,176);cx.textAlign='left'}
+ drawNoise(.03)}
 function renderTrueEnd(){var te=S.te;
  cx.fillStyle='#000';cx.fillRect(0,0,384,216);
  if(!te){drawNoise(.05);return}
@@ -1028,6 +1606,8 @@ function renderTrueEnd(){var te=S.te;
    cx.fillStyle='rgba(110,135,170,.15)';cx.fillRect(0,0,384,216);  /* 灯光转待机色 */
   drawNoise(.04);return}
  if(te.phase==='shut'){                             /* HUD 元件依次熄灭：监控→门锁→红点→白板 */
+  /* A-131 附带待裁（按默认实现登记）：分开后「红点」按告警块 #alertDot 理解，清单仍保持 4 件，
+     不把暂停键 #pauseBtn 加进熄灭序列（要变 5 件另批下令）。 */
   var names=['监控','门锁','红点','白板'];
   var off=Math.floor(te.t/.9);
   for(var i=0;i<4;i++){
@@ -1057,12 +1637,23 @@ function renderTrueEnd(){var te=S.te;
  if(te.phase==='epi'){                              /* 尾声 2D · 终端视角四镜（B 的 NFX） */
   if(window.NFX&&NFX.epilogue)NFX.epilogue(cx,['disconnect','board','turn','close'][te.epi]||'close',te.t);
   return}
+ if(te.phase==='tail'){renderTailEnd(te);return}    /* A-135：暗线尾段（只在名单之后到达，真结局各相位零动） */
  cx.fillStyle='#000';cx.fillRect(0,0,384,216);      /* credits/end：黑底，名单为 DOM */
  if(te.phase==='credits')drawNoise(.03)}
+function roamEnd(s){                            /* A-125：闲逛段右界=path 里第一个走廊房的下标（无走廊房则=门口格） */
+ if(s._re!==undefined)return s._re;
+ var ci=s.path.length-1;
+ for(var i=0;i<s.path.length;i++){if(s.path[i]==='corrA'||s.path[i]==='corrB'){ci=i;break}}
+ s._re=ci;return ci}
+function inRoam(s){                             /* 有 roam 键 + 落在闲逛段 + 非冲刺非离场 ⇒ 本步按游走处理 */
+ if(!s.roam||s.sprint||s.retreating||!s.moved)return false;
+ return s.idx<roamEnd(s)}
 function moveInterval(s){var iv=5*(1-s.ai/40);
  if(s.fast)iv*=.75;
  if(S.board.state===1)iv*=CFG.slowX;      /* 白板对局：全场 ×2 慢 */
  if(s.sprint)iv*=.5;                      /* 冲刺：间隔减半 */
+ if(s.doorRush&&s.idx===s.path.length-2)iv*=.5;   /* A-119：末段提速——corrA（倒数第二格）→门口那一步间隔 ×0.5 */
+ if(s.roam&&inRoam(s)&&s.roam.ivMul)iv*=s.roam.ivMul;   /* A-125：闲逛段节拍乘算（走廊及以后不受影响） */
  return iv}
 function doorSide(s){var d=s.path[s.path.length-1];return d==='doorR'?'R':(d==='doorL'?'L':null)}
 function lockedFor(s){var side=doorSide(s);return side==='R'?S.lockR:(side==='L'?S.lockL:false)}
@@ -1082,7 +1673,7 @@ function tickSlot(s,dt){
   /* 变调铃：响铃=2 秒后掷骰 */
   if(s.bell){
    if(s.rollT>0){if(!stareEffective(s)){s.rollT-=dt;
-    if(s.rollT<=0){if(rnd(20)<s.ai)tryMove(s)}}}
+    if(s.rollT<=0){if(rnd(20)<s.ai)mvMove(s)}}}   /* A-119：仅把 tryMove 换成 mvMove 以带出 moveSfx；掷骰比较符维持原样（语义零改动） */
    else{s.bell-=dt;if(s.bell<=0){s.bell=(s.bellEvery||20)+rnd(12);s.rollT=s.roll||2;AU.ringB()}}}
   var loc=s.path[s.idx];
   if(stareEffective(s))return;
@@ -1090,9 +1681,9 @@ function tickSlot(s,dt){
    if(lockedFor(s)){s.knock+=dt;
     if(s.knock>=CFG.edge.knock){
      var side=doorSide(s);
-     AU.knock(side);S.shake=.25;s.knock=0;
+     AU.bang(side);S.shake=.25;s.knock=0;                 /* A-110：撞门声换可闻音型（结算节拍不变） */
      s.fails=(s.fails||0)+1;
-     if(s.fails<CFG.edge.giveUp){
+     if(s.fails<(s.giveUp!=null?s.giveUp:CFG.edge.giveUp)){   /* A-119：逐槽 giveUp（缺省回落 CFG.edge.giveUp） */
       s.idx=Math.max(0,s.idx-(s.sprint?2:1));
       s.t=CFG.edge.backCd+rnd(6);s.slotIdx=null;S.stats.blocks++;
      }else{
@@ -1105,7 +1696,7 @@ function tickSlot(s,dt){
    else{s.doorT-=dt;
     if(s.doorT<=0){var side=doorSide(s);
      var tag=side==='R'?'R-DOOR':(side==='L'?'L-DOOR':'DOOR');
-     if(s.sprintOn&&S.juke.dead)tag='JUKE→'+s.nm;
+     if(s.sprintOn&&s.sprint)tag='JUKE→'+s.nm;   /* A-154：判据从 S.juke.dead 换成冲刺链活跃态（dead 已降级为「本夜曾静音」旗，不再等价） */
      var sideTxt=side==='L'?T('doorIn.L')
                 :(side==='R'?T('doorIn.R')
                 :T('doorIn.N'));
@@ -1116,8 +1707,12 @@ function tickSlot(s,dt){
   if(s.sprintOn&&!s.sprint)return;                   /* 绑定点歌机的槽：播着完全不动 */
   s.t-=dt;if(s.t>0)return;
   s.t=moveInterval(s);
-  if(!s.sprint&&rnd(20)>=s.ai)return;
-  tryMove(s)}
+  if(!s.sprint&&rnd(20)>=(s.ai+(inRoam(s)?(s.roam.pAdd||0):0)))return;   /* A-125：闲逛段判定概率加 pAdd（走廊及以后仍按原 ai） */
+  mvMove(s)}
+/* A-119：推进的唯一出口——idx 真变了才播 moveSfx（'giggle'=单元D 移动笑声），
+   覆盖 tryMove 的两类调用方（tickSlot 常规推进 / 变调铃掷骰），挡回与离场不走这里。 */
+function mvMove(s){var i0=s.idx;tryMove(s);
+ if(s.idx!==i0&&s.moveSfx&&AU[s.moveSfx])AU[s.moveSfx]()}
 function tryMove(s){
  var loc=s.path[s.idx];
  if(loc==='doorL'||loc==='doorR')return;
@@ -1126,15 +1721,23 @@ function tryMove(s){
   s.idx++;s.doorT=s.edgeKill||CFG.edge.t;s.knock=0;AU.moan(doorSide(s))}
  else{var step=1;
   if(s.fast&&Math.random()<(s.skip!=null?s.skip:.2))step=2;   /* 跳区 */
-  s.idx=Math.min(s.path.length-2,s.idx+step);
+  var n=Math.min(s.path.length-2,s.idx+step);
+  /* A-125 闲逛段两条：① 进走廊闸门——corridorAt 未到点则最远只走到走廊前一格；② 每步 35% 回走一格 ⇒ 来回巡逻。
+     走廊格及其后的全部逻辑（含 doorRush/giveUp/撞门）在 idx>=roamEnd 之后，本段碰不到。 */
+  if(inRoam(s)&&s.idx<roamEnd(s)){
+   var re=roamEnd(s);
+   if(n>=re&&s.corrAt!=null&&S.time<s.corrAt)n=re-1;
+   else if(n<re&&rnd(100)<35&&s.idx>0)n=s.idx-1}
+  s.idx=n;
   AU.thump(.1)}}
 function triggerBlackout(){if(!S.black){S.power=0;
  S.cams=false;setStatic(false);
- $('camHud').classList.remove('on');$('camStrip').textContent='▲ 打开监控';
+ $('camHud').classList.remove('on');mapBtnSync();   /* A-145：断电同样绕开 setCams，右段钮必须跟着收 */
+ $('camStrip').textContent='▲ 打开监控';
  $('arL').style.display=$('arR').style.display='none';
  S.lockL=0;S.lockR=0;S.lightL=0;S.lightR=0;
  S.black=1;S.blackT=CFG.blackT;S.blackSec=-1;AU.pow()}}
-function jukeSprintChain(){                          /* A-39：余量窗耗尽→刷新到走廊（沿用原通路） */
+function jukeSprintChain(){                          /* A-39：刷近端全套（沿用原通路）；A-154① 起触发点=电量过零当帧（原「余量窗耗尽」并入致死窗） */
  S.stats.miss++;
  var spr=false;
  for(var ka in S.slots){var a=S.slots[ka];
@@ -1143,14 +1746,21 @@ function jukeSprintChain(){                          /* A-39：余量窗耗尽�
 function tickJuke(dt){var j=S.juke;
  if(!j.started){if(S.time>=CFG.juke.start){j.started=1;AU.gear();
   j.batt=CFG.juke.battery.cap}return}   /* 起播自动充满 */
- if(j.dead)return;
- var jWarnTh=CFG.juke.warn||(CUR===7?3:5);
- if(j.muted){                                          /* A-39：没电静音+余量窗 */
+ /* A-154④（批次22，用户直令）：原第二阻断闸 `if(j.dead)return;` 拆除——j.dead 降级为「本夜曾静音」记录旗，
+    不再冻结计时；判死历史三处消费（finaleMel / 真结局链 / 八音盒音频）表达式零动，语义随旗标改读。 */
+ /* A-133（批次19，↔D57-③）删除整行：`if(S.board.state===1)return;`（原 A-109/D47-a 白板对局冻结点歌机计时）。
+    删后=对局期间 j.batt/j.warn/j.left 按正常速率继续走。解冻的补偿项两条一律零动（D57-④）：
+    moveInterval 的 `if(S.board.state===1)iv*=CFG.slowX;`（全场敌人 ×2 慢）与 tickBoard 的 BOARD_MERCY 仁慈阀。 */
+ var jWarnTh=CFG.juke.warn||(CUR===7?3:5);          /* A-154 后仅剩「低电告警阈值」用途；致死窗统一走 JUKE_DEATH_T */
+ if(j.muted){                                          /* A-154②：静音=致死窗倒计时（原 A-39 余量窗语义并入） */
   var before=Math.ceil(j.warn);
   j.warn-=dt;var now=Math.ceil(j.warn);
   if(now!==before&&now>0){
    if(now<=1)AU.warn();else AU.tick()}
-  if(j.warn<=0){j.warn=0;j.muted=0;j.dead=1;j.warnActive=0;jukeSprintChain()}
+  if(j.warn<=0){j.warn=0;j.muted=0;j.warnActive=0;
+   /* A-154③（用户直令）：致死窗内未续电=jump() 直接致死——关门不免死，双门锁照死不豁免
+      （不经 doorT/lockedFor 遏制链，无豁免分支可言弃；这是本令与所有其他威胁通道的唯一区别点）。 */
+   jump('slot_A',T('doorIn.N'),'JUKE-DEAD')}   /* msg=既有兜底串（零新增玩家可见文案）；tag 沿用回收标签惯例 */
   return}
  var beforeBatt=j.batt;
  j.batt-=dt;
@@ -1161,7 +1771,9 @@ function tickJuke(dt){var j=S.juke;
   if(cSec!==bSec){
    if(cSec<=1)AU.warn();else AU.tick()}
  }
- if(j.batt<=0){j.batt=0;j.muted=1;j.warn=jWarnTh;AU.warn();return}
+ if(j.batt<=0){j.batt=0;j.muted=1;j.dead=1;j.warn=JUKE_DEATH_T;   /* A-154①：过零当帧=置「本夜曾静音」旗+起致死窗；
+   jukeSprintChain 全套（刷走廊近端 corrB、sprint=1）也提前到本帧（原在窗耗尽的 :1697 触发，语义并入致死窗） */
+  jukeSprintChain();AU.warn();return}
  j.left-=dt;
  if(j.left<=0){                                        /* 曲终：自主切歌（与电量解耦） */
   j.track++;
@@ -1169,7 +1781,8 @@ function tickJuke(dt){var j=S.juke;
   j.left=CFG.juke.tracks[j.track].len}}
 var jukeOkT=null;                                     /* A-83：胶囊 .ok 回落计时器 */
 function renewJuke(){var j=S.juke;
- if(!S||scene!=='game'||!j.started||j.dead)return;
+ if(!S||scene!=='game'||!j.started)return;   /* A-154④（批次22，用户直令）：原 `||j.dead` 拒续电闸拆除——j.dead 降级为记录旗，
+   致死窗（j.muted）内续电=现行解除路径（下方 muted 清零 + :1728-29 冲刺回退），其余续电语义零动 */
  if(S.black||S.staLock>0)return;
  if(!(S.cams&&S.camRoom==='hall'))return;             /* 批次5 裁决④：必须正在查看大厅监控 */
  var bt=CFG.juke.battery;
@@ -1313,15 +1926,25 @@ function updateGame(dt){S.time+=dt;
    else if(cp.left<=0)S.cam9Pending=null}
   if(S.dreamEv){S.dreamEv.t+=dt;if(S.dreamEv.t>=S.dreamEv.dur)S.dreamEv=null}
   if(S.capT>0){S.capT-=dt;if(S.capT<=0)S.capText=null}
-  /* A-81：「她来了」迫近状态更新与判定 */
+  /* A-81：「D巡门」迫近状态更新与判定 */
   if(S.visitLitL>0)S.visitLitL=Math.max(0,S.visitLitL-dt);
   if(S.visitScare>0)S.visitScare=Math.max(0,S.visitScare-dt);
   if(S.visitPending&&S.time>=S.visitPending.t){          /* A-104：顺延补判（仍受阻则 triggerVisit 自己再挂下一次） */
    var vp=S.visitPending;S.visitPending=null;triggerVisit(vp.react)}
   if(S.visit){
-   if(S.lockL===1){
-    if(AU.ctx)AU.pushSoft();
-    S.visit=null;
+   if(S.visit.phase==='bang'){                    /* A-153（批次22，用户直令）：撞门阶段——不当帧化解，5.0s 走完零惩罚离开 */
+    S.visit.t-=dt;
+    S.visit.knock+=dt;
+    if(S.visit.knock>=CFG.edge.knock){            /* 音型节奏=现行 AU.bang 节拍（edge 撞门链同源 CFG.edge.knock） */
+     S.visit.knock=0;
+     if(AU.ctx)AU.bang(S.visit.side);
+     S.shake=.25}                                 /* 门位抖动沿用既有渲染钩子（edge 撞门同款 S.shake），零新增玩家可见串 */
+    if(S.visit.t<=0)S.visit=null;                 /* ②零惩罚：不走 visitScare、不扣电/耐力、不刷冲刺 */
+   }else if(S.lockL===1){
+    S.visit.phase='bang';                         /* A-153①：关门当帧不再清空，进撞门阶段；④S.visit 在场⇒门外 D 观感不闪没 */
+    S.visit.t=VISIT_BANG_T;S.visit.knock=0;                /* 首声当帧即响，其后按 CFG.edge.knock 节拍（knock 归零同 edge 链惯例） */
+    if(AU.ctx)AU.bang(S.visit.side);
+    S.shake=.25;
    }else{
     S.visit.t-=dt;
     if(S.visit.t<=0)visitScare();
@@ -1379,6 +2002,8 @@ function updateGame(dt){S.time+=dt;
  if(S.lightR){S.lightTR-=dt;if(S.lightTR<=0)S.lightR=0}
  tickJuke(dt);
  for(var k2 in S.slots)tickSlot(S.slots[k2],dt);
+ roseTick(dt);                                      /* A-118：玫瑰敌倒计时（ROSE_E.limit，现 25s；断电期间上方已 return，天然冻结） */
+ winERoam(dt);                                      /* A-126：同上，断电期间不游移也不计时（表都在 S.time 上） */
  if(!S.board.state&&S.time>=CFG.board.at&&!S.black)boardAppear();
  tickBoard(dt);
  var anyEdge=false;
@@ -1402,18 +2027,20 @@ function setCams(v,silent){if(!S||S.black)return;if(S.cams===v)return;
   if(!silent){S.power=Math.max(0,S.power-CFG.drain.switch);S.sta=Math.max(0,S.sta-CFG.sta.sw)}
   S.camCd=S.sta<CFG.sta.low?CFG.camCd*2:CFG.camCd}  /* <20% 切换冷却 ×2 */
  else S.camCd=0;
+ if(v&&winESettle())return;                     /* A-117：阶段3 的开监控=就地跳杀，监控不再展开 */
  S.cams=v;S.camPulse=1;
  if(v){if(!silent)AU.camOn();setStatic(true)}
  else{if(!silent)AU.blip();setStatic(false)}
  $('camHud').classList.toggle('on',v);
  $('camStrip').textContent=v?'▼ 收起监控':'▲ 打开监控';
- $('arL').style.display=$('arR').style.display=v?'':'none'}
+ $('arL').style.display=$('arR').style.display=v?'':'none';
+ mapBtnSync()}                                  /* A-145：监控开/关都重放（右段只在监控态出现；面板显隐走 session 级 mapOpen，默认=展开） */
 function setRoom(id){if(!S||!S.cams)return;
  if(S.staLock>0)return;
  if(S.sta<CFG.sta.crit){AU.blip();return}           /* <10% 不能切 */
  if(S.camCd>0){AU.blip();return}
  S.camRoom=id;S.camCd=S.sta<CFG.sta.low?CFG.camCd*2:CFG.camCd;
- S.camPulse=1;S.power=Math.max(0,S.power-CFG.drain.switch);S.sta=Math.max(0,S.sta-CFG.sta.sw);
+ S.camPulse=1;S.camFocusT=CAMFOCUS;                  /* E9：切台触发一次聚焦收缩（雪花闪沿用既有 camPulse） */S.power=Math.max(0,S.power-CFG.drain.switch);S.sta=Math.max(0,S.sta-CFG.sta.sw);
  AU.blip();
  $('camTitle').textContent=CAMNO[id]+' · '+RN[id];
  document.querySelectorAll('#map .mb').forEach(function(b){b.classList.toggle('on',b.dataset.r===id)})}
@@ -1426,7 +2053,8 @@ function toggleLock(t){if(!S||S.black||scene!=='game'||S.staLock>0)return;
 function pressLight(t){if(!S||S.black||scene!=='game'||S.staLock>0)return;
  S['light'+t]=1;S['lightT'+t]=LIGHT_T;
  S.power=Math.max(0,S.power-CFG.drain.light);
- tone(1200,900,.04,'square',.05)}
+ tone(1200,900,.04,'square',.05);
+ winERepel(t)}                                  /* A-117：同侧点灯=驱赶（无窗户敌时早退，零副作用） */
 /* ============ 办公室伪 3D v2（140° 全景 · 图像拉伸 ×1.2 · 圆柱投影，用户参考范式） ============ */
 const PANO_H_DEG=140,HFOV_DEG=85,VFOV_DEG=60,PAN_LIMIT_DEG=25,VERT_LIMIT_DEG=5;
 const STRETCH_X=1.2,V_EXTRA_DEG=5;
@@ -1444,35 +2072,34 @@ for(let px_=0;px_<W;px_++){
  colDepth[px_]=1/Math.sqrt(sx*sx+1)}
 const rowRy=new Float32Array(H);
 for(let py_=0;py_<H;py_++){rowRy[py_]=(1-(py_/(H-1))*2)*tanV}
-/* OFFICE：全景图像素坐标（1024×256）单一事实来源——渲染/烘焙/判定共用，全部定死 */
+/* OFFICE：全景图像素坐标（1024×256）单一事实来源——渲染/烘焙/判定共用，全部定死
+   A-122（批次17）：四洞 rect 一律取 office_null.png 掩膜实测值（任务书「取证基准」表，禁自行重估）；
+   窗洞的 glass 子矩形作废删除——遮挡关系由挖洞背景本身保证，禁留第二坐标真源。 */
 const OFFICE={
  board:{x:454,y:115,w:96,h:70},                    /* 白板含框（office.png 284-344,97-156 x1.6, y x1.185） */
- doorL:{doorX:125,doorW:121,yTop:71,yBot:206,silY:206, /* 左门洞（office 78-154 x1.6, y x1.185） */
-        wash:{dx:-16,dy:-71,dw:32,dh:71},
+ doorL:{doorX:134,doorW:109,yTop:67,yBot:202,silY:202, /* 左门洞=掩膜 x134.2..243.3 y66.8..201.9 */
+        wash:{dx:-16,dy:-71,dw:32,dh:71},          /* 洗墙带 118..150，与双钮 x269 相隔 119px 不压 */
         lock:{x:269,y:109,w:32,h:37},light:{x:269,y:148,w:32,h:37}},
- doorR:{doorX:778,doorW:117,yTop:71,yBot:206,silY:206, /* 右门洞（office 486-559 x1.6, y x1.185） */
-        wash:{dx:-16,dy:-71,dw:32,dh:71},
+ doorR:{doorX:781,doorW:109,yTop:67,yBot:202,silY:202, /* 右门洞=掩膜 x780.7..889.8 y67.1..201.9 */
+        wash:{dx:-16,dy:-71,dw:32,dh:71},          /* 洗墙带 765..797，双钮 x722..754 不压 */
         lock:{x:722,y:109,w:32,h:37},light:{x:722,y:148,w:32,h:37}},
- close:{x:88,y:6,w:208,h:180}};
+ close:{x:88,y:6,w:208,h:180},
+ /* A-134④（批次19）：暗线物品的办公室落位（flat 1024x256 唯一真源，B 不复制一份=禁双真源）。
+    数值=任务书批次19「审查位首轮误判更正」节写死的 alpha 包围盒换算表（x/4.84*1.6、y/4.84*1.185），
+    审查位实测产物，禁自行重估。与监控画面那份（N.item 的 384x216 坐标）永不混用。 */
+ items:{chess:{x:436.1,y:174.0,w:17.5,h:15.1},
+        trophy:{x:407.0,y:164.2,w:22.5,h:22.7},
+        flyer:{x:402.3,y:127.4,w:19.2,h:16.3},
+        doll:{x:568.2,y:156.5,w:28.8,h:24.3}},
+ /* A-117/A-122：窗户矩形。窗洞在掩膜里被 4 根实心横档切成 5 条玻璃缝（净通光≈窗高 70%），
+    这里记整窗外接框（缝并集），剪影画在洞后 ⇒ 天然被横档切断，不需要 clip。 */
+ winL:{x:318.6,y:79.1,w:50.6,h:64.1,sillY:143.2},
+ winR:{x:651.2,y:79.3,w:50.5,h:63.6,sillY:142.9}};
 let panoCv=null,flatCv=null,flatG=null,panoOK=1,pBake={l:0,ll:0,r:0,rl:0};
 function flatAt(x,y){                     /* 设备 → flat：判定的唯一逆映射（含 colDepth） */
  x=clamp(x|0,0,W-1);y=clamp(y|0,0,H-1);var cd=colDepth[x];
  return {px:(.5+S.pan+colLon[x])*PW,
          py:(.5+(S.vert||0)-((1-2*y/(H-1))*tanV)*V_SCALE*cd)*PH}}
-function flatY(fx,fy){                    /* flat → 设备 y：billboard 锚点（屏外 null） */
- var x=clamp(Math.round(fx/PW*(W-1)),0,W-1),cd=colDepth[x];
- var ny=(.5+(S.vert||0)-fy/PH)/(tanV*V_SCALE*cd);
- return (ny<-1||ny>1)?null:(1-ny)/2*(H-1)}
-function flatX(fx){                       /* flat → 设备 x */
- var d=fx/PW-(.5+S.pan);
- var lim=colLon[W-1];
- if(Math.abs(d)>lim)return null;
- var nx=Math.tan(d*PANO_H_RAD*STRETCH_X)/tanH;
- return (nx+1)/2*(W-1)}
-function flatToDev(fx,fy){
- var x=flatX(fx),y=flatY(fx,fy);
- if(x==null||y==null)return null;
- return {x:x,y:y}}
 function closeGrid(){
  var c=OFFICE.close;
  var bw=c.w-8, bh=c.h-8, cs=34;
@@ -1518,8 +2145,9 @@ function bakeOfficePano(){                            /* 全景=office.png 拉�
  var st={l:(S&&S.lockL)||0,ll:(S&&S.lightL)||0,r:(S&&S.lockR)||0,rl:(S&&S.lightR)||0,n:CUR};
  if(panoCv&&pBake&&st.l===pBake.l&&st.ll===pBake.ll&&st.r===pBake.r&&st.rl===pBake.rl&&st.n===pBake.n)return;
  pBake=st;
- panoCv=mk(PW,PH);const g=panoCv.getContext('2d');
- var oim=officeImg();
+ if(!panoCv)panoCv=mk(PW,PH);                    /* A-122 第 9 项：画布复用（加层后每次重 mk 分配更频），必须清透以便 hole 版露出真 alpha */
+ const g=panoCv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,PW,PH);
+ var oim=officeImgHole();                        /* A-124：背景层吃挖洞版，洞内由 composeFlat 第 1 层原图背衬透出 */
  if(oim)g.drawImage(oim,0,0,PW,PH);
  else{g.fillStyle='#101018';g.fillRect(0,0,PW,PH)}
  drawBtnFace(g,OFFICE.doorL.lock.x,OFFICE.doorL.lock.y,OFFICE.doorL.lock.w,OFFICE.doorL.lock.h,'lock',st.l);
@@ -1547,24 +2175,96 @@ function flatView(cvSrc,pan,alpha){
  var sx=(.5+pan)*PW-PW/2;
  cx.drawImage(cvSrc,sx,0,PW,PH,0,0,384,216);
  cx.restore()}
+/* A-122：门边剪影整段迁入 flat（composeFlat 第 2 层）。批次6 A-70⑥ 的多只占门 ±28 错开、拜访态
+   （visitLitL 点亮同侧灯时先画 D 再排槽、整体右移 20）、未点灯 5% 闪烁与 .35/.2 两档 alpha 逐条照搬——
+   drawSlot 末尾会把 globalAlpha 复位成 1，故"调用前置 alpha、调用后复位"的老写法必须保持。 */
+function drawDoorSils(g){
+ [['doorL',OFFICE.doorL,'L',S.lightL],['doorR',OFFICE.doorR,'R',S.lightR]].forEach(function(D){
+  var DR=D[1],side=D[2],lit=D[3];
+  flatBlit(g,DR.doorX+DR.doorW/2,DR.silY,function(){
+   var isLit=lit||(side==='L'&&S.visitLitL>0);
+   if(isLit){
+    var sls=edgeSlots('door'+side);
+    if(side==='L'&&S.visit)drawSlot(g,'D',0,0,2.6);
+    sls.forEach(function(sl,i){
+     var off=(i-(sls.length-1)/2)*28;
+     if(side==='L'&&S.visit)off+=20;
+     drawSlot(g,sl.nm,off,0,2.6)});
+   }else{
+    if(side==='L'&&S.visit){
+     g.globalAlpha=.35;
+     drawSlot(g,'D',0,0,2.6);
+     g.globalAlpha=1;
+    }
+    var unlitSls=[];
+    for(var k in S.slots){var sp_=S.slots[k],l=sp_.path[sp_.idx];
+     if(!sp_.active)continue;
+     if(l==='door'+side)unlitSls.push(sp_)}
+    unlitSls.forEach(function(sp_,i){
+     if(Math.random()<.05){                           /* 未点灯=偶尔闪一下（迁入后每帧 composeFlat 都掷，语义不变、频率会变，实机已核不闪眼） */
+      var off=(i-(unlitSls.length-1)/2)*28;
+      if(side==='L'&&S.visit)off+=20;
+      g.globalAlpha=.2;
+      drawSlot(g,sp_.nm,off,0,2.6);
+      g.globalAlpha=1}})
+   }})})}
+/* A-122：白板笑脸迁入 flat（第 4 层表面）——它本就画在白板矩形上，屏幕空间版随 pan 与白板脱缝。
+   8px 斜体提示字直接走矢量 fillText（画布按当前变换渲染，不产生位图放大的糊边）。 */
+function drawSmileyFlat(g){
+ if(!CFG.board.smiley||S.board.state)return;
+ var smT=CFG.board.at-4;
+ if(S.time<smT||S.time>=CFG.board.at)return;
+ var sp2=clamp((S.time-smT)/4,0,1),b=OFFICE.board;
+ flatBlit(g,b.x+b.w/2,b.y+b.h/2,function(){
+  if(window.NFX&&NFX.smiley)NFX.smiley(g,0,0,sp2);
+  if(CUR===7){
+   var sw_=Math.floor(sp2*10);
+   for(var swI=0;swI<sw_;swI++){g.fillStyle='rgba(226,232,240,'+(.25+Math.random()*.55)+')';
+    g.fillRect(-20+rnd(40),-20+rnd(44),2+rnd(10),1+rnd(2))}}
+  if(sp2>.78&&CFG.board.preFaint){g.globalAlpha=(sp2-.78)/.22*.6;
+   g.fillStyle='#8a9098';g.font='italic 8px "Fusion Pixel","KaiTi",serif';g.textAlign='center';
+   g.fillText(String(CFG.board.preFaint),0,-26);g.textAlign='left';g.globalAlpha=1}})}
+/* A-122（批次17）层序重构：办公室的一切贴图在 flat 空间一次画完，warpFlat 只负责成像。
+   1 洞后背衬 → 2 洞后元素（窗户敌/门边剪影/门板动画）→ 3 挖洞背景盖顶（含四钮）→ 4 表面（洗灯/白板/静立剪影/笑脸）。
+   遮挡关系由图本身的 alpha 通道保证：窗棂把洞后剪影切成 5 条缝、门板落下即盖住洞内的敌。 */
 function composeFlat(){
  if(!flatCv){flatCv=mk(PW,PH);flatG=flatCv.getContext('2d')}
  flatG.clearRect(0,0,PW,PH);
- if(panoCv)flatG.drawImage(panoCv,0,0);
+ var back=officeImg();                                /* 第 1 层：D55-a 洞下垫原图内容 ⇒ 洞内不再是黑洞 */
+ if(back)flatG.drawImage(back,0,0,PW,PH);
  else{flatG.fillStyle='#101018';flatG.fillRect(0,0,PW,PH)}
-  [['doorL',OFFICE.doorL,'L',S.doorAL,S.lightL||(S.visitLitL>0)],['doorR',OFFICE.doorR,'R',S.doorAR,S.lightR]].forEach(function(D){
-   var DR=D[1],da=D[3],lit=D[4];
-   if(da>0){                                          /* 门板关闭动画（全景坐标） */
-    var dh=Math.round((DR.yBot-DR.yTop)*da);
-    R(flatG,DR.doorX,DR.yTop,DR.doorW,dh,'#23232e');
-    for(var yy=DR.yTop;yy<DR.yTop+dh;yy+=8*FY)R(flatG,DR.doorX,yy,DR.doorW,1,'#191922')}
-   if(lit){
-    var f=Math.random()<.12?.4:1;
-    flatG.fillStyle='rgba(214,206,178,'+(.11*f)+')';
-    flatG.fillRect(DR.doorX,DR.yTop,DR.doorW,DR.yBot-DR.yTop);
-    flatG.fillStyle='rgba(214,206,178,'+(.07*f)+')';
-    flatG.fillRect(DR.doorX+DR.wash.dx,DR.yBot+DR.wash.dy,DR.doorW+DR.wash.dw,DR.wash.dh)}});
-  if(S.board.state)drawBoard(flatG);
+ if(S.winE)drawWinE(flatG,S.winE.side,S.winE);         /* 第 2 层：窗户敌（洞后） */
+ drawDoorSils(flatG);                                  /*      门边剪影（洞后） */
+ [['doorL',OFFICE.doorL,S.doorAL],['doorR',OFFICE.doorR,S.doorAR]].forEach(function(D){
+  var DR=D[1],da=D[2];
+  if(da>0){                                            /*      门板关闭动画在剪影之后 ⇒ 关门遮得住洞内的敌 */
+   var dh=Math.round((DR.yBot-DR.yTop)*da);
+   R(flatG,DR.doorX,DR.yTop,DR.doorW,dh,'#23232e');
+   for(var yy=DR.yTop;yy<DR.yTop+dh;yy+=8*FY)R(flatG,DR.doorX,yy,DR.doorW,1,'#191922')}});
+ if(panoCv)flatG.drawImage(panoCv,0,0);                /* 第 3 层：挖洞版背景+四钮盖顶（A-124） */
+                                                        /* 🔴 A-149（批次21）真缺陷修复：摆件原先画在这一行的【前面】⇒ 批次19 A-134④ 那句「插在洞后元素与 hole 盖顶之间」
+                                                           实际等于塞进不透明背景底下——四枚 OFFICE.items rect 全在 pano 不透明区（_b19c_gates 当年实测 holeCover=1 却把它写成测量约束绕开），
+                                                           终屏一个摆件都盖不出来（用户报「办公桌上也不会出现」）。现整行移到盖顶之后。
+                                                           遮挡自查（实测坐标，禁改 rect 数值）：四枚 rect 横向落在 402.3~597，与左门洞 134~243／右门洞 781~890／左窗 318.6~369.2／右窗 651.2~701.7／白板 454~550 两两不相交
+                                                           ⇒ 既盖不住任何洞口，也不会被门板动画或白板盖错；玫瑰花静立剪影 drawRoseSil 在其后盖到摆件＝正确前景关系，不去动它。
+                                                           防回归判据：work/_b21_item_gates.py 判据3（在 warp 之后的终屏量摆件像素 + 把本行搬回盖顶前必须报 RED）——不要再搬回去。 */
+ drawOfficeItems(flatG);
+ [['doorL',OFFICE.doorL,S.lightL||(S.visitLitL>0)],['doorR',OFFICE.doorR,S.lightR]].forEach(function(D){
+  var DR=D[1],lit=D[2];
+  if(lit){                                             /* 第 4 层：原版门的灯，零改动（用户明令保留） */
+   var f=RM?1:(Math.random()<.12?.4:1);
+   flatG.fillStyle='rgba(214,206,178,'+(.11*f)+')';
+   flatG.fillRect(DR.doorX,DR.yTop,DR.doorW,DR.yBot-DR.yTop);
+   flatG.fillStyle='rgba(214,206,178,'+(.07*f)+')';
+   flatG.fillRect(DR.doorX+DR.wash.dx,DR.yBot+DR.wash.dy,DR.doorW+DR.wash.dw,DR.wash.dh)}});
+ [['winL',S.lightL],['winR',S.lightR]].forEach(function(W){
+  if(!W[1])return;
+  var WR=OFFICE[W[0]],f=Math.random()<.12?.4:1;
+  flatG.fillStyle='rgba(214,206,178,'+(.13*f)+')';
+  flatG.fillRect(WR.x,WR.y,WR.w,WR.h)});
+ if(S.board.state)drawBoard(flatG);
+ if(S.roseE)drawRoseSil(flatG);                        /* 静立剪影在两门之间、不在洞内，但同样必须在 flat */
+ drawSmileyFlat(flatG);
  }
 /* ============ 渲染（逻辑坐标 384x216，画布 ×5/6） ============ */
 function renderOffice(){
@@ -1573,69 +2273,20 @@ function renderOffice(){
  var rPan=S.pan+(S.shake>0?(Math.random()-.5)*.005*S.shake*4:0);
  var rVert=(S.vert||0)+(S.shake>0?(Math.random()-.5)*.004*S.shake*4:0);
  if(S.black){cx.fillStyle='#020203';cx.fillRect(0,0,384,216);
-  if(panoCv)flatView(panoCv,rPan,.05);
+  var bf=clamp(S.blackT/(CFG.blackT||4),0,1);          /* E7：剩余黑场比 1→0，做「电压下坠」而非瞬切（无新增色值） */
+  if(panoCv)flatView(panoCv,rPan,.05+.16*bf);          /* 由稍亮跌到近黑 */
+  if(bf<1){var gg=cx.createLinearGradient(0,0,0,216);gg.addColorStop(0,'rgba(0,0,0,'+(.5*(1-bf))+')');gg.addColorStop(.5,'rgba(0,0,0,0)');gg.addColorStop(1,'rgba(0,0,0,'+(.5*(1-bf))+')');cx.fillStyle=gg;cx.fillRect(0,0,384,216)}   /* 上下暗压收口 */
   if(Math.random()<.05)drawFaceS(cx,'slot_A',192,102,2.2);
-  drawNoise(.04);return}
+  drawNoise(.04+.14*(1-bf));return}
  if(S.close){renderBoardClose();renderFxLayers();return}   /* F/点白板近看 */
  if(!panoCv)bakeOfficePano();
  composeFlat();
  if(panoOK)warpFlat(rPan,rVert,shX,shY);
  else flatView(flatCv,rPan,1);
- /* 屏幕空间 billboard（剪影/笑脸/NFX.boardNoise）在 setTransform(SQ) 之后绘制 */
- [['doorL',OFFICE.doorL,'L',S.doorAL,S.lightL],['doorR',OFFICE.doorR,'R',S.doorAR,S.lightR]].forEach(function(D){
-  var DR=D[1],side=D[2],lit=D[4];
-  var pos=flatToDev(DR.doorX+DR.doorW/2,DR.silY);
-  if(pos!=null){
-   var lx=pos.x/SQ, ly=pos.y/SQ;
-   var isLit=lit||(side==='L'&&S.visitLitL>0);
-   if(isLit){
-    var sls=edgeSlots('door'+side);
-    if(side==='L'&&S.visit)drawSlot(cx,'D',lx,ly,2.6);
-    sls.forEach(function(sl,i){
-     var off=(i-(sls.length-1)/2)*28;
-     if(side==='L'&&S.visit)off+=20;
-     drawSlot(cx,sl.nm,lx+off,ly,2.6);
-    });
-   }else{
-    if(side==='L'&&S.visit){
-     cx.globalAlpha=.35;
-     drawSlot(cx,'D',lx,ly,2.6);
-     cx.globalAlpha=1;
-    }
-    var unlitSls=[];
-    for(var k in S.slots){var sp_=S.slots[k],l=sp_.path[sp_.idx];
-     if(!sp_.active)continue;
-     if(l==='door'+side)unlitSls.push(sp_);
-    }
-    unlitSls.forEach(function(sp_,i){
-     if(Math.random()<.05){
-      var off=(i-(unlitSls.length-1)/2)*28;
-      if(side==='L'&&S.visit)off+=20;
-      cx.globalAlpha=.2;
-      drawSlot(cx,sp_.nm,lx+off,ly,2.6);
-      cx.globalAlpha=1;
-     }
-    });
-   }}});
- if(CFG.board.smiley&&!S.board.state){
-  var smT=CFG.board.at-4;
-  if(S.time>=smT&&S.time<CFG.board.at){
-   var sp2=clamp((S.time-smT)/4,0,1);
-   var sm=flatToDev(OFFICE.board.x+OFFICE.board.w/2,OFFICE.board.y+OFFICE.board.h/2);
-   if(sm!=null){
-    var sx=sm.x/SQ,sy2=sm.y/SQ;
-    if(window.NFX&&NFX.smiley)NFX.smiley(cx,sx,sy2,sp2);
-    if(CUR===7){
-     var sw_=Math.floor(sp2*10);
-     for(var swI=0;swI<sw_;swI++){cx.fillStyle='rgba(226,232,240,'+(.25+Math.random()*.55)+')';
-      cx.fillRect(sx-20+rnd(40),sy2-20+rnd(44),2+rnd(10),1+rnd(2))}}
-    if(sp2>.78&&CFG.board.preFaint){cx.globalAlpha=(sp2-.78)/.22*.6;
-     cx.fillStyle='#8a9098';cx.font='italic 8px "Fusion Pixel","KaiTi",serif';cx.textAlign='center';
-     cx.fillText(String(CFG.board.preFaint),sx,sy2-26);cx.textAlign='left';cx.globalAlpha=1}}}}
  if(S.board.state===1&&CFG.board.noiseFx&&window.NFX&&NFX.boardNoise)NFX.boardNoise(cx,S.time);
  renderFxLayers();
  if(S.visitScare>0){
-  drawFaceS(cx,'slot_D',192+(Math.random()*16-8),110+(Math.random()*14-7),7.6);
+  drawFaceS(cx,'slot_D',192+Math.sin(ET*43)*8,110+Math.cos(ET*39)*7,7.6);   /* E3：确定性抖动（幅度与旧等幅随机一致），去帧率耦合 */
   sliceGlitch(cx,cv,0,0,384,216,2,4+rnd(3));
   drawNoise(.28);
  }
@@ -1747,10 +2398,12 @@ function renderFxLayers(){
 function cam9PreFlash(){if(!S)return;S.cam9Flash=CAM9_FLASH;if(AU.ctx)AU.preBreath()}
 function renderPreFlash(){if(!S||!S.cam9Flash)return;
  S.cam9Flash-=DT;
+ var u=1-Math.max(0,S.cam9Flash)/CAM9_FLASH;                 /* E4：0→1 生命周期 */
+ var env=Math.sin(Math.min(1,Math.max(0,u))*Math.PI);         /* ease-in-out 淡入淡出（中点=原双描峰值） */
  var k=2.6;
- cx.fillStyle='rgba(8,10,16,.42)';cx.fillRect(0,0,384,216);
+ cx.fillStyle='rgba(8,10,16,'+(.42*env)+')';cx.fillRect(0,0,384,216);
  cx.save();cx.translate(192,108);cx.scale(k,k);cx.translate(-192,-108);
- if(window.NFX&&NFX.cam9){NFX.cam9(cx,'frontal',.4,1);NFX.cam9(cx,'frontal',.4,1)}   /* 双描叠加提高可见度 */
+ if(window.NFX&&NFX.cam9){cx.globalAlpha=env;NFX.cam9(cx,'frontal',.4,1);NFX.cam9(cx,'frontal',.4,1);cx.globalAlpha=1}   /* E4：保留双描可见度，仅整体套包络 */
  cx.restore();
  if(S.cam9Flash<=0)S.cam9Flash=0}
 function edgeSlots(side){var r=[];
@@ -1787,16 +2440,20 @@ function drawBoard(g){var b=S.board;
   squiggle(g,x+w*.2,y+h*.55,w*.5,WB_HER,a2*.65);
   if(b.phase>=2)squiggle(g,x+w*.26,y+h*.78,w*.4,WB_HIM,clamp(b.replT/1.2,0,1)*.85)}}   /* A-107：他线淡入同用 replT */
 function renderCams(){var rm=S.camRoom;
+ if(S.camFocusT>0)S.camFocusT=Math.max(0,S.camFocusT-DT);   /* E9：聚焦计时逐帧衰减 */
  if(camStaticOn(rm)){renderCamStatic();return}          /* A-27：camStatic 房间整屏纯雪花，抑制场景本体 */
   var bg=rm;                                             /* v1.9b：大厅双态——点歌机在播=亮灯图，其余（未开播/停机/归零警告）=熄灯图 */
-  if(rm==='hall'&&S.juke.started&&!S.juke.dead&&S.juke.left>0&&!S.juke.muted&&S.juke.batt>0)bg='hall_on';
+  if(rm==='hall'&&S.juke.started&&S.juke.left>0&&!S.juke.muted&&S.juke.batt>0)bg='hall_on';   /* A-154：`!dead` 拆除——dead 现为「本夜曾静音」永久位，保留会让续电后大厅永远熄灯图；在播与否由 left/muted/batt 三判据表达 */
   /* FNAF 式镜头：放大 1.14 + 极缓慢晃动（每房间相位不同） */
   var ph=CAMORDER.indexOf(rm)*1.7;
-  var swx=Math.sin(frame*.006+ph)*5,swy=Math.cos(frame*.0043+ph)*3;
-  var zm=1.14;
+  var swx=Math.sin(ET*.5+ph)*8,swy=Math.cos(ET*.42+ph)*5;
+  var fo=(S.camFocusT>0)?Math.min(1,S.camFocusT/CAMFOCUS):0;   /* E9：切台后 zm 由 1.28 轻推收到 1.14 */
+  var zm=1.14+fo*.14;
   cx.save();
   cx.translate(192+swx,108+swy);cx.scale(zm,zm);cx.translate(-192,-108);
   if(IMG[bg])cx.drawImage(IMG[bg],0,0,384,216);
+  drawRoseFlower();                                    /* A-118：玫瑰画在镜头变换内 ⇒ 与点击逆变换同源 */
+  drawItemCam();                                       /* A-134②：暗线物品同样画在镜头变换内（同一逆变换口径；camStatic 房走 renderCamStatic 早退，天然零绘制） */
   var here=[];
   for(var k in S.slots){var s=S.slots[k];
    if(s.active&&!s.retreating&&s.path[s.idx]===rm)here.push(s)}
@@ -1808,8 +2465,9 @@ function renderCams(){var rm=S.camRoom;
     if(!sg.active||!sg.retreating||S.time>=sg.moveAt)continue;
     var gs=(sg.slotIdx===1&&!gUsed[1])?1:(sg.slotIdx===0&&!gUsed[0])?0:(gUsed[0]?1:0);
     gUsed[gs]=true;sg.slotIdx=gs;
+    cx.filter='brightness('+SLOT_CAM_DIM+')';              /* A-164：监控侧压暗，出场即复位 'none'，绝不留给背景与别的单位 */
     var gp=SLOTPOS.gymn[gs]||SLOTPOS.gymn[0];
-    drawSlot(cx,sg.nm,gp[0],gp[1],gp[2],.55)}}
+    drawSlot(cx,sg.nm,gp[0],gp[1],gp[2],.55);cx.filter='none'}}
   /* A-70：4 刷新位动态分配（近位2,3；远位0,1；同房互不重合） */
   var usedSlots={};
   here.forEach(function(s){
@@ -1828,14 +2486,15 @@ function renderCams(){var rm=S.camRoom;
    }
    usedSlots[slot]=true;
    var p=(SLOTPOS[rm]&&SLOTPOS[rm][slot])||(SLOTPOS[rm]&&SLOTPOS[rm][0])||[192,150,2];
-   drawSlot(cx,s.nm,p[0],p[1],p[2]);
+   cx.filter='brightness('+SLOT_CAM_DIM+')';        /* A-164：同上；isSprint 那三条白闪条（:2472-2473）故意留在 filter 之后复位，不吃压暗 */
+   drawSlot(cx,s.nm,p[0],p[1],p[2]);cx.filter='none';
    if(isSprint){
     cx.fillStyle='rgba(255,255,255,.14)';
     cx.fillRect(150,100,30,1);cx.fillRect(160,120,40,1);cx.fillRect(150,140,26,1);
    }
   });
   /* A-74：CAM1 低电量告警花屏闪动（水平切片+RGB色散，非红罩；倒计时由右上角按钮常驻） */
-  var inJukeAlert=S.juke.started&&!S.juke.dead&&(S.juke.batt<=jukeWarn()||S.juke.warn>0);
+  var inJukeAlert=S.juke.started&&(S.juke.batt<=jukeWarn()||S.juke.warn>0);   /* A-154：`!dead` 同拆（与 HUD jukeAlert 同判据）——否则首次停机后续电再掉电不再报低电花屏 */
   if(rm==='hall'&&inJukeAlert){
    sliceGlitch(cx,cv,0,0,384,216,glitchLv(),2+rnd(3));
   }
@@ -1850,9 +2509,19 @@ function renderCams(){var rm=S.camRoom;
   R(cx,bx-4,by-4,3*cs+8,3*cs+8,'rgba(20,20,28,.9)');
   R(cx,bx-3,by-3,3*cs+6,3*cs+6,'#c8c8cc');
   for(var j=1;j<3;j++){R(cx,bx+j*cs-1,by,1,3*cs,'#5a5a64');R(cx,bx,by+j*cs-1,3*cs,1,'#5a5a64')}}
+ /* A-165：E10 扩散环搬进镜头变换内（restore 之前）——旧写法在 restore 之后画，环心是变换内逻辑值、落笔却在屏幕空间，
+    偏移随落位线性放大（判据4b 实测 x=324 处 -25.9 逻辑像素）。半径同步改按实绘尺寸自适应：
+    旧固定 4->16 逻辑像素比 5~8 像素的物品大一个量级，看着像「圈住了一片空气」。
+    副作用（可接受）：环改在 SCAN/噪点之前绘制 ⇒ 与物品同层被扫描线覆盖，观感更统一。 */
+ if(S.grabFx){
+  var gu=(ET-S.grabFx.t0)/GRAB_FX_T;
+  if(gu<0)gu=0;
+  if(gu<=1){cx.strokeStyle='rgba(226,232,240,'+(.85*(1-gu))+')';cx.lineWidth=1.5;
+   cx.beginPath();cx.arc(S.grabFx.x,S.grabFx.y,(S.grabFx.r||4)*(0.8+gu*2.2),0,6.2832);cx.stroke();cx.lineWidth=1}
+  else S.grabFx=0}
  cx.restore();
  cx.drawImage(SCAN,0,0,384,216);
- cx.fillStyle='rgba(255,255,255,.03)';cx.fillRect(0,(frame*1.3)%216,384,2);
+ cx.fillStyle='rgba(255,255,255,.03)';cx.fillRect(0,(ET*78)%216,384,2);
  var n=.07+S.camPulse*.85;
  if(S.sta<20)n+=.08;
  renderFxLayers();                                  /* CAM9 残影 / 故障字幕（corrB 冻结在 NFX.cam9 内叠加） */
@@ -1879,17 +2548,21 @@ function triggerCamWatch(){
  wtSwap();clearTimeout(wtTimer);
  wtTimer=setInterval(wtSwap,70);
  setTimeout(function(){clearInterval(wtTimer);wtTimer=null;$('watchTitle').classList.remove('on');
-  jump('slot_D',dt2.sub||'[记录] 监视行为 · 时长越限','CAM-WATCH')},1200)}   /* c) 特写走 face_slot_D（她·手偶=D） */
+  jump('slot_D',dt2.sub||'[记录] 监视行为 · 时长越限','CAM-WATCH')},1200)}   /* c) 特写走 face_slot_D（单元D=红帽持手偶） */
 function renderJump(){var rc=S.recycle;
  cx.fillStyle='#000';cx.fillRect(0,0,384,216);
  if(!rc){drawNoise(.2);return}
- if(rc.t<.5){                                       /* 段1：剪影扑近 */
+ if(rc.t<.5){                                       /* 段1：剪影扑近——E3 缓入放大 + 抖动随进度衰减到定格 + 末帧白闪（确定性可复现） */
+   var ke=rc.t/.5; ke=ke*ke;                          /* easeInQuad：加速度扑近 */
+   var jit=1-rc.t/.5;                                  /* 抖动幅度随 rc.t 线性衰减到 0（末段趋定格） */
+   var jx=Math.sin(rc.t*37)*6*jit, jy=Math.cos(rc.t*41)*5*jit;   /* 确定性抖动，逐帧可复现 */
    if(rc.wb||rc.tp==='shadow'){
     R(cx,120,28,156,164,'#140406');
     for(var i=0;i<3;i++)for(var k=0;k<3;k++)R(cx,126+k*46,40+i*46,42,42,'#8a1818');
-    drawFaceS(cx,'shadow',192+(Math.random()*12-6),110+(Math.random()*10-5),4.8+rc.t*2);
-   }else drawFaceS(cx,rc.tp,192+(Math.random()*18-9),110+(Math.random()*16-8),7.4+rc.t*3);
-  drawNoise(.22);return}
+    drawFaceS(cx,'shadow',192+jx,110+jy,4.0+ke*2.4);
+   }else drawFaceS(cx,rc.tp,192+jx*1.5,110+jy*1.6,6.0+ke*3.6);
+  if(rc.t>.4){var wf=(rc.t-.4)/.1;cx.fillStyle='rgba(238,240,244,'+(wf*.5)+')';cx.fillRect(0,0,384,216)}   /* E3：末 0.1s 白闪冲激 */
+  drawNoise(.22+(rc.t>.4?.18:0));return}
  if(rc.t<2.6){                                      /* 段2：soft=信号噪点静默；系统夜=接管删除条 */
   if(softFail()){
    drawNoise(.18);
@@ -1924,7 +2597,7 @@ function paintOver(tag,msg){
  $('goTag').textContent=softFail()?'':T('goTagLabel')+tag;
  $('goS').innerHTML=msg}
 function renderOver(){cx.fillStyle='#000';cx.fillRect(0,0,384,216);drawNoise(.08);
- if(frame%90===0)goF=6;
+ if(Math.floor(ET/1.5)>Math.floor((ET-DT)/1.5))goF=6;   /* E1：结算脸闪 1.5s 周期，去帧率耦合 */
  if(goF>0){goF--;drawFaceS(cx,'slot_A',300,120,1.6)}}
 function renderMenu(){cx.fillStyle='#000';cx.fillRect(0,0,384,216);
  mFlashT-=DT;if(mFlashT<=0){mFlashT=2.5+Math.random()*4;menuFlash=.16;
@@ -1945,12 +2618,14 @@ function updateHud(){if(!S)return;
  var bars=$('usage').children;
  for(var i=0;i<bars.length;i++)bars[i].className=i<usage?'on':'';
  $('camStrip').style.display=S.black?'none':'';
-   var dot=$('alertDot'),j=S.juke;
+   var dot=$('alertDot'),pb=$('pauseBtn'),j=S.juke;
    var jWarnTh=jukeWarn();
-   var jukeAlert=j.started&&!j.dead&&(j.batt<=jWarnTh||j.warn>0);
+   /* A-154：原三处 HUD 闸 `!j.dead` 拆除——dead 已降级为「本夜曾静音」记录旗（永久位），保留会把续电入口本身藏死；
+      现行为=告警/仪表随 batt、warn 走（致死窗内 j.warn>0 仍亮，续电可点），窗耗尽直接 jump 结束当夜。 */
+   var jukeAlert=j.started&&(j.batt<=jWarnTh||j.warn>0);
    var g=$('jukeGauge');
    if(g){
-    var jShow=S.cams&&S.camRoom==='hall'&&!S.black&&!j.dead;
+    var jShow=S.cams&&S.camRoom==='hall'&&!S.black;
     g.style.display=jShow?'flex':'none';
     if(jShow){
      var secVal=Math.ceil(j.batt>0?j.batt:j.warn);
@@ -1960,9 +2635,10 @@ function updateHud(){if(!S)return;
    }
    var anySprint=false;
    for(var ksp in S.slots){if(S.slots[ksp].sprint){anySprint=true;break}}
-   dot.className=anySprint?'crit':(jukeAlert?'on':'');
+   dot.className='pe'+(anySprint?' crit':(jukeAlert?' on':''));   /* A-112：.pe 必须每帧续挂（本行会整体重置 className，否则点击入口被清掉） */
+   pb.className='pe';   /* A-131：暂停键在同一处每帧续挂。它始终灰、永不入 on/crit（那两个 class 只属告警块）；告警判定式 anySprint/jukeAlert 逐字照抄未改 */
    document.querySelectorAll('#map .mb').forEach(function(b){
-    b.classList.toggle('alert',b.dataset.r==='hall'&&!S.black&&j.started&&!j.dead&&jukeAlert)});
+    b.classList.toggle('alert',b.dataset.r==='hall'&&!S.black&&j.started&&jukeAlert)});   /* A-154：`!j.dead` 闸同拆（见上） */
    $('camSub').textContent='';
    if(S.cams){var held=0;
     for(var k in S.slots){if(stareEffective(S.slots[k]))held++}
@@ -1978,8 +2654,34 @@ function updateHud(){if(!S)return;
     var lines='GOD VIEW  '+Math.floor(S.time)+'s';
     for(var k2 in S.slots){var s3=S.slots[k2],loc=s3.path[s3.idx];
      var stDesc=s3.retreating?('离场(gymn·冷却 '+Math.ceil(Math.max(0,s3.moveAt-S.time))+'s)'):(s3.moved?(loc.indexOf('door')===0?(loc==='doorL'?'左门!':'右门!'):CAMNO[loc]+' '+RN[loc]):'待机('+(s3.moveAt/N.hourLen)+'h '+CAMNO[loc]+')');
-     lines+='\n'+s3.nm+' '+stDesc+(s3.moved&&!s3.retreating?' doorT:'+Math.max(0,s3.doorT).toFixed(1):'')}
-    lines+='\nJuke '+(j.dead?'已停机':j.warn>0?'窗口 '+j.warn.toFixed(1):(j.started?'电量 '+Math.ceil(j.batt)+'s':'未开播'))+
+     var a119='';                                   /* A-119 取证读数：三键任一在场才显示 */
+     if(s3.giveUp!=null||s3.doorRush||s3.moveSfx){
+      a119='  [A-119 giveUp:'+((s3.giveUp!=null)?s3.giveUp:CFG.edge.giveUp)+(s3.doorRush?' rush':'')+(s3.moveSfx?' sfx:'+s3.moveSfx:'')+' 挡'+(s3.fails||0)+']'}
+     lines+='\n'+s3.nm+' '+stDesc+(s3.moved&&!s3.retreating?' doorT:'+Math.max(0,s3.doorT).toFixed(1):'')+a119+
+      (s3.roam?' [游走 '+(s3.retreating?'离场':!s3.moved?('未出动 idx'+s3.idx):inRoam(s3)?('段内 idx'+s3.idx+'/'+roamEnd(s3)+' 卡点 '+(s3.corrAt!=null?fmtClock(s3.corrAt):'无')):('段外 idx'+s3.idx))+' iv×'+(s3.roam.ivMul||1)+' ai+'+(s3.roam.pAdd||0)+']':'')}
+    if(S.item&&S.item.def)                            /* A-134⑥→A-139/A-140→A-151（批次21）取证件：本夜物品四态 + 落档/待结算分列（无 N.item 的夜=零行，GOD VIEW 与本批前一致）
+       A-140 读数改写：闸门由「未到点/在场」（S.time vs at）换成「ready=0/1」，A-139 另露抽中框号；
+       A-151 四态：未放行（ready=0）/ 在场（ready=1 且未收）/ 本夜已收·待结算（S.itemGot，未过夜）/ 已落档（SAVE.items，win 前段才写）
+       🔴 纯读数：本段只在 S.god 下拼字符串，不参与任何逻辑分支；末行分成两段是让闸门能分清「内存收取」与「真正写进存档」。 */
+     lines+='\n本夜 item '+S.item.def.key+'@'+CAMNO[S.item.def.room]+
+      (SAVE.items[S.item.def.key]?'（已落档）'
+        :(S.itemGot&&S.itemGot[S.item.def.key]?'（本夜已收·待结算）'
+          :(S.item.ready?'（在场）':'（未放行）')))+
+      ' ITEM ready='+(S.item.ready?1:0)+'/box='+(S.item.box<0?'无框':S.item.box)+
+      '\n已落档 '+itemsCount()+'/4 · 本夜 '+(function(){var n=0;if(S.itemGot)for(var k in S.itemGot)if(S.itemGot[k])n++;return n})();
+    if(roseOn())                                    /* A-118 取证读数（A-139：@x,y=实绘中心，另露抽中框号）
+        A-156③：roseUsed 一次锁退役 ⇒ 读数口径改「本夜已登场次数」（S.roseSpawns，不限次；纯 GOD VIEW，不入玩家可见串） */
+     lines+='\nROSE_E 登场 '+S.roseSpawns+'次 '+(S.roseE?('剩 '+S.roseE.left.toFixed(1)+'s '+CAMNO[S.roseE.room]+'·'+RN[S.roseE.room]+
+            ' @'+Math.round(S.roseE.x)+','+Math.round(S.roseE.y)+' box='+S.roseE.box):
+            (S.roseAt>=0?('预约 '+fmtClock(S.roseAt)):'-'));
+    if(winENight())                                 /* A-117/A-128 取证读数（用 winENight 而非 winEOn：封顶后读数仍要在，好核次数带） */
+     lines+='\nWIN_E 阶段 '+((S.winE&&S.winE.phase)||0)+' 侧 '+((S.winE&&S.winE.side)||'-')+
+      ' 冷却 '+S.winEReadyAt.toFixed(0)+'s 概率 '+(S.time<parseClock((CFG.winE||WIN_E).lateAt,(N&&N.hourLen)||60)?'早':'晚')+
+      ' 驱赶加价 '+(CFG.winE||WIN_E).cost+'%/阶'+
+      ' 登场 '+(S.winECount||0)+'/'+winEQuota().max+
+      ' 下次保底 '+fmtClock(winEDue(S.winECount||0))+' 率 '+(100*winEP(S.winECount||0)).toFixed(1)+'%'+
+      winERoamDbg();   /* A-126：无 roam 字段时 winERoamDbg 返回空串=与本批前读数一致 */
+    lines+='\nJuke '+(j.dead?(j.muted?'致死窗剩 '+j.warn.toFixed(1)+'s':'本夜曾静音'):j.warn>0?'窗口 '+j.warn.toFixed(1):(j.started?'电量 '+Math.ceil(j.batt)+'s':'未开播'))+   /* A-154：dead 降级后读数改三态（GOD VIEW 专用串，不入玩家可见文案） */
      '  Board '+(S.board.state===1?(S.board.turn==='you'?'你的回合 '+Math.max(0,S.board.moveT).toFixed(1):'敌方思考'):(S.board.state===2?S.board.result:S.board.state===3?'message':'not shown'))+
      '\nREEVAL '+(S.reeval?'进行中':'-')+'  POST '+(S.postAt!=null?fmtClock(S.postAt):'-')+
      (CFG.plazaWatch?'  广场停留 '+S.camWatchT.toFixed(1)+'/'+CFG.plazaWatch+'s'+(S.watchFired?'(已触发)':''):'')+
@@ -1988,7 +2690,7 @@ function updateHud(){if(!S)return;
      (CFG.visits&&CFG.visits.at&&CFG.visits.at.length?                 /* A-106：生效值可观测（T-49 取证读数） */
       '\nVISITS ×'+(CFG.visits.count||CFG.visits.at.length)+' ['+CFG.visits.at.join(' ')+'] react '+
       (CFG.visits.react!=null?CFG.visits.react:VISIT_REACT)+'s 抽电 '+CFG.visits.powerCost+'%'+
-      (S.visit?' 迫近'+S.visit.t.toFixed(1)+'s':'')+(S.visitPending?' 顺延→'+S.visitPending.t.toFixed(0)+'s':''):'')+
+      (S.visit?(S.visit.phase==='bang'?' 撞门'+S.visit.t.toFixed(1)+'s':' 迫近'+S.visit.t.toFixed(1)+'s'):'')+(S.visitPending?' 顺延→'+S.visitPending.t.toFixed(0)+'s':''):'')+   /* A-153①：bang 阶段单独露读数（纯 GOD VIEW，不入玩家可见串） */
      (S.cam9Ev?'\nCAM9 '+S.cam9Ev.type+' '+S.cam9Ev.t.toFixed(1)+'s':'')+(S.dreamEv?'\nDREAM '+S.dreamEv.t.toFixed(1)+'s':'')+
      (S.capText?'\nCAPTION '+S.capText.slice(0,12):'');
     db.textContent=lines}
@@ -2079,7 +2781,19 @@ function buildArch(){var el=$('archList');
 function bindBtn(id,fn){$(id).addEventListener('click',function(e){e.stopPropagation();fn()})}
 function toMenu(){S=null;hud.classList.remove('on');setStatic(false);
  $('teBox').classList.remove('on');$('teRun').classList.remove('on');$('credits').classList.remove('on');
+ $('pauseOv').classList.remove('on');                    /* A-112：离场一律收罩（S 置空后再进当夜从 00:00 重开） */
  buildMenu();showScene('menu')}
+/* A-112：暂停罩开关。入口两条（A-131 分开后仍等价）：#pauseBtn 点击 / Esc 键；D48 默认=开。
+   冻结由主循环门 + 点歌机旋律门 + 无头 setInterval 门三处共同保证；文本走 META.done（缺供值回落兜底串）。 */
+function pauseSet(on){
+ if(!S||scene!=='game')return;
+ S.paused=on?1:0;
+ var p=$('pauseOv');
+ if(S.paused){$('puTitle').textContent=doneTxt('pause','暂 停');
+  $('puResume').textContent=doneTxt('resume','返回游戏');
+  $('puQuit').textContent=doneTxt('quit','退回主页');
+  S.holdDir=0}                                          /* 暂停时清方向键残留，避免返回后视角偏移 */
+ p.classList.toggle('on',!!S.paused)}
 /* A-85 面板读数单元：标签上、数字下、等宽补零（数值一律读 CFG，D9 口径不变） */
 function gcell(k,v){return '<div class="g"><span>'+k+'</span><b>'+v+'</b></div>'}
 function z2(v){v=String(v);return v.length<2?'0'+v:v}
@@ -2115,21 +2829,35 @@ bindBtn('howBack',function(){showScene('menu')});
 bindBtn('logBack',function(){showScene('menu')});
 bindBtn('archBack',function(){showScene('menu')});
 bindBtn('dnRetry',function(){startNight(CUR)});
+bindBtn('dnNext',function(){if(CUR<7)startNight(CUR+1)});   /* A-111：进入下一夜（win 内已先放行 unlockedNight，天然不越权） */
+bindBtn('dnHome',toMenu);
 bindBtn('dnMenu',toMenu);
+bindBtn('puResume',function(){pauseSet(false)});           /* A-112 */
+bindBtn('puQuit',function(){pauseSet(false);toMenu()});
+$('pauseBtn').addEventListener('click',function(e){e.stopPropagation();if(scene==='game'&&S)pauseSet(!S.paused)});   /* A-131：暂停入口自 #alertDot 迁至 #pauseBtn（告警块不再兼任）；pauseSet 本体零动 */
 bindBtn('goMenu',toMenu);
 bindBtn('goRetry',function(){startNight(CUR,1)});
-bindBtn('jukeGauge',function(){if(scene==='game'&&S)renewJuke()});
+bindBtn('jukeGauge',function(){if(scene==='game'&&S&&!S.paused)renewJuke()});   /* A-112：暂停时续电入口一并失效 */
 /* 用户决策：点击（含面板/空白处）不再跳过答录机——中断仅 R 键 */
 OV.intro.addEventListener('click',enterGame);
 /* A-90：进度条走完自动开始（animationend 与点击两条路径共用 enterGame 的 scene 守卫，天然幂等） */
 $('inProg').addEventListener('animationend',function(){if(scene==='intro')enterGame()});
+var mapOpen=1;                                       /* A-145：#map 面板展开态。session 级=关监控再开/换台/换夜都保持当前态，默认=展开；
+                                                        🔴 不入存档（SAVE 结构与 SAVE_VER 零动，writeSave 不因本钮触发）；模块级变量存放在 S 之外正是为了跨 startNight 存活 */
+function mapBtnSync(){var b=$('mapBtn'),m=$('map');if(!b||!m)return;
+ /* 右段可见性只认 camHud.on 这一个真源：setCams 与两处强制收台（夜开重置 / triggerBlackout）都写它，
+    按钮不再挂在 #camHud 里（改挂到 #camBar 与切台条连排）后必须自己判，否则断电后只剩一个能点的死钮。 */
+ b.style.display=$('camHud').classList.contains('on')?'block':'none';   /* 🔴 必须写死 block：CSS 默认 display:none，置空串等于「交回样式表」⇒ 永远不显示 */
+ b.textContent=mapOpen?'隐藏地图':'展开地图';
+ m.style.display=mapOpen?'':'none'}                  /* 隐藏=整块 #map 不渲染（含全部 .mb 房块与外框边框）；按钮本体不随面板消失，否则没法再展开 */
 function buildMap(){var m=$('map');m.innerHTML='';
  MAPLAY.forEach(function(A){var id=A[0],x=A[1],y=A[2],w=A[3],h=A[4];
   var b=document.createElement('div');
   b.className='mb pe';b.dataset.r=id;b.textContent=CAMNO[id].slice(3);
   b.style.cssText='left:'+x+'%;top:'+y+'%;width:'+w+'%;height:'+h+'%';
   b.addEventListener('click',function(e){e.stopPropagation();
-   if(scene==='game'&&S&&!S.black&&S.cams)setRoom(id)});
+   if(mbGrab&&mbGrab.el===b&&performance.now()-mbGrab.t<600){mbGrab=null;return}   /* 批次19b 收尾轮：只吞「刚在本格上真收过/消解过 sprite」的那同一次手势的 follow-up click（无 sprite 的块永不置位，与 A-130 基线逐字一致） */
+   if(scene==='game'&&S&&!S.black&&S.cams&&!S.paused)setRoom(id)});   /* A-112：暂停时切台失效 */
   m.appendChild(b)});
  var you=document.createElement('div');you.className='you';you.textContent='训练员室';
  you.style.cssText='left:'+YOUPLAY.x+'%;top:'+YOUPLAY.y+'%;width:'+YOUPLAY.w+'%;height:'+YOUPLAY.h+'%';
@@ -2137,11 +2865,29 @@ function buildMap(){var m=$('map');m.innerHTML='';
 var drag=null;
 stage.addEventListener('pointerdown',function(e){
  if(scene!=='game'||!S)return;
- if(e.target.closest('.ovl')||e.target.closest('.pe'))return;
+ mbGrab=null;                                         /* 批次19b 收尾轮：新手势一律先撤销上一手势的让位记号（下面真消耗掉 sprite 才重新置位） */
+ if(S.paused)return;                                  /* A-112：暂停罩显示期间落子/门锁/灯/拖拽一律失效 */
+ if(e.target.closest('.ovl'))return;
+ /* A-141 取证发现（批次19b）：#map 的房块是 `.mb pe`——A-130 只把底色改成 transparent（视觉让位），按钮本体照旧吃点击。
+    压在那几格面板上的 sprite 于是「看得见、点不着」，与任务书「证明仍看得见、点得着」的实测期望冲突。
+    处置=最小让位：监控态下、事件源确为 #map 房块时，先按同一套逐帧逆投影给 sprite 一次判定；
+    没点中则照旧落到下面的 .pe 早退 ⇒ 切台行为零改动。camStrip/暂停键/续电键的优先级一律不动。
+    收尾轮补正：命中并消耗掉 sprite 的那一下才置 mbGrab（记元素+时刻），用来吞掉同一次手势随后的 .mb click（不然一次点两件事）；
+    未命中不置位、且每次 pointerdown 先撤销旧记号 ⇒「指针下无 sprite」的块与 A-130 基线逐字一致（判据3-D 逐块切台表实测）。 */
+ var mbTap=e.target.closest('#map .mb');
+ if(mbTap&&S.cams&&!S.black){
+  var mr=cv.getBoundingClientRect();
+  var mpx=(e.clientX-mr.left)/mr.width*W,mpy=(e.clientY-mr.top)/mr.height*H;
+  if(itemHit(mpx,mpy)){collectItem();mbGrab={el:mbTap,t:performance.now()};return}
+  if(S.roseE&&roseHit(mpx,mpy)){roseDispel();mbGrab={el:mbTap,t:performance.now()};return}}
+ if(e.target.closest('.pe'))return;
  if(S.black)return;
   var r=cv.getBoundingClientRect();
   var px=(e.clientX-r.left)/r.width*W,py=(e.clientY-r.top)/r.height*H;
-  if(S.cams){return;}                                  /* A-83：画布内点唱机热点已撤销，续电唯一入口=仪表胶囊 */
+  if(S.cams){                                          /* A-83 起画布内无热点；A-118 为玫瑰开一条唯一命中分支；A-134③ 物品收取判定排在玫瑰之前（两者同房不同位，先收物品） */
+   if(itemHit(px,py)){collectItem();return}
+   if(S.roseE&&roseHit(px,py))roseDispel();
+   return}
   if(S.close){                                       /* 近看：大板落子；板外退出 */
    var cg=closeGrid(),wx=px/SQ,wy=py/SQ;
    if(S.board.state===1&&wx>=cg.ox&&wx<=cg.ox+3*cg.cs&&wy>=cg.oy&&wy<=cg.oy+3*cg.cs){
@@ -2159,13 +2905,13 @@ stage.addEventListener('pointerdown',function(e){
  if(e.pointerType==='mouse'){return}  /* 鼠标=跟随视角（无需拖拽） */
  drag={sx:e.clientX,sy:e.clientY,sp:S.panT,sv:S.vertT,id:e.pointerId};stage.classList.add('drag')});
 addEventListener('pointermove',function(e){
- if(S&&scene==='game'&&!S.cams&&!S.close&&!S.black&&e.pointerType==='mouse'&&!drag){
+ if(S&&scene==='game'&&!S.cams&&!S.close&&!S.black&&!S.paused&&e.pointerType==='mouse'&&!drag){   /* A-112：暂停时视角跟随一并停手 */
   var r=cv.getBoundingClientRect();                    /* 鼠标跟随视角（参考范式） */
   var q={x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};
   S.panT=clamp((q.x-.5)*2*PAN_LIMIT,-PAN_LIMIT,PAN_LIMIT);
   S.vertT=clamp((q.y-.5)*2*VERT_LIMIT,-VERT_LIMIT,VERT_LIMIT);
   return}
- if(!drag||e.pointerId!==drag.id||!S)return;
+ if(!drag||e.pointerId!==drag.id||!S||S.paused)return;
  var r=cv.getBoundingClientRect();
  S.panT=clamp(drag.sp-(e.clientX-drag.sx)*.0009,-PAN_LIMIT,PAN_LIMIT);
  S.vertT=clamp(drag.sv+(e.clientY-drag.sy)*.0002,-VERT_LIMIT,VERT_LIMIT)});
@@ -2173,25 +2919,32 @@ function endDrag(e){if(!drag||e.pointerId!==drag.id)return;
  drag=null;stage.classList.remove('drag')}
 addEventListener('pointerup',endDrag);
 addEventListener('pointercancel',endDrag);
-$('camStrip').addEventListener('click',function(e){if(scene==='game'&&S&&!S.black)setCams(!S.cams)});
+$('camStrip').addEventListener('click',function(e){
+ if(performance.now()<itemGrabT)return;               /* A-134③ 顺序问题：本监听先于 stage 命中判定所属手势的 click 阶段触发——物品若与切台条覆盖带相交，收取优先、这次切台吞掉（落位约束已由 B-68① 保证不相交，此为防御） */
+ if(scene==='game'&&S&&!S.black&&!S.paused)setCams(!S.cams)});   /* A-112：暂停时监控开关一并失效 */
+/* A-145：地图展开/隐藏开关。DOM click 即可，不吃 stage pointerdown 链（.pe 早退本来就放过它）；
+   非监控态/暂停/断电不吃点击——右段本体只在监控态显示（mapBtnSync 随 camHud.on），这里再守一道双保险。 */
+$('mapBtn').addEventListener('click',function(e){e.stopPropagation();
+ if(scene==='game'&&S&&S.cams&&!S.paused&&!S.black){mapOpen=mapOpen?0:1;mapBtnSync()}});
 
 $('arL').addEventListener('click',function(e){e.stopPropagation();
- if(scene==='game'&&S&&S.cams){var i=CAMORDER.indexOf(S.camRoom);
+ if(scene==='game'&&S&&S.cams&&!S.paused){var i=CAMORDER.indexOf(S.camRoom);
   setRoom(CAMORDER[(i+CAMORDER.length-1)%CAMORDER.length])}});
 $('arR').addEventListener('click',function(e){e.stopPropagation();
- if(scene==='game'&&S&&S.cams){var i=CAMORDER.indexOf(S.camRoom);
+ if(scene==='game'&&S&&S.cams&&!S.paused){var i=CAMORDER.indexOf(S.camRoom);
   setRoom(CAMORDER[(i+1)%CAMORDER.length])}});
 addEventListener('keydown',function(e){
  if(e.key==='F1'||e.key==='F2'||e.key==='F3'||e.key==='F4'||e.key==='F5'||e.key==='F6'||e.key==='F7'||e.key==='F8'||e.key==='F9'||e.key==='F10'||e.key==='F11')e.preventDefault();
  if(scene!=='game'||!S)return;
  var k=e.key.toLowerCase();
+ if(k==='escape'){e.preventDefault();if(!e.repeat)pauseSet(!S.paused);return}   /* A-112（D48 默认=开）：Esc=暂停开关；原「Esc 关监控」由 C 键承接 */
+ if(S.paused)return;                                /* A-112：暂停罩显示期间游戏键一律失效（含 F1-F11 调试键与门锁/灯） */
  if(k==='a'||k==='arrowleft')S.holdDir=-1;
  else if(k==='d'||k==='arrowright')S.holdDir=1;
  else if(k==='c')setCams(!S.cams);
  else if(k==='r')interruptDiary();                  /* 答录机中断无惩罚（A9） */
  else if(k==='f'){if(!S.cams)S.close=S.close?0:1}   /* 白板近看（A21 基础） */
  else if(k===' '){e.preventDefault()}               /* A-61 裁决④：彻底废除空格续电 */
- else if(k==='escape')setCams(false);
  else if(k==='q'){if(!e.repeat)toggleLock('L')}
  else if(k==='e'){if(!e.repeat)toggleLock('R')}
  else if(k==='z'&&!e.repeat){pressLight('L')}        /* A-35：灯独立键 */
@@ -2199,7 +2952,7 @@ addEventListener('keydown',function(e){
  else if(k==='f1'){S.power=clamp(S.power-10,0,100)}
  else if(k==='f2'){S.power=clamp(S.power+10,0,100)}
  else if(k==='f3'){S.sta=100;S.staLock=0}
- else if(k==='f4'){if(S.juke.started&&!S.juke.dead)S.juke.batt=Math.min(S.juke.batt,3)}
+ else if(k==='f4'){if(S.juke.started&&!S.juke.muted)S.juke.batt=Math.min(S.juke.batt,3)}   /* A-154：判据 !dead→!muted（曾静音不再挡调试；致死窗内不重复压） */
  else if(k==='f5'){if(!S.board.state)boardAppear(1)}
  else if(k==='f6'){var c=S.slots.C;if(c){c.active=1;c.idx=c.path.length-1;c.doorT=c.edgeKill||CFG.edge.t;c.knock=0;AU.moan(doorSide(c))}}
  else if(k==='f7'){for(var i=0;i<30&&scene==='game';i++)updateGame(1)}
@@ -2212,16 +2965,20 @@ addEventListener('keyup',function(e){var k=e.key.toLowerCase();
 /* ============ 主循环 ============ */
 function loop(t){requestAnimationFrame(loop);
  var dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;DT=dt;frame++;
- if(frame%2===0)upNoise();
+ var _pau=(scene==='game'&&S&&S.paused);            /* E11：暂停=真定格，演出秒表与噪声推进一并冻结 */
+ if(!_pau)ET+=dt;
+ if(!_pau&&frame%2===0)upNoise();
  cx.setTransform(SQ,0,0,SQ,0,0);                    /* 逻辑 384x216 → 画布 320x180 */
  tickHer();                                         /* A-105：BGM 通道按场景/开播态判定目标音量（含淡入淡出与重试） */
  if(scene==='game'&&S){
   var gdt=dt*SCALE;
-  if(gdt>0)updateGame(gdt);
+  if(gdt>0&&!S.paused)updateGame(gdt);                 /* A-112：暂停=冻结（渲染照常，画面自然静止） */
   if(scene==='game'){
+   if(!_pau){                                        /* E11：暂停跳过重绘与 composeFlat 内随机闪，canvas 保留上一帧 */
    if(S.cams)renderCams();else renderOffice();
    renderPreFlash();                                  /* A-88：她的登场预告（办公室与监控两态皆可见） */
-   if(S.cams&&S.camRoom==='hall'&&S.juke.started&&!S.juke.dead&&!S.juke.warn&&S.juke.left>0&&!herSongOn()){   /* A-105：夜7 集齐时合成八音盒让位给 mp3 通道 */
+   }
+   if(S.cams&&S.camRoom==='hall'&&S.juke.started&&!S.juke.warn&&S.juke.left>0&&!herSongOn()&&!S.paused){   /* A-105：夜7 集齐时合成八音盒让位给 mp3 通道；A-112：暂停时旋律一并冻结；A-154：`!dead` 拆除、`!warn` 即致死窗内静默（续电后旋律恢复） */
     S.juke.melT-=dt;
     if(S.juke.melT<=0){var n=JUKEMEL[S.juke.melI];
      if(n[0])AU.note(n[0],n[1]*.5,S.juke.left<10?.035:.045);
@@ -2245,7 +3002,14 @@ function loop(t){requestAnimationFrame(loop);
     S.juke.melT=nm[1]*.5;
     S.juke.melI=(S.juke.melI+1)%JUKEMEL.length}}}
  else if(scene==='menu'||scene==='how'||scene==='log'||scene==='arch'||scene==='load')renderMenu();
- else{cx.fillStyle='#000';cx.fillRect(0,0,384,216)}}
+ else{cx.fillStyle='#000';cx.fillRect(0,0,384,216)}
+ if(xfT>0){xfT-=dt;                            /* E2：场景开机过场（纯叠加，不改 DOM 浮层与逻辑时序） */
+  var xp=1-Math.max(0,xfT)/.35,bh=Math.min(216,xp*432),yy=108-bh/2;
+  cx.setTransform(SQ,0,0,SQ,0,0);
+  cx.fillStyle='rgba(0,0,0,'+(.9*(1-xp))+')';cx.fillRect(0,0,384,Math.max(0,yy));cx.fillRect(0,yy+bh,384,Math.max(0,216-yy-bh));   /* 上下黑幕向中心收拢后展开 */
+  cx.fillStyle='rgba(226,232,240,'+(1-xp)+')';cx.fillRect(0,108-1.5,384,3);   /* 中心扫描亮线 */
+  cx.fillStyle='rgba(255,255,255,'+(.3*(1-xp))+')';cx.fillRect(0,0,384,216)}   /* 起步白闪淡出 */
+}
 /* ============ 启动 ============ */
 loadAssets(function(){META=getMeta();if(!officeImg())panoOK=0;try{bakeOfficePano()}catch(e){panoOK=0}buildMenu();buildMap();showScene('menu');
  /* ?night=N 直达该夜（绕过菜单门控，供调试/无头测试）；?at=H:MM 跳时；?pan=x 办公室视角（-0.28..0.28）
@@ -2253,6 +3017,12 @@ loadAssets(function(){META=getMeta();if(!officeImg())panoOK=0;try{bakeOfficePano
     无头模式 rAF 时间戳不随 virtual-time 前进，故用定时器直接驱动 updateGame */
  var qs=new URLSearchParams(location.search);
  var nq=parseInt(qs.get('night'),10)||0;
+ /* A-134⑥ 取证件：&items=chess,trophy 或 &items=all 强制置位（与 ?smoke=6 的 TRUTH_TEST 同族，
+    供暗线结局无头验收 ?smoke=6&items=all；只在内存置位、不写穿 localStorage，正常玩法路径零接触）。 */
+ var itq=qs.get('items');
+ if(itq&&SAVE.items)String(itq).split(',').forEach(function(kk){kk=kk.trim();
+  if(kk==='all'){for(var k9 in SAVE.items)SAVE.items[k9]=1}
+  else if(SAVE.items[kk]!==undefined)SAVE.items[kk]=1});
  var smoke=qs.get('smoke');
  var atq=qs.get('at');
  var hitdbg=qs.get('hitdbg');
@@ -2289,7 +3059,7 @@ loadAssets(function(){META=getMeta();if(!officeImg())panoOK=0;try{bakeOfficePano
    if(scene==='game'&&S){
     if(S.panT!==S.pan)S.pan=S.panT;                     /* 无头：pan 即时到位（rAF 插值不走） */
    if(autoDraw&&S.board.state===1)endBoard('draw');   /* 白板出现即平局：直入挂起→真结局链（updateGame 自己会在 at 时开板） */
-    updateGame(2);
+    if(!S.paused)updateGame(2);                        /* A-112：无头链同样受暂停门约束 */
     document.title=[scene,CUR,N.board.mode,S.board.state,Math.floor(S.time),'st'+S.time.toFixed(0)].join('|')}
    else if(scene==='jump'&&S&&S.recycle){S.recycle.t+=2;   /* 回收演出无头推进（rAF 不走虚拟时间） */
     if(S.recycle.t>4){showScene('over');paintOver(S.recycle.tag,S.recycle.msg)}}
