@@ -692,25 +692,42 @@ addEventListener('pointerdown',()=>{aInit();if(AU.ctx.state==='suspended')AU.ctx
       贯穿谢幕曲段/终局演出/制作名单；电量入余量窗（muted）或停机（dead）即静音，与八音盒通道行为等价。
    电量/曲单计时/停机逻辑/数据字段零动。🔴 第三方角色曲改版：是否随 web 公开发布待用户后裁（下发历史 §21 发布账）。 */
 const HER_SONG='media/audio/bgm_0000.mp3',HER_VOL_MENU=.16,HER_VOL_GAME=.30;
-var herEl=null,herWant=0,herFadeT=null,herTryAt=0;
-function herAudio(){if(herEl||!truthReady())return herEl;
- try{herEl=new Audio(HER_SONG);herEl.loop=true;herEl.preload='auto';herEl.volume=0}catch(e){herEl=null}
- return herEl}
-function herFadeTo(to,pauseAtEnd){var a=herEl;if(!a)return;
+var herWant=0,herFadeT=null,herTryAt=0,herWait=0,herBuf=null,herLoadP=null,herSrc=null,herGain=null,herGainVal=0;
+/* A-168 批次25 用户直令：BGM 速度x1.1，detune=-65 => 净音高 1.1*2^(-65/1200)=2^(1/12) 恰+1半音 */
+function herAudio(){if(herLoadP||!truthReady())return herLoadP;
+ const C=AU.ctx;if(!C)return null;                       /* 只用 SE 那一个 AudioContext（aInit 未跑=未解锁；绝不 new 第二个），留待 herUnlock 重试 */
+ herLoadP=fetch(HER_SONG).then(function(r){return r.arrayBuffer()}).then(function(b){
+  return new Promise(function(ok,no){C.decodeAudioData(b,ok,no)})}).then(function(buf){herBuf=buf;return buf})
+  .catch(function(){herLoadP=null;return null});          /* 取件/解码失败清缓存 ⇒ 由 herTryAt 节流重试，异常不进主循环 */
+ return herLoadP}
+function herUnlock(){if(herWait)return;herWait=1;         /* 未交互前 ctx 不存在（aInit 只挂 :687 pointerdown）⇒ 一次性解锁重试 */
+ addEventListener('pointerdown',function h(){removeEventListener('pointerdown',h,true);herWait=0;herSet(herTarget())},true)}
+function herStart(){if(herSrc)return true;                /* 每次播放新建 source（stopped 的 source 不可重启），loop=true */
+ const C=AU.ctx;if(!C||!herBuf)return false;
+ try{const s=C.createBufferSource();s.buffer=herBuf;s.loop=true;
+  s.playbackRate.value=1.1;                               /* A-168 批次25 用户直令 */
+  s.detune.value=-65;                                     /* A-168 批次25 用户直令 */
+  const g=C.createGain();g.gain.value=herGainVal;         /* 本次播放的 GainNode，gain 语义=旧 herEl.volume（菜单 HER_VOL_MENU / 夜7 HER_VOL_GAME） */
+  s.connect(g);g.connect(AU.mg);                          /* 汇入 SE 同一条主链：tone()/nz() 默认 dest 即 AU.mg（:614 / :618），AU.mg→destination（:598） */
+  s.start();herSrc=s;herGain=g;return true}catch(e){herSrc=null;herGain=null;return false}}
+function herStop(){try{if(herSrc)herSrc.stop()}catch(e){}
+ herSrc=null;herGain=null;herGainVal=0}
+function herFadeTo(to,pauseAtEnd){if(!herGain)return;
  if(herFadeT)clearInterval(herFadeT);
- var v=a.volume,step=(to>=v?1:-1)*.04;
- herFadeT=setInterval(function(){var e=herEl;
-  if(!e){clearInterval(herFadeT);herFadeT=null;return}
-  v=Math.max(0,Math.min(to,v+step));e.volume=v;
-  if(v===to){clearInterval(herFadeT);herFadeT=null;if(pauseAtEnd&&herWant<=0)e.pause()}},33)}
+ var v=herGainVal,step=(to>=v?1:-1)*.04;                  /* 步频 .04 / 33ms 逐字不动，作用对象改 GainNode.gain */
+ herFadeT=setInterval(function(){var g=herGain;
+  if(!g){clearInterval(herFadeT);herFadeT=null;return}
+  v=Math.max(0,Math.min(to,v+step));herGainVal=v;g.gain.value=v;
+  if(v===to){clearInterval(herFadeT);herFadeT=null;if(pauseAtEnd&&herWant<=0)herStop()}},33)}
 function herSet(v){herWant=v;
- if(!herEl&&v>0)herAudio();
- if(!herEl)return;
- if(v>0){if(herEl.paused){var now=performance.now();
-   if(now<herTryAt)return;herTryAt=now+700;
-   herEl.play().then(function(){herFadeTo(v)}).catch(function(){})}
-  else herFadeTo(v)}
- else if(!herEl.paused)herFadeTo(0,1)}
+ if(v<=0){if(herSrc)herFadeTo(0,1);return}               /* 淡到 0 后 stop + 清引用；下次播放由 herStart 另起 source */
+ const C=AU.ctx;if(!C){herUnlock();return}               /* 未解锁：静默待首次 pointerdown 重试（等价旧 play() 被浏览器拒） */
+ if(C.state==='suspended')C.resume();                    /* 确保 running，仿 SE 的 :687 手法（同一个 ctx） */
+ if(!herBuf){var now=performance.now();
+  if(now<herTryAt)return;herTryAt=now+700;
+  herAudio().then(function(b){if(b&&herWant>0&&!herSrc)herSet(herWant)});return}  /* 解码异步落地后补一次起播（tickHer 只在目标变化时才调 herSet，否则菜单首访必哑 */
+ if(!herStart())return;
+ herFadeTo(v)}
 function herTarget(){if(!truthReady())return 0;
  if(scene==='menu'||scene==='how'||scene==='log'||scene==='arch'||scene==='load')return HER_VOL_MENU;
  if(scene==='game')return (CUR===7&&S&&S.juke.started&&!S.juke.muted&&!S.juke.dead)?HER_VOL_GAME:0;
@@ -1373,8 +1390,8 @@ function itemBox(){                                               /* sprite 实�
    CAM 里的玫瑰（drawRoseFlower）与 rose_F 静立剪影零动：用户点的是那四件暗线物品，玫瑰不在本令范围。
    收取后 itemPending() 转 false、CAM 侧本就不再绘制 ⇒ 「没找到之前」天然成立，无需另加状态判断。
    热区 itemHit()、抽框逻辑、放行时机、YBOX 语义、SLOTPOS/tier/FOOT 一律未动：压暗只改观感。 */
-const ITEM_CAM_SCALE={chess:1/3,trophy:11/30*1.15};   /* A-163（批次24 用户直令「奖杯调大15%」，口径=现值再 x1.15）：1/3 -> x1.1（A-155）-> x1.15 = 253/600 ≈ 0.4217；
-                                                          仍只作用监控侧（itemBox 唯一出口）、仍与亮度表 ITEM_CAM_DIM_KEYS(trophy=0.40) 互不相干；chess 逐字不动。 */                    /* A-150（批次21 用户直令「象棋、奖杯大小缩到当前的1/3」）：只作用监控侧（itemBox 唯一出口），表外键＝1；
+const ITEM_CAM_SCALE={chess:1/3,trophy:11/30*1.15*1.5};   /* A-163（批次24 用户直令「奖杯调大15%」，口径=现值再 x1.15）：1/3 -> x1.1（A-155）-> x1.15 = 253/600 ≈ 0.4217；
+                                                          仍只作用监控侧（itemBox 唯一出口）、仍与亮度表 ITEM_CAM_DIM_KEYS(trophy=0.40) 互不相干；chess 逐字不动。A-167（批次25 用户直令「奖杯再调大50%」）：再x1.5（累计约0.6325＝11/30×1.15×1.5=253/400），办公室侧仍零动。 */                    /* A-150（批次21 用户直令「象棋、奖杯大小缩到当前的1/3」）：只作用监控侧（itemBox 唯一出口），表外键＝1；
                                                                      A-155（批次22 用户直令「奖杯仅监控侧放大10%」）：trophy 1/3→11/30（=1/3×1.1 线性等比），chess 逐字不动；
                                                                      办公室摆件尺寸（OFFICE.items × ITEM_SCALE）按用户裁决零动。 */
 const ITEM_CAM_DIM=0.30;                                          /* 监控侧亮度系数（唯一真源，禁把 0.30 散进绘制代码；不是颜色令牌，只是亮度倍率）
